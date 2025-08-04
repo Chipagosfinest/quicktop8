@@ -3,7 +3,7 @@
     "version": "1",
     "name": "QuickTop8",
     "description": "Discover your most interactive friends on Farcaster",
-    "homeUrl": "https://quicktop8-alpha.vercel.app",
+    "homeUrl": "https://quicktop8-alpha.vercel.app/app",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
     "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
     "buttonTitle": "🎯 Discover",
