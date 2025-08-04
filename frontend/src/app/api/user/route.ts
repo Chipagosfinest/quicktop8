@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     console.log(`Processing user: ${userData.username} (FID: ${userData.fid})`)
 
     // Get top interactions using the official SDK
-    let topInteractions = [];
+    let topInteractions: any[] = [];
     let hasTopInteractions = false;
     
     try {
