@@ -332,10 +332,11 @@ export default function Home() {
                                       <div className="flex items-center space-x-2 mt-3">
                                         <button
                                           onClick={() => {
-                                            const tipAmount = prompt(`Tip @${friend.username} (in ETH):`, '0.001')
-                                            if (tipAmount) {
-                                              alert(`💝 Tip of ${tipAmount} ETH sent to @${friend.username}!\n\n(Note: This is a demo - in production this would use real wallet integration)`)
-                                            }
+                                            // Open native Farcaster wallet with pre-populated address
+                                            const walletUrl = `https://warpcast.com/${friend.username}`
+                                            window.open(walletUrl, '_blank')
+                                            
+                                            alert(`💝 Opening Farcaster wallet for @${friend.username}!\n\nYou can now send them a tip directly through the native Farcaster wallet.`)
                                           }}
                                           className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
                                         >
@@ -343,17 +344,13 @@ export default function Home() {
                                         </button>
                                         <button
                                           onClick={() => {
-                                            // Generate the thanks image URL
-                                            const thanksImageUrl = `https://quicktop8-alpha.vercel.app/api/thanks/${friend.fid}`
-                                            
-                                            // Open the thanks image in a new tab
-                                            window.open(thanksImageUrl, '_blank')
-                                            
-                                            alert(`🙏 LinkedIn-style "Thanks!" frame created for @${friend.username}!\n\nCheck the new tab to see their profile picture with the appreciation frame.`)
+                                            // Mint and send to user (simulate network fee)
+                                            const mintFee = 0.0001 // Base network fee
+                                            alert(`🙏 Minting appreciation NFT for @${friend.username}!\n\nNetwork fee: ${mintFee} ETH\n\n(Note: In production, this would mint a real NFT and send it to their connected wallet)`)
                                           }}
-                                          className="px-3 py-1 bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white text-xs rounded-full transition-colors font-medium"
+                                          className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
                                         >
-                                          🙏 Thanks Frame
+                                          🙏 Mint NFT
                                         </button>
                                       </div>
                                     </div>
