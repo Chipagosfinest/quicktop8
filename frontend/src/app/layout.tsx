@@ -18,15 +18,15 @@ export const metadata: Metadata = {
   other: {
     "fc:frame": JSON.stringify({
       version: "vNext",
-      image: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/og-image.png",
+      image: "https://quicktop8-alpha.vercel.app/og-image.png",
       buttons: [
         {
           label: "Launch QuickTop8",
           action: "launch_miniapp",
-          target: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app"
+          target: "https://quicktop8-alpha.vercel.app"
         }
       ],
-      postUrl: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/api/frame"
+      postUrl: "https://quicktop8-alpha.vercel.app/api/frame"
     })
   }
 };
@@ -41,15 +41,15 @@ export default function RootLayout({
       <head>
         <meta name="fc:frame" content={JSON.stringify({
           version: "vNext",
-          image: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/og-image.png",
+          image: "https://quicktop8-alpha.vercel.app/og-image.png",
           buttons: [
             {
               label: "Launch QuickTop8",
               action: "launch_miniapp",
-              target: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app"
+              target: "https://quicktop8-alpha.vercel.app"
             }
           ],
-          postUrl: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/api/frame"
+          postUrl: "https://quicktop8-alpha.vercel.app/api/frame"
         })} />
       </head>
       <body
