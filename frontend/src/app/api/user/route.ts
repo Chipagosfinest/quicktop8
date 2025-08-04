@@ -72,7 +72,14 @@ export async function GET(request: NextRequest) {
         popularCasts = popularCastsData.casts || []
         console.log(`Fetched ${popularCasts.length} popular casts from Neynar`)
       } else {
-        console.error(`Neynar popular casts API failed: ${popularCastsResponse.status}`)
+        console.error(`Neynar popular casts API failed: ${popularCastsResponse.status} - ${popularCastsResponse.statusText}`)
+        // Try to get response text for debugging
+        try {
+          const errorText = await popularCastsResponse.text()
+          console.error('Error response:', errorText)
+        } catch (e) {
+          console.error('Could not read error response')
+        }
       }
 
       // Fetch user's followers
@@ -89,7 +96,14 @@ export async function GET(request: NextRequest) {
         followers = followersData.users || []
         console.log(`Fetched ${followers.length} followers from Neynar`)
       } else {
-        console.error(`Neynar followers API failed: ${followersResponse.status}`)
+        console.error(`Neynar followers API failed: ${followersResponse.status} - ${followersResponse.statusText}`)
+        // Try to get response text for debugging
+        try {
+          const errorText = await followersResponse.text()
+          console.error('Error response:', errorText)
+        } catch (e) {
+          console.error('Could not read error response')
+        }
       }
 
               // Analyze interactions from popular casts
@@ -179,6 +193,7 @@ export async function GET(request: NextRequest) {
 
       // If no real interactions found, use followers as fallback
       if (topInteractions.length === 0 && followers.length > 0) {
+        console.log('Using followers as fallback for top interactions')
         topInteractions = followers.slice(0, 8).map((follower: any, index: number) => ({
           fid: follower.fid,
           username: follower.username,
@@ -193,6 +208,43 @@ export async function GET(request: NextRequest) {
           recasts: Math.floor(Math.random() * 15) + 2,
           verified: follower.verified_addresses?.length > 0
         }))
+      }
+
+      // If still no data, try fetching following list
+      if (topInteractions.length === 0) {
+        console.log('Trying to fetch following list as fallback')
+        const followingResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/following?fid=${fid}&limit=100`, {
+          headers: {
+            'accept': 'application/json',
+            'api_key': NEYNAR_API_KEY
+          }
+        })
+
+        let following = []
+        if (followingResponse.ok) {
+          const followingData = await followingResponse.json()
+          following = followingData.users || []
+          console.log(`Fetched ${following.length} following from Neynar`)
+          
+          if (following.length > 0) {
+            topInteractions = following.slice(0, 8).map((followed: any, index: number) => ({
+              fid: followed.fid,
+              username: followed.username,
+              displayName: followed.display_name,
+              avatar: followed.pfp_url,
+              bio: followed.profile?.bio?.text || '',
+              followerCount: followed.follower_count,
+              followingCount: followed.following_count,
+              interactionCount: Math.floor(Math.random() * 50) + 10, // Mock interaction count
+              likes: Math.floor(Math.random() * 30) + 5,
+              replies: Math.floor(Math.random() * 20) + 3,
+              recasts: Math.floor(Math.random() * 15) + 2,
+              verified: followed.verified_addresses?.length > 0
+            }))
+          }
+        } else {
+          console.error(`Neynar following API failed: ${followingResponse.status} - ${followingResponse.statusText}`)
+        }
       }
 
       // If still no data, create mock interactions
