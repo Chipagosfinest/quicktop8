@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const BACKEND_URL = process.env.BACKEND_URL || "https://top8-production.up.railway.app"
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || "1E58A226-A64C-4CF3-A047-FBED94F36101"
+
+interface Top8Friend {
+  fid: number
+  username: string
+  display_name: string
+  pfp_url: string
+  bio: string
+  interactions: number
+  lastInteraction: string
+  interactionTypes: {
+    likes: number
+    replies: number
+    recasts: number
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,108 +25,143 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    // Call the Railway backend
-    const response = await fetch(`${BACKEND_URL}/api/user/${fid}/casts`, {
-      method: 'GET',
+    // Get user's recent casts
+    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/list?fid=${fid}&limit=50`, {
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'api_key': NEYNAR_API_KEY,
+        'accept': 'application/json'
+      }
     })
 
-    if (!response.ok) {
-      return NextResponse.json({ error: "Failed to fetch user data from backend" }, { status: 500 })
+    if (!castsResponse.ok) {
+      throw new Error(`Failed to fetch casts: ${castsResponse.status}`)
     }
 
-    const castsData = await response.json()
+    const castsData = await castsResponse.json()
+    const casts = castsData.casts || []
 
-    // Analyze interactions to build Top 8
-    const interactionMap = new Map()
+    // Analyze interactions on each cast
+    const friendInteractions: Map<number, Top8Friend> = new Map()
 
-    // Process casts and their reactions/replies
-    for (const cast of castsData.result?.casts || []) {
-      // Process reactions
-      if (cast.reactions) {
-        for (const reaction of cast.reactions.likes || []) {
-          const userId = reaction.fid
-          if (userId !== fid) {
-            const current = interactionMap.get(userId) || {
-              likes: 0,
-              replies: 0,
-              recasts: 0,
-              user: reaction,
-              lastInteraction: cast.timestamp,
+    for (const cast of casts) {
+      const castHash = cast.hash
+
+      // Get reactions for this cast
+      const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${castHash}`, {
+        headers: {
+          'api_key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        }
+      })
+
+      if (reactionsResponse.ok) {
+        const reactionsData = await reactionsResponse.json()
+        
+        // Process likes
+        if (reactionsData.reactions?.likes) {
+          for (const like of reactionsData.reactions.likes) {
+            const friendFid = like.reactor.fid
+            if (friendFid !== fid) {
+              const existing = friendInteractions.get(friendFid) || {
+                fid: friendFid,
+                username: like.reactor.username,
+                display_name: like.reactor.display_name,
+                pfp_url: like.reactor.pfp_url,
+                bio: like.reactor.bio || "",
+                interactions: 0,
+                lastInteraction: like.timestamp,
+                interactionTypes: { likes: 0, replies: 0, recasts: 0 }
+              }
+              
+              existing.interactions++
+              existing.interactionTypes.likes++
+              if (new Date(like.timestamp) > new Date(existing.lastInteraction)) {
+                existing.lastInteraction = like.timestamp
+              }
+              
+              friendInteractions.set(friendFid, existing)
             }
-            current.likes++
-            if (new Date(cast.timestamp) > new Date(current.lastInteraction)) {
-              current.lastInteraction = cast.timestamp
-            }
-            interactionMap.set(userId, current)
           }
         }
 
-        for (const recast of cast.reactions.recasts || []) {
-          const userId = recast.fid
-          if (userId !== fid) {
-            const current = interactionMap.get(userId) || {
-              likes: 0,
-              replies: 0,
-              recasts: 0,
-              user: recast,
-              lastInteraction: cast.timestamp,
+        // Process recasts
+        if (reactionsData.reactions?.recasts) {
+          for (const recast of reactionsData.reactions.recasts) {
+            const friendFid = recast.reactor.fid
+            if (friendFid !== fid) {
+              const existing = friendInteractions.get(friendFid) || {
+                fid: friendFid,
+                username: recast.reactor.username,
+                display_name: recast.reactor.display_name,
+                pfp_url: recast.reactor.pfp_url,
+                bio: recast.reactor.bio || "",
+                interactions: 0,
+                lastInteraction: recast.timestamp,
+                interactionTypes: { likes: 0, replies: 0, recasts: 0 }
+              }
+              
+              existing.interactions++
+              existing.interactionTypes.recasts++
+              if (new Date(recast.timestamp) > new Date(existing.lastInteraction)) {
+                existing.lastInteraction = recast.timestamp
+              }
+              
+              friendInteractions.set(friendFid, existing)
             }
-            current.recasts++
-            if (new Date(cast.timestamp) > new Date(current.lastInteraction)) {
-              current.lastInteraction = cast.timestamp
-            }
-            interactionMap.set(userId, current)
           }
         }
       }
 
-      // Process replies
-      if (cast.replies) {
-        for (const reply of cast.replies.casts || []) {
-          const userId = reply.author.fid
-          if (userId !== fid) {
-            const current = interactionMap.get(userId) || {
-              likes: 0,
-              replies: 0,
-              recasts: 0,
-              user: reply.author,
-              lastInteraction: reply.timestamp,
+      // Get replies for this cast
+      const repliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/replies?cast_hash=${castHash}`, {
+        headers: {
+          'api_key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        }
+      })
+
+      if (repliesResponse.ok) {
+        const repliesData = await repliesResponse.json()
+        
+        if (repliesData.replies) {
+          for (const reply of repliesData.replies) {
+            const friendFid = reply.author.fid
+            if (friendFid !== fid) {
+              const existing = friendInteractions.get(friendFid) || {
+                fid: friendFid,
+                username: reply.author.username,
+                display_name: reply.author.display_name,
+                pfp_url: reply.author.pfp_url,
+                bio: reply.author.bio || "",
+                interactions: 0,
+                lastInteraction: reply.timestamp,
+                interactionTypes: { likes: 0, replies: 0, recasts: 0 }
+              }
+              
+              existing.interactions++
+              existing.interactionTypes.replies++
+              if (new Date(reply.timestamp) > new Date(existing.lastInteraction)) {
+                existing.lastInteraction = reply.timestamp
+              }
+              
+              friendInteractions.set(friendFid, existing)
             }
-            current.replies++
-            if (new Date(reply.timestamp) > new Date(current.lastInteraction)) {
-              current.lastInteraction = reply.timestamp
-            }
-            interactionMap.set(userId, current)
           }
         }
       }
     }
 
-    // Convert to array and sort by total interactions
-    const friends = Array.from(interactionMap.entries())
-      .map(([fid, data]) => ({
-        fid: Number.parseInt(fid),
-        username: data.user.username,
-        display_name: data.user.display_name,
-        pfp_url: data.user.pfp_url,
-        bio: data.user.profile?.bio?.text || "",
-        interactions: data.likes + data.replies + data.recasts,
-        lastInteraction: data.lastInteraction,
-        interactionTypes: {
-          likes: data.likes,
-          replies: data.replies,
-          recasts: data.recasts,
-        },
-      }))
+    // Convert to array and sort by interactions
+    const friends = Array.from(friendInteractions.values())
       .sort((a, b) => b.interactions - a.interactions)
       .slice(0, 8)
 
     return NextResponse.json({ friends })
   } catch (error) {
-    console.error("Error fetching Top 8 data:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Top8 API error:", error)
+    return NextResponse.json(
+      { error: "Failed to analyze interactions" }, 
+      { status: 500 }
+    )
   }
 }

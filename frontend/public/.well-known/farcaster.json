@@ -3,12 +3,12 @@
     "version": "1",
     "name": "QuickTop8",
     "description": "Discover your most interactive friends on Farcaster",
-    "homeUrl": "https://quicktop8-alpha.vercel.app/app",
-    "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
-    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
+    "homeUrl": "https://quicktop8-81c6rf7cd-chipagosfinests-projects.vercel.app/app",
+    "iconUrl": "https://quicktop8-81c6rf7cd-chipagosfinests-projects.vercel.app/icon.png",
+    "imageUrl": "https://quicktop8-81c6rf7cd-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "🎯 Discover",
-    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
+    "splashImageUrl": "https://quicktop8-81c6rf7cd-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#8B5CF6",
-    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook"
+    "webhookUrl": "https://quicktop8-81c6rf7cd-chipagosfinests-projects.vercel.app/api/webhook"
   }
 } 
