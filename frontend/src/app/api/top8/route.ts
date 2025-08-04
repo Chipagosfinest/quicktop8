@@ -32,42 +32,50 @@ export async function POST(request: NextRequest) {
 
     console.log(`Analyzing interactions from: ${fortyFiveDaysAgo.toISOString()}`)
 
-    // Get user's recent casts from last 45 days (limit to 50 for better coverage)
-    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/list?fid=${fid}&limit=50&from_timestamp=${fromTimestamp}`, {
+    // Get user's recent casts from last 45 days (limit to 20 for faster response)
+    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/list?fid=${fid}&limit=20&from_timestamp=${fromTimestamp}`, {
       headers: {
         'api_key': NEYNAR_API_KEY,
         'accept': 'application/json'
-      }
+      },
+      signal: AbortSignal.timeout(10000) // 10 second timeout
     })
 
     if (!castsResponse.ok) {
       console.error(`Failed to fetch casts: ${castsResponse.status}`)
-      return NextResponse.json({ error: "Failed to fetch user casts" }, { status: 500 })
+      return NextResponse.json({ 
+        error: "Failed to fetch user casts. Please try again or check if the FID is correct." 
+      }, { status: 500 })
     }
 
     const castsData = await castsResponse.json()
     const casts = castsData.casts || []
 
     if (casts.length === 0) {
-      return NextResponse.json({ friends: [] })
+      return NextResponse.json({ 
+        friends: [],
+        message: "No recent casts found for this FID. Try with a different FID or check back later."
+      })
     }
 
     console.log(`Found ${casts.length} casts from last 45 days to analyze`)
 
     const interactionMap = new Map<number, InteractionData>()
 
-    // Process each cast (analyze all since they're already filtered by time)
-    for (let i = 0; i < casts.length; i++) {
+    // Process each cast (limit to first 5 for faster response)
+    for (let i = 0; i < Math.min(casts.length, 5); i++) {
       const cast = casts[i]
-      console.log(`Processing cast ${i + 1}/${casts.length}`)
+      console.log(`Processing cast ${i + 1}/${Math.min(casts.length, 5)}`)
 
-      // Get reactions for this cast
-      const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=50`, {
-        headers: {
-          'api_key': NEYNAR_API_KEY,
-          'accept': 'application/json'
-        }
-      })
+      try {
+        // Get reactions for this cast
+        const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=30`, {
+          headers: {
+            'api_key': NEYNAR_API_KEY,
+            'accept': 'application/json'
+          },
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        })
 
       if (reactionsResponse.ok) {
         const reactionsData = await reactionsResponse.json()
@@ -105,10 +113,14 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-      }
+              }
 
-      // Add delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100))
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 200))
+      } catch (error) {
+        console.error(`Error processing cast ${i + 1}:`, error)
+        continue // Skip this cast and continue with the next one
+      }
     }
 
     // Convert to array and sort by total score
@@ -117,6 +129,14 @@ export async function POST(request: NextRequest) {
       .slice(0, 8)
 
     console.log(`Found ${friends.length} top friends`)
+
+    // If no friends found, return empty array instead of error
+    if (friends.length === 0) {
+      return NextResponse.json({ 
+        friends: [],
+        message: "No recent interactions found. Try with a different FID or check back later."
+      })
+    }
 
     return NextResponse.json({ friends })
   } catch (error) {

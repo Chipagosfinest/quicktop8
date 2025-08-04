@@ -73,7 +73,12 @@ export default function AppPage() {
         throw new Error(data.error || "Failed to fetch Top 8")
       }
 
-      setFriends(data.friends)
+      setFriends(data.friends || [])
+      
+      // Show message if provided
+      if (data.message) {
+        console.log(data.message)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
