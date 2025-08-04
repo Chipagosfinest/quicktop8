@@ -334,22 +334,56 @@ export default function Home() {
                                       {/* Appreciation Buttons */}
                                       <div className="flex items-center space-x-2 mt-3">
                                         <button
-                                          onClick={() => {
-                                            // Open native Farcaster wallet with pre-populated address
-                                            const walletUrl = `https://warpcast.com/${friend.username}`
-                                            window.open(walletUrl, '_blank')
-                                            
-                                            alert(`💝 Opening Farcaster wallet for @${friend.username}!\n\nYou can now send them a tip directly through the native Farcaster wallet.`)
+                                          onClick={async () => {
+                                            try {
+                                              // Use native Farcaster sendToken action
+                                              const result = await sdk.actions.sendToken({
+                                                recipientFid: friend.fid,
+                                                amount: '1000000', // 1 USDC (6 decimals)
+                                                token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
+                                              })
+                                              
+                                              if (result.success) {
+                                                alert(`💝 Tip sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
+                                              } else {
+                                                if (result.reason === 'rejected_by_user') {
+                                                  alert('💝 Tip cancelled by user')
+                                                } else {
+                                                  alert(`💝 Tip failed: ${result.error?.message || 'Unknown error'}`)
+                                                }
+                                              }
+                                            } catch (error) {
+                                              console.error('Error sending tip:', error)
+                                              alert(`💝 Error sending tip to @${friend.username}: ${error}`)
+                                            }
                                           }}
                                           className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
                                         >
                                           💝 Tip
                                         </button>
                                         <button
-                                          onClick={() => {
-                                            // Mint and send to user (simulate network fee)
-                                            const mintFee = 0.0001 // Base network fee
-                                            alert(`🙏 Minting appreciation NFT for @${friend.username}!\n\nNetwork fee: ${mintFee} ETH\n\n(Note: In production, this would mint a real NFT and send it to their connected wallet)`)
+                                          onClick={async () => {
+                                            try {
+                                              // Send a small amount of ETH as "mint fee" to the user
+                                              const result = await sdk.actions.sendToken({
+                                                recipientFid: friend.fid,
+                                                amount: '1000000000000000', // 0.001 ETH (18 decimals)
+                                                token: 'eip155:8453/native' // Base ETH
+                                              })
+                                              
+                                              if (result.success) {
+                                                alert(`🙏 Appreciation sent to @${friend.username}!\n\nTransaction: ${result.send.transaction}\n\nThis represents the "mint fee" for your appreciation NFT!`)
+                                              } else {
+                                                if (result.reason === 'rejected_by_user') {
+                                                  alert('🙏 Mint cancelled by user')
+                                                } else {
+                                                  alert(`🙏 Mint failed: ${result.error?.message || 'Unknown error'}`)
+                                                }
+                                              }
+                                            } catch (error) {
+                                              console.error('Error minting appreciation:', error)
+                                              alert(`🙏 Error sending appreciation to @${friend.username}: ${error}`)
+                                            }
                                           }}
                                           className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
                                         >
