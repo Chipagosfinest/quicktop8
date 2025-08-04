@@ -70,35 +70,102 @@ export async function GET(request: NextRequest) {
 
     console.log(`Processing user: ${userData.username} (FID: ${userData.fid})`)
 
-    // Get top interactions using the official SDK
+    // Get real top interactions using the official SDK
     let topInteractions: any[] = [];
     let hasTopInteractions = false;
     
     try {
-      // For now, let's get some sample interactions
-      // In the future, we can implement full interaction analysis
-      const sampleFids = [2, 3, 194, 191, 6131]; // Sample FIDs
-      const bulkUsersResponse = await client.fetchBulkUsers({ fids: sampleFids });
+      // Get user's casts to analyze interactions
+      const castsResponse = await client.fetchCastsForUser({ fid: parseInt(fid), limit: 100 });
       
-      if (bulkUsersResponse.users) {
-        topInteractions = bulkUsersResponse.users.map((user, index) => ({
-          fid: user.fid,
-          username: user.username,
-          displayName: user.display_name,
-          avatar: user.pfp_url,
-          followerCount: user.follower_count,
-          userScore: user.score || 0,
-          verified: !!user.verified_addresses,
-          interactionCount: 10 - index, // Sample interaction count
-          likes: 5 - index,
-          replies: 3 - index,
-          recasts: 2 - index
-        }));
+      if (castsResponse.casts && castsResponse.casts.length > 0) {
+        console.log(`Found ${castsResponse.casts.length} casts to analyze`)
         
-        hasTopInteractions = topInteractions.length > 0;
+        // Extract interaction data from casts
+        const interactionMap = new Map();
+        
+        for (const cast of castsResponse.casts) {
+          // Count likes
+          if (cast.reactions?.likes) {
+            for (const like of cast.reactions.likes) {
+              const likeFid = like.fid;
+              if (!interactionMap.has(likeFid)) {
+                interactionMap.set(likeFid, { likes: 0, replies: 0, recasts: 0 });
+              }
+              interactionMap.get(likeFid).likes++;
+            }
+          }
+          
+          // Count replies
+          if (cast.replies?.casts) {
+            for (const reply of cast.replies.casts) {
+              const replyFid = reply.author.fid;
+              if (!interactionMap.has(replyFid)) {
+                interactionMap.set(replyFid, { likes: 0, replies: 0, recasts: 0 });
+              }
+              interactionMap.get(replyFid).replies++;
+            }
+          }
+          
+          // Count recasts
+          if (cast.recasts?.recasts) {
+            for (const recast of cast.recasts.recasts) {
+              const recastFid = recast.user.fid;
+              if (!interactionMap.has(recastFid)) {
+                interactionMap.set(recastFid, { likes: 0, replies: 0, recasts: 0 });
+              }
+              interactionMap.get(recastFid).recasts++;
+            }
+          }
+        }
+        
+        console.log(`Found interactions with ${interactionMap.size} users`)
+        
+        // Get user data for top interactions
+        const topFids = Array.from(interactionMap.entries())
+          .sort((a, b) => {
+            const aTotal = a[1].likes + a[1].replies + a[1].recasts;
+            const bTotal = b[1].likes + b[1].replies + b[1].recasts;
+            return bTotal - aTotal;
+          })
+          .slice(0, 8)
+          .map(([fid]) => fid);
+        
+        if (topFids.length > 0) {
+          console.log(`Fetching data for top ${topFids.length} users`)
+          const bulkUsersResponse = await client.fetchBulkUsers({ fids: topFids });
+          
+          if (bulkUsersResponse.users) {
+            topInteractions = bulkUsersResponse.users.map(user => {
+              const interactions = interactionMap.get(user.fid) || { likes: 0, replies: 0, recasts: 0 };
+              const totalInteractions = interactions.likes + interactions.replies + interactions.recasts;
+              
+              return {
+                fid: user.fid,
+                username: user.username,
+                displayName: user.display_name,
+                avatar: user.pfp_url,
+                followerCount: user.follower_count,
+                userScore: user.score || 0,
+                verified: !!user.verified_addresses,
+                interactionCount: totalInteractions,
+                likes: interactions.likes,
+                replies: interactions.replies,
+                recasts: interactions.recasts
+              };
+            });
+            
+            hasTopInteractions = topInteractions.length > 0;
+            console.log(`Successfully processed ${topInteractions.length} top interactions`)
+          }
+        } else {
+          console.log('No interactions found in casts')
+        }
+      } else {
+        console.log('No casts found for user')
       }
     } catch (error) {
-      console.warn('Failed to fetch top interactions:', error);
+      console.error('Failed to fetch top interactions:', error);
       hasTopInteractions = false;
     }
 

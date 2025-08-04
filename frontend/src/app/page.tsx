@@ -44,32 +44,44 @@ export default function HomePage() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fid, setFid] = useState<number | null>(null)
+  const [fid, setFid] = useState<string>('')
+  const [hasSearched, setHasSearched] = useState(false)
 
-  useEffect(() => {
-    // For demo purposes, use a sample FID
-    const sampleFid = 4044 // alec.eth
-    setFid(sampleFid)
-    fetchUserData(sampleFid)
-  }, [])
+  const fetchUserData = async (fid: string) => {
+    if (!fid.trim()) {
+      setError('Please enter a valid FID')
+      return
+    }
 
-  const fetchUserData = async (fid: number) => {
     setLoading(true)
     setError(null)
+    setHasSearched(true)
     
     try {
-      const response = await fetch(`/api/user?fid=${fid}`)
+      const response = await fetch(`/api/user?fid=${fid.trim()}`)
       const data = await response.json()
       
       if (response.ok) {
         setUserData(data)
       } else {
         setError(data.error || 'Failed to fetch user data')
+        setUserData(null)
       }
     } catch (err) {
       setError('Network error occurred')
+      setUserData(null)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSearch = () => {
+    fetchUserData(fid)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch()
     }
   }
 
@@ -78,7 +90,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading QuickTop8...</p>
+          <p className="text-gray-600">Analyzing your Farcaster interactions...</p>
         </div>
       </div>
     )
@@ -93,31 +105,40 @@ export default function HomePage() {
           <p className="text-gray-600">Your Top Farcaster Friends</p>
         </div>
 
-        {/* User Info */}
-        {userData && (
+        {/* Search Section */}
+        {!userData && (
           <Card className="mb-8">
             <CardHeader>
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={userData.avatar} alt={userData.displayName} />
-                  <AvatarFallback>{userData.displayName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-xl">{userData.displayName}</CardTitle>
-                  <p className="text-gray-600">@{userData.username}</p>
-                  <div className="flex space-x-4 mt-2">
-                    <span className="text-sm text-gray-500">{userData.followerCount} followers</span>
-                    <span className="text-sm text-gray-500">{userData.followingCount} following</span>
-                    <span className="text-sm text-gray-500">{userData.castCount} casts</span>
-                  </div>
-                </div>
-              </div>
+              <CardTitle className="text-center">🔍 Find Your Top 8 Friends</CardTitle>
             </CardHeader>
-            {userData.bio && (
-              <CardContent>
-                <p className="text-gray-700">{userData.bio}</p>
-              </CardContent>
-            )}
+            <CardContent>
+              <div className="max-w-md mx-auto space-y-4">
+                <div>
+                  <label htmlFor="fid" className="block text-sm font-medium text-gray-700 mb-2">
+                    Enter your Farcaster ID (FID)
+                  </label>
+                  <input
+                    id="fid"
+                    type="number"
+                    placeholder="e.g., 4044"
+                    value={fid}
+                    onChange={(e) => setFid(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <Button 
+                  onClick={handleSearch}
+                  disabled={loading || !fid.trim()}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {loading ? 'Analyzing...' : 'Find My Top 8'}
+                </Button>
+                <p className="text-xs text-gray-500 text-center">
+                  We'll analyze your recent casts to find who interacts with you most
+                </p>
+              </div>
+            </CardContent>
           </Card>
         )}
 
@@ -125,8 +146,61 @@ export default function HomePage() {
         {error && (
           <Card className="mb-8 border-red-200 bg-red-50">
             <CardContent className="pt-6">
-              <p className="text-red-600 text-center">{error}</p>
+              <div className="text-center">
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button 
+                  onClick={() => {
+                    setError(null)
+                    setHasSearched(false)
+                    setUserData(null)
+                  }}
+                  variant="outline"
+                >
+                  Try Again
+                </Button>
+              </div>
             </CardContent>
+          </Card>
+        )}
+
+        {/* User Info */}
+        {userData && (
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={userData.avatar} alt={userData.displayName} />
+                    <AvatarFallback>{userData.displayName?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <CardTitle className="text-xl">{userData.displayName}</CardTitle>
+                    <p className="text-gray-600">@{userData.username}</p>
+                    <div className="flex space-x-4 mt-2">
+                      <span className="text-sm text-gray-500">{userData.followerCount} followers</span>
+                      <span className="text-sm text-gray-500">{userData.followingCount} following</span>
+                      <span className="text-sm text-gray-500">{userData.castCount} casts</span>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setUserData(null)
+                    setFid('')
+                    setError(null)
+                    setHasSearched(false)
+                  }}
+                  variant="outline"
+                >
+                  Search Another User
+                </Button>
+              </div>
+            </CardHeader>
+            {userData.bio && (
+              <CardContent>
+                <p className="text-gray-700">{userData.bio}</p>
+              </CardContent>
+            )}
           </Card>
         )}
 
@@ -186,10 +260,27 @@ export default function HomePage() {
         )}
 
         {/* No Interactions */}
-        {userData && !userData.hasTopInteractions && !loading && !error && (
+        {userData && !userData.hasTopInteractions && !loading && !error && hasSearched && (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-gray-600">No interactions found yet. Start engaging with other Farcaster users!</p>
+              <p className="text-gray-600 mb-4">No recent interactions found.</p>
+              <p className="text-sm text-gray-500">
+                This could mean:
+              </p>
+              <ul className="text-sm text-gray-500 mt-2 space-y-1">
+                <li>• You haven't posted many casts recently</li>
+                <li>• Your casts don't have many interactions yet</li>
+                <li>• The user might be new to Farcaster</li>
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Welcome State */}
+        {!userData && !hasSearched && !error && (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-gray-600">Enter a Farcaster ID above to discover your top 8 friends!</p>
             </CardContent>
           </Card>
         )}
