@@ -2,7 +2,7 @@
 
 const axios = require('axios');
 
-const APP_URL = 'https://quicktop8-cp6gdzsz7-chipagosfinests-projects.vercel.app';
+const APP_URL = 'https://quicktop8-alpha.vercel.app';
 
 async function checkHealth() {
   console.log('🔍 Checking app health...');
@@ -11,8 +11,8 @@ async function checkHealth() {
     console.log('✅ App is healthy');
     console.log(`   Status: ${response.data.status}`);
     console.log(`   Neynar configured: ${response.data.neynarConfigured}`);
-    console.log(`   Cache hit rate: ${response.data.performance.cacheHitRate}%`);
-    console.log(`   Average response time: ${response.data.performance.averageResponseTime}ms`);
+    console.log(`   Cache hit rate: ${response.data.performance?.cacheHitRate || 0}%`);
+    console.log(`   Average response time: ${response.data.performance?.averageResponseTime || 0}ms`);
     return true;
   } catch (error) {
     console.log('❌ Health check failed:', error.message);
@@ -47,12 +47,12 @@ async function checkRateLimits() {
     const rateLimits = response.data.rateLimits;
     
     console.log('✅ Rate limits status:');
-    console.log(`   Global: ${rateLimits.global.current}/${rateLimits.global.limit} RPM`);
+    console.log(`   Global: ${rateLimits?.global?.current || 0}/${rateLimits?.global?.limit || 0} RPM`);
     
-    const endpoints = Object.keys(rateLimits.endpoints);
+    const endpoints = Object.keys(rateLimits?.endpoints || {});
     endpoints.forEach(endpoint => {
       const limit = rateLimits.endpoints[endpoint];
-      console.log(`   ${endpoint}: ${limit.current}/${limit.limit} RPM`);
+      console.log(`   ${endpoint}: ${limit?.current || 0}/${limit?.limit || 0} RPM`);
     });
     
     return true;

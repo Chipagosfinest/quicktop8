@@ -1,56 +1,27 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { MiniAppProvider } from "@/components/MiniAppProvider";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { MiniAppProvider } from '@neynar/react'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "Reply Guy - Discover Your Biggest Fans",
-  description: "Find out who your biggest fans are on Farcaster and show them some love!",
-  openGraph: {
-    title: "Reply Guy - Discover Your Biggest Fans",
-    description: "Find out who your biggest fans are on Farcaster and show them some love!",
-    images: ['https://quicktop8-alpha.vercel.app/og-image.png'],
-  },
-  icons: {
-    icon: [
-      { url: '/icon.png', type: 'image/png' },
-      { url: '/favicon.ico', type: 'image/x-icon' }
-    ],
-    shortcut: '/icon.png',
-    apple: '/icon.png'
-  }
-};
+  title: 'QuickTop8 - Your Top Farcaster Friends',
+  description: 'Discover your top 8 friends on Farcaster based on your interactions',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <head>
-                         <meta property="fc:miniapp" content="Reply Guy" />
-                 <meta property="fc:miniapp:domain" content="quicktop8-alpha.vercel.app" />
-                 <meta property="fc:miniapp:icon" content="https://quicktop8-alpha.vercel.app/icon.png" />
-                 <meta property="fc:miniapp:home" content="https://quicktop8-alpha.vercel.app" />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <MiniAppProvider>
+      <body className={inter.className}>
+        <MiniAppProvider analyticsEnabled={true}>
           {children}
         </MiniAppProvider>
       </body>
     </html>
-  );
+  )
 }

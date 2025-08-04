@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server'
-import { getIndexer } from '@/lib/indexer'
+import { getNeynarClient } from '@/lib/neynar-client'
 
 export async function GET() {
   try {
-    const indexer = getIndexer();
+    const client = getNeynarClient();
     
-    const cacheStats = indexer.getCacheStats();
-    const rateLimitStats = indexer.getRateLimitStats();
-    const performanceStats = indexer.getPerformanceStats();
+    // Test the API connection
+    let apiTest = false;
+    try {
+      // Try a simple API call to test connectivity
+      await client.lookupUserByFid(1);
+      apiTest = true;
+    } catch (error) {
+      console.warn('API test failed:', error);
+    }
     
     return NextResponse.json({ 
       status: 'OK', 
       timestamp: new Date().toISOString(),
       neynarConfigured: !!process.env.NEYNAR_API_KEY,
-      cache: cacheStats,
-      rateLimits: rateLimitStats,
-      performance: performanceStats
+      apiTest: apiTest,
+      message: apiTest ? 'API connection successful' : 'API connection failed'
     });
   } catch (error) {
     console.error('Health check failed:', error);
