@@ -280,16 +280,16 @@ export default function Home() {
                         {userData.topInteractions && userData.topInteractions.length > 0 ? (
                           <div className="mt-4">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-blue-800">🏆 Your Biggest Fans (Last 45 Days)</h4>
+                              <h4 className="text-sm font-semibold text-blue-800">💬 Your Top Reply Guys & Inner Circle</h4>
                               <button
                                 onClick={() => {
-                                  const shareText = `🎯 My Biggest Farcaster Fans:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) => 
+                                  const shareText = `💬 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) => 
                                     `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions`
                                   ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
                                   
                                   if (navigator.share) {
                                     navigator.share({
-                                      title: 'Reply Guy - My Biggest Fans',
+                                      title: 'Reply Guy - My Top Reply Guys',
                                       text: shareText,
                                       url: 'https://quicktop8-alpha.vercel.app'
                                     })
@@ -305,7 +305,14 @@ export default function Home() {
                             </div>
                             <div className="space-y-3">
                               {userData.topInteractions.slice(0, 8).map((friend: any, index: number) => (
-                                <div key={friend.fid} className="bg-white rounded-lg border p-4 shadow-sm">
+                                <div 
+                                  key={friend.fid} 
+                                  className="bg-white rounded-lg border p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                                  onClick={() => {
+                                    // Open user's Farcaster profile
+                                    window.open(`https://warpcast.com/${friend.username}`, '_blank')
+                                  }}
+                                >
                                   <div className="flex items-center space-x-3">
                                     <div className="flex-shrink-0">
                                       <div className="relative">
@@ -315,6 +322,11 @@ export default function Home() {
                                           width={48}
                                           height={48}
                                           className="rounded-full border-2 border-gray-200"
+                                          onError={(e) => {
+                                            // Fallback to dicebear avatar on error
+                                            const target = e.target as HTMLImageElement
+                                            target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`
+                                          }}
                                         />
                                         {friend.verified && (
                                           <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -356,15 +368,14 @@ export default function Home() {
                                       {/* Appreciation Buttons */}
                                       <div className="flex items-center space-x-2 mt-3">
                                         <button
-                                          onClick={async () => {
-                                            try {
-                                              // Use native Farcaster sendToken action
-                                              const result = await sdk.actions.sendToken({
-                                                recipientFid: friend.fid,
-                                                amount: '1000000', // 1 USDC (6 decimals)
-                                                token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
-                                              })
-                                              
+                                          onClick={(e) => {
+                                            e.stopPropagation() // Prevent card click
+                                            // Tip functionality
+                                            sdk.actions.sendToken({
+                                              recipientFid: friend.fid,
+                                              amount: '1000000', // 1 USDC (6 decimals)
+                                              token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
+                                            }).then((result) => {
                                               if (result.success) {
                                                 alert(`💝 Tip sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
                                               } else {
@@ -374,25 +385,24 @@ export default function Home() {
                                                   alert(`💝 Tip failed: ${result.error?.message || 'Unknown error'}`)
                                                 }
                                               }
-                                            } catch (error) {
+                                            }).catch((error) => {
                                               console.error('Error sending tip:', error)
                                               alert(`💝 Error sending tip to @${friend.username}: ${error}`)
-                                            }
+                                            })
                                           }}
                                           className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
                                         >
                                           💝 Tip
                                         </button>
                                         <button
-                                          onClick={async () => {
-                                            try {
-                                              // Send a small amount of ETH as "mint fee" to the user
-                                              const result = await sdk.actions.sendToken({
-                                                recipientFid: friend.fid,
-                                                amount: '1000000000000000', // 0.001 ETH (18 decimals)
-                                                token: 'eip155:8453/native' // Base ETH
-                                              })
-                                              
+                                          onClick={(e) => {
+                                            e.stopPropagation() // Prevent card click
+                                            // Mint functionality
+                                            sdk.actions.sendToken({
+                                              recipientFid: friend.fid,
+                                              amount: '1000000000000000', // 0.001 ETH (18 decimals)
+                                              token: 'eip155:8453/native' // Base ETH
+                                            }).then((result) => {
                                               if (result.success) {
                                                 alert(`🙏 Appreciation sent to @${friend.username}!\n\nTransaction: ${result.send.transaction}\n\nThis represents the "mint fee" for your appreciation NFT!`)
                                               } else {
@@ -402,10 +412,10 @@ export default function Home() {
                                                   alert(`🙏 Mint failed: ${result.error?.message || 'Unknown error'}`)
                                                 }
                                               }
-                                            } catch (error) {
+                                            }).catch((error) => {
                                               console.error('Error minting appreciation:', error)
                                               alert(`🙏 Error sending appreciation to @${friend.username}: ${error}`)
-                                            }
+                                            })
                                           }}
                                           className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
                                         >
