@@ -25,18 +25,50 @@ export default function Home() {
       setLoading(true)
       console.log('Fetching user data via Quick Auth...')
       
-      // Use Quick Auth to make authenticated request
-      const response = await sdk.quickAuth.fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://quicktop8-alpha.vercel.app'}/api/user/${userFid}`)
+      // First test with a simpler endpoint
+      const testResponse = await sdk.quickAuth.fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://quicktop8-alpha.vercel.app'}/api/user/test`)
       
-      if (response.ok) {
-        const data = await response.json()
-        setUserData(data)
-        console.log('User data fetched successfully:', data)
+      if (testResponse.ok) {
+        const testData = await testResponse.json()
+        console.log('Test API working:', testData)
+        
+        // Now try the actual user endpoint with query parameters
+        const response = await sdk.quickAuth.fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://quicktop8-alpha.vercel.app'}/api/user?fid=${userFid}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setUserData(data)
+          console.log('User data fetched successfully:', data)
+        } else {
+          console.error('Failed to fetch user data:', response.status)
+          // Fallback to test data
+          setUserData({
+            fid: userFid,
+            username: `user_${userFid}`,
+            displayName: `User ${userFid}`,
+            message: 'Using fallback data - API endpoint not working',
+            test: true
+          })
+        }
       } else {
-        console.error('Failed to fetch user data:', response.status)
+        console.error('Test API failed:', testResponse.status)
+        setUserData({
+          fid: userFid,
+          username: `user_${userFid}`,
+          displayName: `User ${userFid}`,
+          message: 'API endpoints not working - using mock data',
+          test: true
+        })
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
+      setUserData({
+        fid: userFid,
+        username: `user_${userFid}`,
+        displayName: `User ${userFid}`,
+        message: 'Error occurred - using mock data',
+        test: true
+      })
     } finally {
       setLoading(false)
     }
