@@ -1,9 +1,11 @@
 {
-  "miniapp": {
-    "version": "1",
+  "frame": {
     "name": "Reply Guy",
-    "homeUrl": "https://quicktop8-alpha.vercel.app",
+    "version": "1",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-alpha.vercel.app",
+    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
+    "buttonTitle": "Open mini app",
     "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
     "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
@@ -17,21 +19,8 @@
       "engagement",
       "fans"
     ],
-    "heroImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "tagline": "Discover your biggest fans",
     "ogTitle": "Reply Guy",
     "ogDescription": "Discover your biggest fans on Farcaster and show them appreciation",
-    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "requiredChains": [
-      "eip155:8453"
-    ],
-    "requiredCapabilities": [
-      "actions.signIn",
-      "actions.authenticate",
-      "actions.sendToken",
-      "actions.addMiniApp",
-      "wallet.getEthereumProvider"
-    ],
-    "canonicalDomain": "quicktop8-alpha.vercel.app"
+    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
   }
 } 
