@@ -12,6 +12,11 @@
   ],
   "routes": [
     {
+      "src": "/.well-known/farcaster.json",
+      "dest": "https://api.farcaster.xyz/miniapps/hosted-manifest/01987681-06bc-28b8-7d8d-83e1686ba156",
+      "status": 307
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/server.js"
     },
