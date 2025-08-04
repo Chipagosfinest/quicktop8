@@ -106,6 +106,7 @@ show_status() {
     echo "1. Check Vercel dashboard for deployment status"
     echo "2. Verify environment variables are set in Vercel"
     echo "3. Test the deployed application"
+    echo "4. Use standardized domain: https://quicktop8-alpha.vercel.app"
 }
 
 # Main deployment function
