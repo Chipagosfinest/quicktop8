@@ -14,7 +14,8 @@ const CORRECT_DOMAIN = 'quicktop8-alpha.vercel.app';
 const INCORRECT_DOMAINS = [
   'quicktop8-4qfi9ja5x-chipagosfinests-projects.vercel.app',
   'quicktop8-1kdm75eay-chipagosfinests-projects.vercel.app',
-  'quicktop8-cv50bt82m-chipagosfinests-projects.vercel.app'
+  'quicktop8-cv50bt82m-chipagosfinests-projects.vercel.app',
+  'quicktop8-psc7zsu2m-chipagosfinests-projects.vercel.app'
 ];
 
 const FILES_TO_CHECK = [
