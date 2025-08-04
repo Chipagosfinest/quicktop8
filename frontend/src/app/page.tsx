@@ -38,7 +38,7 @@ export default function Home() {
         setIsSDKLoaded(true)
         
         // Get user's FID if available
-        const context = sdk.context
+        const context = await sdk.context
         if (context?.user?.fid) {
           setFid(context.user.fid.toString())
           setIsConnected(true)
