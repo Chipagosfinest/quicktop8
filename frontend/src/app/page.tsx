@@ -27,7 +27,6 @@ export default function Home() {
   const [friends, setFriends] = useState<Top8Friend[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [userFid, setUserFid] = useState<string>("")
   const [isConnected, setIsConnected] = useState(false)
   const [isSDKLoaded, setIsSDKLoaded] = useState(false)
 
@@ -39,9 +38,8 @@ export default function Home() {
         setIsSDKLoaded(true)
         
         // Get user's FID if available
-        const context = await sdk.context()
+        const context = sdk.context
         if (context?.user?.fid) {
-          setUserFid(context.user.fid.toString())
           setFid(context.user.fid.toString())
           setIsConnected(true)
         }

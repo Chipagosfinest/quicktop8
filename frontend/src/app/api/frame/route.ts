@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    
     // Handle frame interaction
+    await request.json() // Consume the body but don't use it for now
+    
     return NextResponse.json({
       success: true,
       message: "Frame interaction handled"
