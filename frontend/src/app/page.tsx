@@ -154,24 +154,24 @@ export default function Home() {
         
         {/* Add to Warpcast Button */}
         <div className="mb-8">
-          <button
-            onClick={async () => {
-              try {
-                await sdk.actions.addMiniApp()
-                alert('✅ App added to your Warpcast! You can now find it in your apps screen.')
-              } catch (error) {
-                if (error === 'RejectedByUser') {
-                  alert('❌ App add cancelled by user')
-                } else {
-                  console.error('Error adding mini app:', error)
-                  alert('❌ Error adding app to Warpcast')
+                      <button
+              onClick={async () => {
+                try {
+                  await sdk.actions.addMiniApp()
+                  alert('✅ App added to your Farcaster! You can now find it in your apps screen.')
+                } catch (error) {
+                  if (error === 'RejectedByUser') {
+                    alert('❌ App add cancelled by user')
+                  } else {
+                    console.error('Error adding mini app:', error)
+                    alert('❌ Error adding app to Farcaster')
+                  }
                 }
-              }
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-colors font-medium shadow-lg"
-          >
-            ➕ Add to Warpcast
-          </button>
+              }}
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-colors font-medium shadow-lg"
+            >
+              ➕ Add to Farcaster
+            </button>
         </div>
         
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
