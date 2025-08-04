@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Failed to fetch user data from backend',
-          details: error instanceof Error ? error.message : 'Unknown error'
+          details: error instanceof Error ? error.message : String(error)
         },
         { status: 500 }
       )
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in user API:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
