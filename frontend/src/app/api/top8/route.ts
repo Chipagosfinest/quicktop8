@@ -2,295 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || "1E58A226-A64C-4CF3-A047-FBED94F36101"
 
-interface InteractionData {
+interface MutualFollowData {
   fid: number
   username: string
   display_name: string
   pfp_url: string
   bio: string
-  replyCount: number
-  likeCount: number
-  recastCount: number
-  totalScore: number
-  lastInteraction: string
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const { fid } = await request.json()
-
-    if (!fid) {
-      return NextResponse.json({ error: "FID is required" }, { status: 400 })
-    }
-
-    console.log(`Starting Top 8 calculation for FID: ${fid}`)
-    console.log(`API Key available: ${NEYNAR_API_KEY ? 'Yes' : 'No'}`)
-    console.log(`API Key length: ${NEYNAR_API_KEY?.length || 0}`)
-
-    // Calculate date 45 days ago for recent interactions
-    const fortyFiveDaysAgo = new Date()
-    fortyFiveDaysAgo.setDate(fortyFiveDaysAgo.getDate() - 45)
-    const fromTimestamp = Math.floor(fortyFiveDaysAgo.getTime() / 1000)
-
-    console.log(`Analyzing interactions from: ${fortyFiveDaysAgo.toISOString()}`)
-
-    // Get user's last 50 casts and analyze all interactions
-    console.log(`Fetching user's last 50 casts for FID: ${fid}`)
-    
-    const interactionMap = new Map<number, InteractionData>()
-    
-    // Get user's recent casts
-    try {
-      const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=50`, {
-        headers: {
-          'x-api-key': NEYNAR_API_KEY,
-          'accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(15000)
-      })
-      
-      if (castsResponse.ok) {
-        const castsData = await castsResponse.json()
-        const casts = castsData.casts || []
-        console.log(`Found ${casts.length} casts to analyze`)
-        
-        // Process each cast to find all interactions
-        for (let i = 0; i < casts.length; i++) {
-          const cast = casts[i]
-          console.log(`Analyzing cast ${i + 1}/${casts.length}: ${cast.hash}`)
-          
-          try {
-            // Get all reactions for this cast (likes, recasts, replies)
-            const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=100`, {
-              headers: {
-                'x-api-key': NEYNAR_API_KEY,
-                'accept': 'application/json'
-              },
-              signal: AbortSignal.timeout(8000)
-            })
-            
-            if (reactionsResponse.ok) {
-              const reactionsData = await reactionsResponse.json()
-              
-              // Process likes
-              if (reactionsData.reactions?.likes) {
-                for (const like of reactionsData.reactions.likes) {
-                  const reactor = like.reactor
-                  if (reactor && reactor.fid !== fid) {
-                    updateInteractionScore(interactionMap, {
-                      fid: reactor.fid,
-                      username: reactor.username,
-                      display_name: reactor.display_name,
-                      pfp_url: reactor.pfp_url,
-                      bio: reactor.bio || "",
-                      timestamp: like.timestamp
-                    }, 'like')
-                  }
-                }
-              }
-              
-              // Process recasts
-              if (reactionsData.reactions?.recasts) {
-                for (const recast of reactionsData.reactions.recasts) {
-                  const reactor = recast.reactor
-                  if (reactor && reactor.fid !== fid) {
-                    updateInteractionScore(interactionMap, {
-                      fid: reactor.fid,
-                      username: reactor.username,
-                      display_name: reactor.display_name,
-                      pfp_url: reactor.pfp_url,
-                      bio: reactor.bio || "",
-                      timestamp: recast.timestamp
-                    }, 'recast')
-                  }
-                }
-              }
-            }
-            
-            // Get replies to this cast
-            try {
-              const repliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/replies?cast_hash=${cast.hash}&limit=50`, {
-                headers: {
-                  'x-api-key': NEYNAR_API_KEY,
-                  'accept': 'application/json'
-                },
-                signal: AbortSignal.timeout(5000)
-              })
-              
-              if (repliesResponse.ok) {
-                const repliesData = await repliesResponse.json()
-                
-                for (const reply of repliesData.casts || []) {
-                  const replier = reply.author
-                  if (replier && replier.fid !== fid) {
-                    updateInteractionScore(interactionMap, {
-                      fid: replier.fid,
-                      username: replier.username,
-                      display_name: replier.display_name,
-                      pfp_url: replier.pfp_url,
-                      bio: replier.bio || "",
-                      timestamp: reply.timestamp
-                    }, 'reply')
-                  }
-                }
-              }
-            } catch (error) {
-              console.error(`Error fetching replies for cast ${cast.hash}:`, error)
-            }
-            
-            // Add delay to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 300))
-            
-          } catch (error) {
-            console.error(`Error processing cast ${i + 1}:`, error)
-            continue
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user casts:', error)
-    }
-    
-    // Also get user's own reactions to others' content
-    console.log('Fetching user\'s reactions to others...')
-    
-    // Get user's likes
-    try {
-      const likesResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/reactions?fid=${fid}&reaction_type=like&limit=50`, {
-        headers: {
-          'x-api-key': NEYNAR_API_KEY,
-          'accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(10000)
-      })
-      
-      if (likesResponse.ok) {
-        const likesData = await likesResponse.json()
-        console.log(`Found ${likesData.reactions?.length || 0} likes by user`)
-        
-        for (const like of likesData.reactions || []) {
-          const castAuthor = like.cast?.author
-          if (castAuthor && castAuthor.fid !== fid) {
-            updateInteractionScore(interactionMap, {
-              fid: castAuthor.fid,
-              username: castAuthor.username,
-              display_name: castAuthor.display_name,
-              pfp_url: castAuthor.pfp_url,
-              bio: castAuthor.bio || "",
-              timestamp: like.timestamp
-            }, 'like')
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user likes:', error)
-    }
-    
-    // Get user's recasts
-    try {
-      const recastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/reactions?fid=${fid}&reaction_type=recast&limit=50`, {
-        headers: {
-          'x-api-key': NEYNAR_API_KEY,
-          'accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(10000)
-      })
-      
-      if (recastsResponse.ok) {
-        const recastsData = await recastsResponse.json()
-        console.log(`Found ${recastsData.reactions?.length || 0} recasts by user`)
-        
-        for (const recast of recastsData.reactions || []) {
-          const castAuthor = recast.cast?.author
-          if (castAuthor && castAuthor.fid !== fid) {
-            updateInteractionScore(interactionMap, {
-              fid: castAuthor.fid,
-              username: castAuthor.username,
-              display_name: castAuthor.display_name,
-              pfp_url: castAuthor.pfp_url,
-              bio: castAuthor.bio || "",
-              timestamp: recast.timestamp
-            }, 'recast')
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user recasts:', error)
-    }
-    
-    // Get user's replies to others
-    try {
-      const repliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/replies?fid=${fid}&limit=50`, {
-        headers: {
-          'x-api-key': NEYNAR_API_KEY,
-          'accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(10000)
-      })
-      
-      if (repliesResponse.ok) {
-        const repliesData = await repliesResponse.json()
-        console.log(`Found ${repliesData.casts?.length || 0} replies by user`)
-        
-        for (const reply of repliesData.casts || []) {
-          // Find the parent cast author
-          if (reply.parent_cast_id) {
-            try {
-              const parentCastResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast?cast_hash=${reply.parent_cast_id}`, {
-                headers: {
-                  'x-api-key': NEYNAR_API_KEY,
-                  'accept': 'application/json'
-                },
-                signal: AbortSignal.timeout(5000)
-              })
-              
-              if (parentCastResponse.ok) {
-                const parentCastData = await parentCastResponse.json()
-                const parentAuthor = parentCastData.cast?.author
-                if (parentAuthor && parentAuthor.fid !== fid) {
-                  updateInteractionScore(interactionMap, {
-                    fid: parentAuthor.fid,
-                    username: parentAuthor.username,
-                    display_name: parentAuthor.display_name,
-                    pfp_url: parentAuthor.pfp_url,
-                    bio: parentAuthor.bio || "",
-                    timestamp: reply.timestamp
-                  }, 'reply')
-                }
-              }
-            } catch (error) {
-              console.error('Error fetching parent cast:', error)
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user replies:', error)
-    }
-
-    // Convert to array and sort by total score
-    const friends = Array.from(interactionMap.values())
-      .sort((a, b) => b.totalScore - a.totalScore)
-      .slice(0, 8)
-
-    console.log(`Found ${friends.length} top friends`)
-
-    // If no friends found, return empty array instead of error
-    if (friends.length === 0) {
-      return NextResponse.json({ 
-        friends: [],
-        message: "No recent interactions found. Try with a different FID or check back later."
-      })
-    }
-
-    return NextResponse.json({ friends })
-  } catch (error) {
-    console.error("Top8 API error:", error)
-    return NextResponse.json(
-      { error: "Failed to analyze interactions" }, 
-      { status: 500 }
-    )
-  }
+  followDate: string
+  firstEngagement: string
+  engagementType: 'like' | 'recast' | 'reply'
+  totalInteractions: number
+  relationshipScore: number
 }
 
 interface UserData {
@@ -302,42 +24,234 @@ interface UserData {
   timestamp: string
 }
 
-function updateInteractionScore(
-  map: Map<number, InteractionData>, 
+function updateMutualFollowData(
+  map: Map<number, MutualFollowData>, 
   user: UserData, 
-  type: 'like' | 'recast' | 'reply'
+  followDate: string,
+  engagementType: 'like' | 'recast' | 'reply',
+  engagementDate: string
 ) {
-  const existing = map.get(user.fid) || {
-    fid: user.fid,
-    username: user.username,
-    display_name: user.display_name,
-    pfp_url: user.pfp_url,
-    bio: user.bio,
-    replyCount: 0,
-    likeCount: 0,
-    recastCount: 0,
-    totalScore: 0,
-    lastInteraction: user.timestamp
+  const existing = map.get(user.fid)
+  
+  if (existing) {
+    existing.totalInteractions++
+    // Update first engagement if this is earlier
+    if (new Date(engagementDate) < new Date(existing.firstEngagement)) {
+      existing.firstEngagement = engagementDate
+      existing.engagementType = engagementType
+    }
+    // Calculate relationship score based on follow duration and interactions
+    const followDuration = Date.now() - new Date(followDate).getTime()
+    const daysFollowed = followDuration / (1000 * 60 * 60 * 24)
+    existing.relationshipScore = daysFollowed + (existing.totalInteractions * 10)
+  } else {
+    const newData: MutualFollowData = {
+      fid: user.fid,
+      username: user.username,
+      display_name: user.display_name,
+      pfp_url: user.pfp_url,
+      bio: user.bio,
+      followDate: followDate,
+      firstEngagement: engagementDate,
+      engagementType: engagementType,
+      totalInteractions: 1,
+      relationshipScore: 0
+    }
+    // Calculate initial relationship score
+    const followDuration = Date.now() - new Date(followDate).getTime()
+    const daysFollowed = followDuration / (1000 * 60 * 60 * 24)
+    newData.relationshipScore = daysFollowed + 10
+    map.set(user.fid, newData)
   }
+}
 
-  switch (type) {
-    case 'like':
-      existing.likeCount++
-      existing.totalScore += 1
-      break
-    case 'recast':
-      existing.recastCount++
-      existing.totalScore += 2
-      break
-    case 'reply':
-      existing.replyCount++
-      existing.totalScore += 3
-      break
+export async function POST(request: NextRequest) {
+  try {
+    const { fid } = await request.json()
+
+    if (!fid) {
+      return NextResponse.json({ error: "FID is required" }, { status: 400 })
+    }
+
+    console.log(`Starting Longest Mutual Follows calculation for FID: ${fid}`)
+    console.log(`API Key available: ${NEYNAR_API_KEY ? 'Yes' : 'No'}`)
+
+    const mutualFollowsMap = new Map<number, MutualFollowData>()
+    
+    // Step 1: Get user's followers
+    console.log(`Fetching user's followers for FID: ${fid}`)
+    
+    try {
+      const followersResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers?fid=${fid}&limit=100`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(10000)
+      })
+      
+      if (!followersResponse.ok) {
+        console.error(`Failed to fetch followers: ${followersResponse.status}`)
+        return NextResponse.json({ 
+          error: "Failed to fetch user followers. Please try again or check if the FID is correct." 
+        }, { status: 500 })
+      }
+      
+      const followersData = await followersResponse.json()
+      const followers = followersData.users || []
+      console.log(`Found ${followers.length} followers`)
+      
+      // Step 2: Get user's following
+      console.log(`Fetching user's following for FID: ${fid}`)
+      
+      const followingResponse = await fetch(`https://api.neynar.com/v2/farcaster/following?fid=${fid}&limit=100`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(10000)
+      })
+      
+      if (!followingResponse.ok) {
+        console.error(`Failed to fetch following: ${followingResponse.status}`)
+        return NextResponse.json({ 
+          error: "Failed to fetch user following. Please try again or check if the FID is correct." 
+        }, { status: 500 })
+      }
+      
+      const followingData = await followingResponse.json()
+      const following = followingData.users || []
+      console.log(`Found ${following.length} following`)
+      
+      // Step 3: Find mutual follows
+      const followersSet = new Set(followers.map((f: any) => f.fid))
+      const mutualFollows = following.filter((f: any) => followersSet.has(f.fid))
+      console.log(`Found ${mutualFollows.length} mutual follows`)
+      
+      if (mutualFollows.length === 0) {
+        return NextResponse.json({ 
+          friends: [],
+          message: "No mutual follows found. This user might not have any mutual connections yet."
+        })
+      }
+      
+      // Step 4: For each mutual follow, find their first engagement
+      for (let i = 0; i < Math.min(mutualFollows.length, 20); i++) {
+        const mutualFollow = mutualFollows[i]
+        console.log(`Processing mutual follow ${i + 1}/${Math.min(mutualFollows.length, 20)}: ${mutualFollow.username}`)
+        
+        try {
+          // Get their recent interactions with the user
+          const interactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${mutualFollow.fid}&limit=10`, {
+            headers: {
+              'x-api-key': NEYNAR_API_KEY,
+              'accept': 'application/json'
+            },
+            signal: AbortSignal.timeout(5000)
+          })
+          
+          if (interactionsResponse.ok) {
+            const interactionsData = await interactionsResponse.json()
+            const casts = interactionsData.casts || []
+            
+            // Check reactions to these casts to see if user engaged
+            for (const cast of casts.slice(0, 3)) {
+              const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/reactions/cast?hash=${cast.hash}&limit=50`, {
+                headers: {
+                  'x-api-key': NEYNAR_API_KEY,
+                  'accept': 'application/json'
+                },
+                signal: AbortSignal.timeout(3000)
+              })
+              
+              if (reactionsResponse.ok) {
+                const reactionsData = await reactionsResponse.json()
+                
+                // Check if user liked this cast
+                if (reactionsData.reactions?.likes) {
+                  const userLike = reactionsData.reactions.likes.find((like: any) => like.reactor.fid === parseInt(fid))
+                  if (userLike) {
+                    updateMutualFollowData(mutualFollowsMap, {
+                      fid: mutualFollow.fid,
+                      username: mutualFollow.username,
+                      display_name: mutualFollow.display_name,
+                      pfp_url: mutualFollow.pfp_url,
+                      bio: mutualFollow.bio || "",
+                      timestamp: userLike.timestamp
+                    }, mutualFollow.followed_at || new Date().toISOString(), 'like', userLike.timestamp)
+                    break
+                  }
+                }
+                
+                // Check if user recast this cast
+                if (reactionsData.reactions?.recasts) {
+                  const userRecast = reactionsData.reactions.recasts.find((recast: any) => recast.reactor.fid === parseInt(fid))
+                  if (userRecast) {
+                    updateMutualFollowData(mutualFollowsMap, {
+                      fid: mutualFollow.fid,
+                      username: mutualFollow.username,
+                      display_name: mutualFollow.display_name,
+                      pfp_url: mutualFollow.pfp_url,
+                      bio: mutualFollow.bio || "",
+                      timestamp: userRecast.timestamp
+                    }, mutualFollow.followed_at || new Date().toISOString(), 'recast', userRecast.timestamp)
+                    break
+                  }
+                }
+              }
+              
+              // Add delay to avoid rate limiting
+              await new Promise(resolve => setTimeout(resolve, 200))
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing mutual follow ${mutualFollow.username}:`, error)
+          continue
+        }
+        
+        // Add delay between mutual follows
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+      
+      // Step 5: Sort by relationship score and return top 8
+      const friends = Array.from(mutualFollowsMap.values())
+        .sort((a, b) => b.relationshipScore - a.relationshipScore)
+        .slice(0, 8)
+        .map(friend => ({
+          fid: friend.fid,
+          username: friend.username,
+          display_name: friend.display_name,
+          pfp_url: friend.pfp_url,
+          bio: friend.bio,
+          followDate: friend.followDate,
+          firstEngagement: friend.firstEngagement,
+          engagementType: friend.engagementType,
+          totalInteractions: friend.totalInteractions,
+          relationshipScore: Math.round(friend.relationshipScore)
+        }))
+      
+      console.log(`Found ${friends.length} top mutual follows`)
+      
+      if (friends.length === 0) {
+        return NextResponse.json({ 
+          friends: [],
+          message: "No mutual follows with engagement found. Try with a different FID or check back later."
+        })
+      }
+      
+      return NextResponse.json({ friends })
+      
+    } catch (error) {
+      console.error('Error in mutual follows calculation:', error)
+      return NextResponse.json({ 
+        error: "Failed to calculate mutual follows. Please try again." 
+      }, { status: 500 })
+    }
+    
+  } catch (error) {
+    console.error('Error in POST request:', error)
+    return NextResponse.json({ 
+      error: "Internal server error. Please try again." 
+    }, { status: 500 })
   }
-
-  if (new Date(user.timestamp) > new Date(existing.lastInteraction)) {
-    existing.lastInteraction = user.timestamp
-  }
-
-  map.set(user.fid, existing)
 }

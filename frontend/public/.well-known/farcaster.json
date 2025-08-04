@@ -7,15 +7,15 @@
   "miniapp": {
     "version": "1",
     "name": "QuickTop8",
-    "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-alpha.vercel.app",
-    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "buttonTitle": "Find Top Friends",
-    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
-    "splashBackgroundColor": "#6200EA",
-    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
+    "iconUrl": "https://quicktop8-q09ear2dr-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-q09ear2dr-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-q09ear2dr-chipagosfinests-projects.vercel.app/og-image.png",
+    "buttonTitle": "🎯 Discover",
+    "splashImageUrl": "https://quicktop8-q09ear2dr-chipagosfinests-projects.vercel.app/splash.png",
+    "splashBackgroundColor": "#8B5CF6",
+    "webhookUrl": "https://quicktop8-q09ear2dr-chipagosfinests-projects.vercel.app/api/webhook",
     "subtitle": "Discover Your Top 8 Friends",
-    "description": "Find your most engaged friends on Farcaster based on your interactions. Tip and mint NFTs for your top friends!",
+    "description": "Discover your most interactive friends on Farcaster (last 45 days)",
     "primaryCategory": "social",
     "tags": [
       "social",
@@ -25,6 +25,6 @@
     ],
     "ogTitle": "QuickTop8 - Your Top Farcaster Friends",
     "ogDescription": "Discover your top 8 friends on Farcaster based on your interactions. Tip and mint NFTs for your top friends!",
-    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
+    "ogImageUrl": "https://quicktop8-q09ear2dr-chipagosfinests-projects.vercel.app/og-image.png"
   }
 } 
