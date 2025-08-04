@@ -70,18 +70,16 @@ export async function GET(request: NextRequest) {
 
     console.log(`Processing user: ${userData.username} (FID: ${userData.fid})`)
 
-    // Get real top interactions using the official SDK
+    // Get top interactions using real data analysis
     let topInteractions: any[] = [];
     let hasTopInteractions = false;
     
     try {
-      // Get user's casts to analyze interactions
+      // Get user's casts to analyze real interactions
       const castsResponse = await client.fetchCastsForUser({ fid: parseInt(fid), limit: 100 });
       
       if (castsResponse.casts && castsResponse.casts.length > 0) {
-        console.log(`Found ${castsResponse.casts.length} casts to analyze`)
-        
-        // Extract interaction data from casts
+        // Analyze real interactions from casts
         const interactionMap = new Map();
         
         for (const cast of castsResponse.casts) {
@@ -119,8 +117,6 @@ export async function GET(request: NextRequest) {
           }
         }
         
-        console.log(`Found interactions with ${interactionMap.size} users`)
-        
         // Get user data for top interactions
         const topFids = Array.from(interactionMap.entries())
           .sort((a, b) => {
@@ -132,7 +128,6 @@ export async function GET(request: NextRequest) {
           .map(([fid]) => fid);
         
         if (topFids.length > 0) {
-          console.log(`Fetching data for top ${topFids.length} users`)
           const bulkUsersResponse = await client.fetchBulkUsers({ fids: topFids });
           
           if (bulkUsersResponse.users) {
@@ -156,17 +151,17 @@ export async function GET(request: NextRequest) {
             });
             
             hasTopInteractions = topInteractions.length > 0;
-            console.log(`Successfully processed ${topInteractions.length} top interactions`)
           }
-        } else {
-          console.log('No interactions found in casts')
         }
-      } else {
-        console.log('No casts found for user')
       }
     } catch (error) {
       console.error('Failed to fetch top interactions:', error);
       hasTopInteractions = false;
+      // Log the specific error for debugging
+      if (error instanceof Error) {
+        console.error('Interaction analysis error:', error.message);
+      }
+      // Don't throw error, just return empty interactions
     }
 
     const responseData = {
