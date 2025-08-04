@@ -109,6 +109,7 @@ export async function GET(request: NextRequest) {
     const followersData = await followersResponse.json()
     const followers = followersData.users || []
     console.log(`Fetched ${followers.length} followers from Neynar`)
+    console.log('Sample follower structure:', JSON.stringify(followers[0], null, 2))
 
     // Analyze interactions from popular casts
     const interactionMap = new Map()
@@ -150,6 +151,9 @@ export async function GET(request: NextRequest) {
     // Create top interactions from actual interaction data
     let topInteractions: any[] = []
     
+    console.log('Interaction map size:', interactionMap.size)
+    console.log('Interaction map entries:', Array.from(interactionMap.entries()))
+    
     if (interactionMap.size > 0) {
       // Convert interaction map to array and sort by total interactions
       const interactionArray = Array.from(interactionMap.entries()).map(([fid, interactions]) => ({
@@ -162,6 +166,7 @@ export async function GET(request: NextRequest) {
       
       // Get user details for top interactors
       const topFids = interactionArray.slice(0, 8).map(item => item.fid)
+      console.log('Top FIDs for bulk lookup:', topFids)
       if (topFids.length > 0) {
         const topUsersResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${topFids.join(',')}`, {
           headers: {
