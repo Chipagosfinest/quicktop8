@@ -18,17 +18,26 @@ export default function Home() {
   useEffect(() => {
     const initMiniApp = async () => {
       try {
-        console.log('Home page: Calling sdk.actions.ready()')
-        // The ready() call is now handled in MiniAppProvider
-        console.log('Home page: sdk.actions.ready() completed')
+        console.log('Home page: Initializing Mini App...')
+        
+        // Wait for SDK to be loaded
+        if (isSDKLoaded) {
+          console.log('Home page: SDK is loaded, calling sdk.actions.ready()')
+          await sdk.actions.ready()
+          console.log('Home page: sdk.actions.ready() completed successfully')
+        } else {
+          console.log('Home page: SDK not loaded yet, waiting...')
+        }
       } catch (err) {
         console.error('Home page: Failed to call sdk.actions.ready():', err)
       }
     }
 
-    // Call ready() when the component mounts
-    initMiniApp()
-  }, [])
+    // Call ready() when the component mounts and SDK is loaded
+    if (isSDKLoaded) {
+      initMiniApp()
+    }
+  }, [isSDKLoaded])
 
   const handleQuickAuth = async () => {
     try {

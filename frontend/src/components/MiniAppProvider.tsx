@@ -68,27 +68,7 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
     initSDK()
   }, [])
 
-  // Call ready() when the app is actually ready to display
-  useEffect(() => {
-    if (isSDKLoaded) {
-      const callReady = async () => {
-        try {
-          // Wait a bit longer to ensure the app is fully rendered
-          await new Promise(resolve => setTimeout(resolve, 200))
-          
-          console.log('Calling sdk.actions.ready() - app is ready to display')
-          await sdk.actions.ready()
-          console.log('sdk.actions.ready() completed successfully')
-        } catch (err) {
-          console.error("Failed to call sdk.actions.ready():", err)
-        }
-      }
-      
-      // Call ready() after a delay to ensure the app content is fully rendered
-      const timer = setTimeout(callReady, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [isSDKLoaded])
+  // Note: ready() is now called from the main page component
 
   // Quick Auth - The easiest way to get an authenticated session
   const authenticateUser = async () => {
