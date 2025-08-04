@@ -25,21 +25,31 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://quicktop8-alpha.vercel.app',
+    'https://quicktop8.vercel.app',
+    'https://quicktop8-frontend.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
 // Health check endpoint with indexer stats
 app.get('/health', (req, res) => {
   const cacheStats = indexer.getCacheStats();
   const rateLimitStats = indexer.getRateLimitStats();
+  const performanceStats = indexer.getPerformanceStats();
   
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
     neynarConfigured: !!process.env.NEYNAR_API_KEY,
     cache: cacheStats,
-    rateLimits: rateLimitStats
+    rateLimits: rateLimitStats,
+    performance: performanceStats
   });
 });
 
@@ -320,12 +330,14 @@ app.get('/api/users/bulk', async (req, res) => {
 app.get('/api/indexer/stats', (req, res) => {
   const cacheStats = indexer.getCacheStats();
   const rateLimitStats = indexer.getRateLimitStats();
+  const performanceStats = indexer.getPerformanceStats();
   
   res.json({
     success: true,
     data: {
       cache: cacheStats,
       rateLimits: rateLimitStats,
+      performance: performanceStats,
       timestamp: new Date().toISOString()
     }
   });
@@ -336,6 +348,16 @@ app.post('/api/indexer/cache/clear', (req, res) => {
   res.json({
     success: true,
     message: 'Cache cleared successfully'
+  });
+});
+
+// Reset performance statistics
+app.post('/api/indexer/stats/reset', (req, res) => {
+  indexer.resetPerformanceStats();
+  res.json({ 
+    success: true, 
+    message: 'Performance statistics reset',
+    timestamp: new Date().toISOString()
   });
 });
 

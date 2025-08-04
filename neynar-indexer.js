@@ -15,6 +15,14 @@ class NeynarIndexer {
     this.retryDelay = options.retryDelay || 1000;
     this.batchSize = options.batchSize || 100;
     
+    // Performance monitoring
+    this.performanceStats = {
+      totalRequests: 0,
+      cacheHits: 0,
+      averageResponseTime: 0,
+      lastReset: Date.now()
+    };
+    
     // Initialize rate limit tracking
     this.initializeRateLimits();
   }
@@ -75,6 +83,8 @@ class NeynarIndexer {
   }
 
   async makeRequest(endpoint, params = {}, retryCount = 0, useExperimental = false) {
+    const startTime = Date.now();
+    
     try {
       await this.checkRateLimit(endpoint);
       
@@ -83,6 +93,8 @@ class NeynarIndexer {
       
       if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
         console.log(`Cache hit for ${endpoint}`);
+        this.performanceStats.cacheHits++;
+        this.performanceStats.totalRequests++;
         return cached.data;
       }
       
@@ -102,12 +114,12 @@ class NeynarIndexer {
         timeout: 10000
       });
       
-      // Update rate limit counters
-      this.rateLimits.global.current++;
-      const endpointLimit = this.rateLimits.endpoints.get(endpoint);
-      if (endpointLimit) {
-        endpointLimit.current++;
-      }
+      // Update performance stats
+      const responseTime = Date.now() - startTime;
+      this.performanceStats.totalRequests++;
+      this.performanceStats.averageResponseTime = 
+        (this.performanceStats.averageResponseTime * (this.performanceStats.totalRequests - 1) + responseTime) / 
+        this.performanceStats.totalRequests;
       
       // Cache the response
       this.cache.set(cacheKey, {
@@ -115,14 +127,25 @@ class NeynarIndexer {
         timestamp: Date.now()
       });
       
+      // Update rate limit counters
+      this.rateLimits.global.current++;
+      const endpointLimit = this.rateLimits.endpoints.get(endpoint);
+      if (endpointLimit) {
+        endpointLimit.current++;
+      }
+      
       return response.data;
       
     } catch (error) {
-      console.error(`Request failed for ${endpoint}:`, error.message);
+      const responseTime = Date.now() - startTime;
+      this.performanceStats.totalRequests++;
+      this.performanceStats.averageResponseTime = 
+        (this.performanceStats.averageResponseTime * (this.performanceStats.totalRequests - 1) + responseTime) / 
+        this.performanceStats.totalRequests;
       
       if (retryCount < this.retryAttempts) {
-        console.log(`Retrying request (${retryCount + 1}/${this.retryAttempts})`);
-        await setTimeout(this.retryDelay * Math.pow(2, retryCount)); // Exponential backoff
+        console.log(`Request failed, retrying... (${retryCount + 1}/${this.retryAttempts})`);
+        await setTimeout(this.retryDelay * Math.pow(2, retryCount));
         return this.makeRequest(endpoint, params, retryCount + 1, useExperimental);
       }
       
@@ -474,6 +497,34 @@ class NeynarIndexer {
     }
     
     return stats;
+  }
+
+  // Performance monitoring
+  getPerformanceStats() {
+    const uptime = Date.now() - this.performanceStats.lastReset;
+    const cacheHitRate = this.performanceStats.totalRequests > 0 ? 
+      (this.performanceStats.cacheHits / this.performanceStats.totalRequests) * 100 : 0;
+    
+    return {
+      totalRequests: this.performanceStats.totalRequests,
+      cacheHits: this.performanceStats.cacheHits,
+      cacheHitRate: Math.round(cacheHitRate * 100) / 100,
+      averageResponseTime: Math.round(this.performanceStats.averageResponseTime),
+      uptime: Math.round(uptime / 1000), // seconds
+      requestsPerMinute: this.performanceStats.totalRequests > 0 ? 
+        Math.round((this.performanceStats.totalRequests / (uptime / 60000)) * 100) / 100 : 0
+    };
+  }
+
+  // Reset performance stats
+  resetPerformanceStats() {
+    this.performanceStats = {
+      totalRequests: 0,
+      cacheHits: 0,
+      averageResponseTime: 0,
+      lastReset: Date.now()
+    };
+    console.log('Performance stats reset');
   }
 }
 
