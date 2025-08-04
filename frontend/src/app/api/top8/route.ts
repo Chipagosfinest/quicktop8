@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
+const BACKEND_URL = process.env.BACKEND_URL || "https://top8-production.up.railway.app"
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,23 +10,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    if (!NEYNAR_API_KEY) {
-      return NextResponse.json({ error: "Neynar API key not configured" }, { status: 500 })
-    }
-
-    // Fetch user's casts from Neynar API
-    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/casts?fid=${fid}&limit=200`, {
+    // Call the Railway backend
+    const response = await fetch(`${BACKEND_URL}/api/user/${fid}/casts`, {
+      method: 'GET',
       headers: {
-        accept: "application/json",
-        api_key: NEYNAR_API_KEY,
+        'Content-Type': 'application/json',
       },
     })
 
-    if (!castsResponse.ok) {
-      return NextResponse.json({ error: "Failed to fetch user casts" }, { status: 500 })
+    if (!response.ok) {
+      return NextResponse.json({ error: "Failed to fetch user data from backend" }, { status: 500 })
     }
 
-    const castsData = await castsResponse.json()
+    const castsData = await response.json()
 
     // Analyze interactions to build Top 8
     const interactionMap = new Map()
