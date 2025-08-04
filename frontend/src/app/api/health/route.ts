@@ -9,7 +9,7 @@ export async function GET() {
     let apiTest = false;
     try {
       // Try a simple API call to test connectivity
-      await client.lookupUserByFid(1);
+      await client.fetchBulkUsers({ fids: [1] });
       apiTest = true;
     } catch (error) {
       console.warn('API test failed:', error);

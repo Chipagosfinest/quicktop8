@@ -48,7 +48,8 @@ export async function GET(request: NextRequest) {
     // Fetch user info using the official SDK
     let userData;
     try {
-      userData = await client.lookupUserByFid(parseInt(fid));
+      const userResponse = await client.fetchBulkUsers({ fids: [parseInt(fid)] });
+      userData = userResponse.users?.[0];
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       return NextResponse.json(
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     
     try {
       // Get user's casts to analyze interactions
-      const castsResponse = await client.getUserCasts(parseInt(fid), { limit: 50 });
+      const castsResponse = await client.fetchUserCasts({ fid: parseInt(fid), limit: 50 });
       
       if (castsResponse.casts && castsResponse.casts.length > 0) {
         // Extract interaction data from casts
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
           .map(([fid]) => fid);
         
         if (topFids.length > 0) {
-          const bulkUsersResponse = await client.lookupUsersByFid(topFids);
+          const bulkUsersResponse = await client.fetchBulkUsers({ fids: topFids });
           
           if (bulkUsersResponse.users) {
             topInteractions = bulkUsersResponse.users.map(user => {
