@@ -245,7 +245,7 @@ export class NeynarIndexer {
 
   async getUserData(fid: number | string, viewerFid?: number | string, useSpamFilter = true): Promise<any> {
     const params: Record<string, any> = {
-      fid: fid.toString()
+      fids: fid.toString()
     };
     
     if (viewerFid) {
