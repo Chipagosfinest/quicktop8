@@ -1,0 +1,58 @@
+name: Quick Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+jobs:
+  quick-deploy:
+    name: Quick Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.11.0'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        
+    - name: Quick test
+      run: npm run test:backend
+      
+    - name: Build frontend
+      run: cd frontend && npm run build
+      
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        
+    - name: Test deployment
+      run: |
+        sleep 30
+        echo "Testing deployment..."
+        curl -f https://quicktop8-alpha.vercel.app/api/user/4044 || echo "API test failed"
+        
+    - name: Notify success
+      run: |
+        echo "✅ Quick deploy to ${{ github.event.inputs.environment }} successful!"
+        echo "🌐 Live at: https://quicktop8-alpha.vercel.app" 

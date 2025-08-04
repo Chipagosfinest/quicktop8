@@ -14,6 +14,7 @@
     "debug": "node debug.js",
     "deploy": "bash deploy.sh",
     "deploy:test": "npm run test && npm run deploy",
+    "ship": "bash scripts/ship.sh",
     "build": "cd frontend && npm install && npm run build",
     "lint": "echo 'No linting configured for backend'",
     "vercel-build": "npm run build"
