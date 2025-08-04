@@ -49,9 +49,12 @@ export default function HomePage() {
     setError(null)
     
     try {
+      console.log('Fetching user data for FID:', fid)
       // Use the correct API endpoint format
       const response = await fetch(`/api/user/${fid}`)
+      console.log('Response status:', response.status)
       const data = await response.json()
+      console.log('Response data:', data)
       
       if (response.ok && data.success) {
         setUserData(data.data)
