@@ -212,11 +212,50 @@ export default function Home() {
                   <p className="text-gray-600 text-sm">Loading your data...</p>
                 </div>
               ) : userData ? (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="text-blue-800 font-semibold mb-2">📊 Your Data</h3>
-                  <pre className="text-xs text-blue-700 overflow-auto">
-                    {JSON.stringify(userData, null, 2)}
-                  </pre>
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="text-blue-800 font-semibold mb-2">📊 Your Top 8 Friends</h3>
+                    
+                    {userData.test ? (
+                      <div className="text-sm text-blue-700">
+                        <p className="mb-2">🔄 <strong>Status:</strong> {userData.message}</p>
+                        <p className="mb-2">👤 <strong>User:</strong> {userData.displayName} (FID: {userData.fid})</p>
+                        <p className="text-xs text-blue-600">This is fallback data while we connect to the real API</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-blue-700">👤 User:</span>
+                          <span className="text-sm font-medium text-blue-800">{userData.displayName}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-blue-700">📊 Followers:</span>
+                          <span className="text-sm font-medium text-blue-800">{userData.followers?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-blue-700">📝 Casts:</span>
+                          <span className="text-sm font-medium text-blue-800">{userData.casts?.toLocaleString()}</span>
+                        </div>
+                        
+                        {userData.topInteractions && userData.topInteractions.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="text-sm font-semibold text-blue-800 mb-2">🏆 Top Interactions (Last 45 Days)</h4>
+                            <div className="space-y-2">
+                              {userData.topInteractions.slice(0, 8).map((friend: any, index: number) => (
+                                <div key={friend.fid} className="flex items-center justify-between bg-white rounded px-3 py-2">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-xs font-bold text-blue-600">#{index + 1}</span>
+                                    <span className="text-sm text-blue-800">@{friend.username}</span>
+                                  </div>
+                                  <span className="text-xs text-blue-600">{friend.interactionCount} interactions</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <button
