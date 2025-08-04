@@ -2,7 +2,7 @@
 
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useMiniApp } from '@/components/MiniAppProvider'
 import { sdk } from '@farcaster/miniapp-sdk'
 
@@ -16,6 +16,31 @@ export default function Home() {
     signInWithFarcaster 
   } = useMiniApp()
 
+  const [userData, setUserData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      setLoading(true)
+      console.log('Fetching user data via Quick Auth...')
+      
+      // Use Quick Auth to make authenticated request
+      const response = await sdk.quickAuth.fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://quicktop8-alpha.vercel.app'}/api/user/${userFid}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setUserData(data)
+        console.log('User data fetched successfully:', data)
+      } else {
+        console.error('Failed to fetch user data:', response.status)
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [userFid])
+
   useEffect(() => {
     const initMiniApp = async () => {
       try {
@@ -26,6 +51,11 @@ export default function Home() {
           console.log('Home page: SDK is loaded, calling sdk.actions.ready()')
           await sdk.actions.ready()
           console.log('Home page: sdk.actions.ready() completed successfully')
+          
+          // If already authenticated, get user data via Quick Auth
+          if (isAuthenticated && userFid) {
+            await fetchUserData()
+          }
         } else {
           console.log('Home page: SDK not loaded yet, waiting...')
         }
@@ -38,12 +68,15 @@ export default function Home() {
     if (isSDKLoaded) {
       initMiniApp()
     }
-  }, [isSDKLoaded])
+  }, [isSDKLoaded, isAuthenticated, userFid, fetchUserData])
 
   const handleQuickAuth = async () => {
     try {
       const result = await authenticateUser()
       console.log('Quick Auth result:', result)
+      if (result && userFid) {
+        await fetchUserData()
+      }
     } catch (error) {
       console.error('Quick Auth failed:', error)
     }
@@ -56,6 +89,18 @@ export default function Home() {
     } catch (error) {
       console.error('Sign In failed:', error)
     }
+  }
+
+  // Show loading state
+  if (!isSDKLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading QuickTop8...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -101,31 +146,58 @@ export default function Home() {
             )}
           </div>
 
-          <p className="text-gray-600 mb-4">
-            This Mini App analyzes your recent Farcaster interactions (last 45 days) to find your Top 8 friends.
-          </p>
-          
-          {/* Authentication Buttons */}
-          <div className="space-y-3 mb-4">
-            <button
-              onClick={handleQuickAuth}
-              className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              🔐 Quick Auth
-            </button>
-            <button
-              onClick={handleSignIn}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              🔑 Sign In with Farcaster
-            </button>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800 text-sm">
-              Launch this Mini App from within Farcaster to get started!
-            </p>
-          </div>
+          {/* Show different content based on authentication status */}
+          {isAuthenticated && userFid ? (
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="text-green-800 font-semibold mb-2">🎉 Successfully Authenticated!</h3>
+                <p className="text-green-700 text-sm">
+                  You&apos;re signed in as FID: {userFid}
+                </p>
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                  <p className="text-gray-600 text-sm">Loading your data...</p>
+                </div>
+              ) : userData ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="text-blue-800 font-semibold mb-2">📊 Your Data</h3>
+                  <pre className="text-xs text-blue-700 overflow-auto">
+                    {JSON.stringify(userData, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <button
+                  onClick={fetchUserData}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  🔍 Load My Data
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <button
+                onClick={handleQuickAuth}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                🚀 Quick Auth
+              </button>
+              
+              <div className="text-center">
+                <p className="text-gray-500 text-sm mb-2">or</p>
+              </div>
+              
+              <button
+                onClick={handleSignIn}
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                📱 Sign In with Farcaster
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
