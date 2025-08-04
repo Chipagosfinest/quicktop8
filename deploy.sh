@@ -15,8 +15,10 @@ if ! command -v vercel &> /dev/null; then
 fi
 
 echo "🔧 Backend Deployment (Railway)..."
-echo "1. Navigate to backend directory"
-cd quicktop8
+echo "1. Deploying backend from current directory..."
+
+# Add Railway CLI to PATH if needed
+export PATH="$PATH:$(npm bin -g)"
 
 echo "2. Deploy to Railway..."
 railway login
