@@ -180,9 +180,9 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-orange-400 via-red-500 to-yellow-400 relative overflow-hidden">
       {/* Roller Coaster Background Elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-32 h-32 border-4 border-wood-800 rounded-full transform rotate-45"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 border-4 border-wood-800 rounded-full transform -rotate-12"></div>
-        <div className="absolute bottom-40 left-1/4 w-20 h-20 border-4 border-wood-800 rounded-full transform rotate-30"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 border-4 border-gray-800 rounded-full transform rotate-45"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 border-4 border-gray-800 rounded-full transform -rotate-12"></div>
+        <div className="absolute bottom-40 left-1/4 w-20 h-20 border-4 border-gray-800 rounded-full transform rotate-30"></div>
       </div>
 
       {/* BRAINLESS TALES Logo */}
