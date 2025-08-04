@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('x-neynar-signature')
     if (signature) {
       console.log("Webhook signature received:", signature)
-      // TODO: Implement proper signature verification
+      // TODO: Implement proper signature verification using NEYNAR_WEBHOOK_SECRET
     }
     
     // Handle different webhook types
