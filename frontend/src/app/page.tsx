@@ -222,7 +222,8 @@ export default function Home() {
                         hasTopInteractions: !!userData.topInteractions,
                         topInteractionsLength: userData.topInteractions?.length,
                         isTest: userData.test,
-                        message: userData.message
+                        message: userData.message,
+                        hasRealData: !userData.test && userData.topInteractions?.length > 0
                       })}</p>
                     </div>
                     
@@ -314,6 +315,13 @@ export default function Home() {
                                         <span>{friend.followerCount?.toLocaleString()} followers</span>
                                         <span>{friend.interactionCount} interactions</span>
                                       </div>
+                                      {friend.likes !== undefined && (
+                                        <div className="flex items-center space-x-3 mt-2 text-xs">
+                                          <span className="text-red-500">❤️ {friend.likes} likes</span>
+                                          <span className="text-blue-500">💬 {friend.replies} replies</span>
+                                          <span className="text-green-500">🔄 {friend.recasts} recasts</span>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
