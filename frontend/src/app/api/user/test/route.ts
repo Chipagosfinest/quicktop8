@@ -1,31 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
+    console.log('Test API endpoint called')
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401 }
-      )
-    }
-
-    console.log('Test API endpoint called successfully')
-    console.log(`Token present: ${!!authHeader.split(' ')[1]}`)
-
-    const testData = {
+    return NextResponse.json({
+      success: true,
       message: 'API is working!',
       timestamp: new Date().toISOString(),
-      test: true
-    }
-
-    return NextResponse.json(testData)
+      status: 'healthy'
+    })
   } catch (error) {
-    console.error('Error in test API:', error)
+    console.error('Test API error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Test API failed', details: error },
       { status: 500 }
     )
   }
