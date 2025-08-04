@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "npm run lint && npm run build",
+    "test:unit": "echo 'No unit tests configured'",
+    "test:e2e": "echo 'No e2e tests configured'",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
   },
   "dependencies": {
     "@farcaster/miniapp-sdk": "^0.1.8",

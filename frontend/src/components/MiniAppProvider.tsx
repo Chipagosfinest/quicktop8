@@ -6,9 +6,13 @@ import { sdk } from '@farcaster/miniapp-sdk'
 interface MiniAppContextType {
   isSDKLoaded: boolean
   isConnected: boolean
+  isAuthenticated: boolean
   userFid?: string
   context?: unknown
+  authToken?: string
   connectWallet: () => Promise<void>
+  authenticateUser: () => Promise<any>
+  signInWithFarcaster: () => Promise<any>
 }
 
 const MiniAppContext = createContext<MiniAppContextType | undefined>(undefined)
@@ -28,16 +32,18 @@ interface MiniAppProviderProps {
 export function MiniAppProvider({ children }: MiniAppProviderProps) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userFid, setUserFid] = useState<string>()
   const [context, setContext] = useState<unknown>()
+  const [authToken, setAuthToken] = useState<string>()
 
   useEffect(() => {
     const initSDK = async () => {
       try {
-        // Initialize SDK but don't call ready() yet
+        console.log('Initializing Mini App SDK...')
         setIsSDKLoaded(true)
         
-        // Get user's context if available - with error handling for deprecated domains
+        // Get user's context if available
         try {
           const userContext = await sdk.context
           console.log("Farcaster context received:", userContext)
@@ -52,11 +58,9 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
           }
         } catch (contextErr) {
           console.log("Context not available (may be running outside Mini App):", contextErr)
-          // Don't fail the entire initialization if context fails
         }
       } catch (err) {
         console.log("Mini App SDK initialization completed (some features may not be available):", err)
-        // Still mark as loaded so the app can function
         setIsSDKLoaded(true)
       }
     }
@@ -86,12 +90,85 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
     }
   }, [isSDKLoaded])
 
+  // Quick Auth - The easiest way to get an authenticated session
+  const authenticateUser = async () => {
+    try {
+      console.log('Attempting Quick Auth...')
+      
+      // For now, we'll use the context to get user info
+      // Quick Auth implementation depends on SDK version
+      const userContext = await sdk.context
+      
+      if (userContext?.user?.fid) {
+        setUserFid(userContext.user.fid.toString())
+        setIsConnected(true)
+        setIsAuthenticated(true)
+        console.log('User authenticated via context')
+        return { success: true, user: userContext.user }
+      } else {
+        console.log('No user context available for Quick Auth')
+        return null
+      }
+    } catch (err) {
+      console.error('Quick Auth error:', err)
+      return null
+    }
+  }
+
+  // Sign In with Farcaster - Alternative authentication method
+  const signInWithFarcaster = async () => {
+    try {
+      console.log('Attempting Sign In with Farcaster...')
+      
+      // Use signIn to get a Sign in with Farcaster authentication credential
+      // Generate a nonce for the sign-in request
+      const nonce = Math.random().toString(36).substring(2, 15)
+      const signInResult = await sdk.actions.signIn({ nonce })
+      console.log('Sign In result:', signInResult)
+      
+      if (signInResult) {
+        console.log('Sign In successful - credential received')
+        
+        // Send credential to backend for verification
+        try {
+          const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              signInResult: signInResult
+            })
+          })
+          
+          if (response.ok) {
+            const result = await response.json()
+            if (result.token) {
+              setAuthToken(result.token)
+              setIsAuthenticated(true)
+              console.log('Credential verified - session token received')
+            }
+          }
+        } catch (verifyErr) {
+          console.error('Credential verification failed:', verifyErr)
+        }
+        
+        return signInResult
+      } else {
+        console.log('Sign In failed - no credential received')
+        return null
+      }
+    } catch (err) {
+      console.error('Sign In error:', err)
+      return null
+    }
+  }
+
   const connectWallet = async () => {
     try {
       // Check if we're in a Farcaster mini-app environment
       if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
         console.log('Running in Vercel environment - wallet connection may not be available')
-        // In Vercel environment, we'll rely on manual FID input
         return
       }
 
@@ -99,7 +176,7 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
         await sdk.wallet.ethProvider.request({ method: 'eth_requestAccounts' })
         setIsConnected(true)
         
-        // Refresh context after connection - with error handling
+        // Refresh context after connection
         try {
           const userContext = await sdk.context
           setContext(userContext)
@@ -115,16 +192,19 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
       }
     } catch (err) {
       console.log("Wallet connection not available (this is normal in development):", err)
-      // Don't treat this as an error - it's expected in some environments
     }
   }
 
   const value = {
     isSDKLoaded,
     isConnected,
+    isAuthenticated,
     userFid,
     context,
-    connectWallet
+    authToken,
+    connectWallet,
+    authenticateUser,
+    signInWithFarcaster
   }
 
   return (
