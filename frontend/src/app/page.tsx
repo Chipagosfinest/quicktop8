@@ -18,6 +18,7 @@ export default function Home() {
 
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(null)
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -45,6 +46,11 @@ export default function Home() {
     const initMiniApp = async () => {
       try {
         console.log('Home page: Initializing Mini App...')
+        
+        // Check if we're in a Mini App environment
+        const miniAppCheck = await sdk.isInMiniApp()
+        setIsInMiniApp(miniAppCheck)
+        console.log('Mini App environment detected:', miniAppCheck)
         
         // Wait for SDK to be loaded
         if (isSDKLoaded) {
@@ -116,6 +122,18 @@ export default function Home() {
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
           <h2 className="text-xl font-semibold mb-4">Welcome!</h2>
           
+          {/* Environment Detection */}
+          {isInMiniApp !== null && (
+            <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-800">Mini App Environment:</span>
+                <span className={`px-2 py-1 rounded text-xs ${isInMiniApp ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {isInMiniApp ? '✅ Detected' : '⚠️ Not Detected'}
+                </span>
+              </div>
+            </div>
+          )}
+          
           {/* Authentication Status */}
           <div className="mb-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -179,6 +197,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-4">
+              {/* Primary: Quick Auth (works in Mini App) */}
               <button
                 onClick={handleQuickAuth}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
@@ -186,16 +205,36 @@ export default function Home() {
                 🚀 Quick Auth
               </button>
               
-              <div className="text-center">
-                <p className="text-gray-500 text-sm mb-2">or</p>
-              </div>
+              {/* Secondary: Sign In with Farcaster (only show when not in Mini App) */}
+              {isInMiniApp === false && (
+                <>
+                  <div className="text-center">
+                    <p className="text-gray-500 text-sm mb-2">or</p>
+                  </div>
+                  
+                  <button
+                    onClick={handleSignIn}
+                    className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                  >
+                    📱 Sign In with Farcaster
+                  </button>
+                  
+                  <div className="text-center">
+                    <p className="text-gray-500 text-xs">
+                      Use this option if Quick Auth doesn&apos;t work
+                    </p>
+                  </div>
+                </>
+              )}
               
-              <button
-                onClick={handleSignIn}
-                className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-              >
-                📱 Sign In with Farcaster
-              </button>
+              {/* Show message when in Mini App but not authenticated */}
+              {isInMiniApp === true && !isAuthenticated && (
+                <div className="text-center">
+                  <p className="text-gray-500 text-xs">
+                    Quick Auth should work automatically in Mini App environment
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
