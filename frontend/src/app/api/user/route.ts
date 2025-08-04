@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     console.log(`Fetched ${popularCasts.length} popular casts from Neynar`)
 
     // Fetch user's followers
-    const followersResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/followers?fid=${fid}&limit=100`, {
+    const followersResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers/?fid=${fid}&limit=100`, {
       headers: {
         'accept': 'application/json',
         'api_key': NEYNAR_API_KEY
