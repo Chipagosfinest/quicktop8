@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { useMiniApp } from "@/components/MiniAppProvider"
-import { sdk } from '@farcaster/miniapp-sdk'
+// Removed Neynar React SDK dependencies for now
 
 interface Top8Friend {
   fid: number
@@ -27,60 +26,16 @@ export default function AppPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   
-  const { isSDKLoaded, isConnected, userFid, connectWallet } = useMiniApp()
   const [isInMiniApp, setIsInMiniApp] = useState(false)
 
-  // Auto-fill FID when user is connected
+  // Auto-fill FID with sample data for demo
   useEffect(() => {
-    if (userFid) {
-      setFid(userFid)
-    }
-  }, [userFid])
+    setFid("4044") // Sample FID for demo
+  }, [])
 
-  // Ensure ready() is called when the app is fully loaded
-  useEffect(() => {
-    const ensureReady = async () => {
-      try {
-        // Wait a bit for the app to fully render
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        console.log('App page: Ensuring sdk.actions.ready() is called')
-        await sdk.actions.ready()
-        console.log('App page: sdk.actions.ready() completed successfully')
-      } catch (err) {
-        console.error('App page: Failed to call sdk.actions.ready():', err)
-      }
-    }
+  // Simplified for demo - removed SDK initialization
 
-    // Only call ready() if SDK is loaded and we're in a mini-app context
-    if (isSDKLoaded) {
-      ensureReady()
-    }
-  }, [isSDKLoaded])
-
-  // Check if we're running in a Mini App environment and get user info
-  useEffect(() => {
-    const checkMiniAppEnvironment = async () => {
-      try {
-        const context = await sdk.context
-        console.log('Mini App context:', context)
-        setIsInMiniApp(!!context)
-        
-        // If we have user context, auto-fill the FID
-        if (context?.user?.fid) {
-          console.log('Auto-filling FID from context:', context.user.fid)
-          setFid(context.user.fid.toString())
-        }
-      } catch (err) {
-        console.log('Not running in Mini App environment:', err)
-        setIsInMiniApp(false)
-      }
-    }
-
-    if (isSDKLoaded) {
-      checkMiniAppEnvironment()
-    }
-  }, [isSDKLoaded])
+  // Simplified for demo - removed Mini App environment check
 
   const handleGetTop8 = async () => {
     if (!fid) {
