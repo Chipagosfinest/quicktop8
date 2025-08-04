@@ -1,33 +1,32 @@
 {
-  "accountAssociation": {
-    "header": "PLACEHOLDER_HEADER",
-    "payload": "PLACEHOLDER_PAYLOAD",
-    "signature": "PLACEHOLDER_SIGNATURE"
-  },
   "miniapp": {
     "version": "1",
-    "name": "Ride or Die Top 8",
-    "iconUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/og-image.png",
-    "buttonTitle": "🔥 Ride or Die",
-    "splashImageUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/splash.png",
-    "splashBackgroundColor": "#F97316",
-    "webhookUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/api/webhook",
-    "subtitle": "Your Crypto Roller Coaster Crew",
-    "description": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
+    "name": "Crypto Streams",
+    "iconUrl": "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/og-image.png",
+    "buttonTitle": "🎮 Open Mini App",
+    "splashImageUrl": "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/splash.png",
+    "splashBackgroundColor": "#8B5CF6",
+    "subtitle": "Top 8 Recommended Streamers",
+    "description": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
     "primaryCategory": "social",
     "tags": [
-      "social",
-      "friends",
-      "analytics",
       "crypto",
-      "bitcoin",
-      "roller-coaster",
-      "ride-or-die"
+      "streaming",
+      "social",
+      "gifting",
+      "content"
     ],
-    "ogTitle": "Ride or Die Top 8 - Your Crypto Roller Coaster Crew",
-    "ogDescription": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
-    "ogImageUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/og-image.png"
+    "heroImageUrl": "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/og-image.png",
+    "tagline": "Your Top 8 Crypto Streamers",
+    "ogTitle": "Crypto Streams",
+    "ogDescription": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
+    "ogImageUrl": "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/og-image.png",
+    "screenshotUrls": [
+      "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/screenshot1.png",
+      "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/screenshot2.png",
+      "https://quicktop8-k8fm91j8x-chipagosfinests-projects.vercel.app/screenshot3.png"
+    ]
   }
 } 
