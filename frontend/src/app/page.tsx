@@ -88,7 +88,7 @@ export default function Home() {
         // Wait for SDK to be loaded
         if (isSDKLoaded) {
           console.log('Home page: SDK is loaded, calling sdk.actions.ready()')
-          await sdk.actions.ready()
+        await sdk.actions.ready()
           console.log('Home page: sdk.actions.ready() completed successfully')
           
           // If already authenticated, get user data via Quick Auth
@@ -105,7 +105,7 @@ export default function Home() {
 
     // Call ready() when the component mounts and SDK is loaded
     if (isSDKLoaded) {
-      initMiniApp()
+    initMiniApp()
     }
   }, [isSDKLoaded, isAuthenticated, userFid, fetchUserData])
 
@@ -236,7 +236,7 @@ export default function Home() {
                 </div>
               ) : userData ? (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h3 className="text-blue-800 font-semibold mb-2">📊 Your Top 8 Friends</h3>
                     
                     {/* Debug info */}
@@ -459,8 +459,8 @@ export default function Home() {
                 <div className="text-center">
                   <p className="text-gray-500 text-xs">
                     Quick Auth should work automatically in Mini App environment
-                  </p>
-                </div>
+            </p>
+          </div>
               )}
             </div>
           )}

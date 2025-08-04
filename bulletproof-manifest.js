@@ -5,8 +5,8 @@ console.log('🚀 BULLETPROOF MANIFEST SOLUTION\n')
 const manifestData = {
   // App Identity
   appIcon: 'https://quicktop8-alpha.vercel.app/icon.png',
-  subtitle: 'Send Prayer NFTs',
-  description: 'Send prayer emoji NFTs to your biggest fans on Farcaster',
+  subtitle: 'Prayer',
+  description: 'Prayer',
   primaryCategory: 'social',
   
   // Visuals
@@ -17,13 +17,13 @@ const manifestData = {
   splashBackgroundColor: '#6200EA',
   
   // Engagement
-  searchTags: 'social,prayer',
-  marketingTagline: 'Send prayer NFTs',
-  buttonTitle: 'Send Prayer',
-  socialShareTitle: 'Prayer Emoji',
-  socialShareDescription: 'Send prayer emoji NFTs to your biggest fans on Farcaster',
+  searchTags: 'social',
+  marketingTagline: 'Prayer',
+  buttonTitle: 'Send',
+  socialShareTitle: 'Prayer',
+  socialShareDescription: 'Prayer',
   socialShareImage: 'https://quicktop8-alpha.vercel.app/og-image.png',
-  castShareURL: 'https://warpcast.com/~/compose?text=Check+out+Prayer+Emoji+app',
+  castShareURL: 'https://warpcast.com/~/compose?text=Check+out+Prayer+app',
   
   // Technical
   homeURL: 'https://quicktop8-alpha.vercel.app',
