@@ -2,22 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || "1E58A226-A64C-4CF3-A047-FBED94F36101"
 
-interface ReplyGuyData {
+interface StreamerData {
   fid: number
   username: string
   display_name: string
   pfp_url: string
   bio: string
-  followDate: string
-  firstEngagement: string
-  engagementType: 'reply'
   totalInteractions: number
-  relationshipScore: number
-  originalEngagementCastHash: string
+  lastInteraction: string
   originalEngagementCastUrl: string
-  rideOrDieScore: number
-  daysSinceFirstEngagement: number
-  engagementFrequency: number
 }
 
 export async function POST(request: NextRequest) {
@@ -28,12 +21,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    console.log(`Starting Reply Guys Top 8 calculation for FID: ${fid}`)
+    console.log(`Starting Top 8 Streamers calculation for FID: ${fid}`)
 
-    const replyGuysMap = new Map<number, ReplyGuyData>()
+    const streamersMap = new Map<number, StreamerData>()
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000)
     
-    // Get user's recent casts and check replies
-    const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=25`, {
+    // Get user's recent activity (likes, recasts, replies) from the last 30 days
+    const userActivityResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=100`, {
       headers: {
         'x-api-key': NEYNAR_API_KEY,
         'accept': 'application/json'
@@ -41,34 +35,84 @@ export async function POST(request: NextRequest) {
       signal: AbortSignal.timeout(15000)
     })
     
-    if (!userCastsResponse.ok) {
-      console.error(`Failed to fetch user casts: ${userCastsResponse.status}`)
+    if (!userActivityResponse.ok) {
+      console.error(`Failed to fetch user activity: ${userActivityResponse.status}`)
       return NextResponse.json({ 
-        error: "Failed to fetch casts. Please try again." 
+        error: "Failed to fetch activity. Please try again." 
       }, { status: 500 })
     }
     
-    const userCastsData = await userCastsResponse.json()
-    const userCasts = userCastsData.casts || []
+    const userActivityData = await userActivityResponse.json()
+    const userCasts = userActivityData.casts || []
     console.log(`Found ${userCasts.length} recent casts`)
     
     if (userCasts.length === 0) {
       return NextResponse.json({ 
         friends: [],
-        message: "No recent casts found. Try posting more to see your reply guys!"
+        message: "No recent activity found. Try posting more to see your top streamers!"
       })
     }
     
-    // Process each cast to find replies
-    for (const cast of userCasts.slice(0, 15)) {
+    // Process each cast to find interactions
+    for (const cast of userCasts) {
       try {
-        // Get cast conversations (replies)
+        // Check if cast is within last 30 days
+        const castTimestamp = new Date(cast.timestamp).getTime()
+        if (castTimestamp < thirtyDaysAgo) continue
+        
+        // Get cast reactions (likes, recasts)
+        const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash`, {
+          headers: {
+            'x-api-key': NEYNAR_API_KEY,
+            'accept': 'application/json'
+          },
+          signal: AbortSignal.timeout(5000)
+        })
+        
+        if (reactionsResponse.ok) {
+          const reactionsData = await reactionsResponse.json()
+          const reactions = reactionsData.reactions || []
+          
+          // Process each reaction
+          for (const reaction of reactions) {
+            const reactor = reaction.reactor_user
+            
+            // Skip self-reactions
+            if (reactor.fid === parseInt(fid)) continue
+            
+            const existing = streamersMap.get(reactor.fid)
+            
+            if (existing) {
+              existing.totalInteractions++
+              // Update last interaction if this is more recent
+              if (new Date(reaction.timestamp) > new Date(existing.lastInteraction)) {
+                existing.lastInteraction = reaction.timestamp
+                existing.originalEngagementCastUrl = `https://warpcast.com/~/conversations/${cast.hash}`
+              }
+            } else {
+              // New streamer
+              const newStreamer: StreamerData = {
+                fid: reactor.fid,
+                username: reactor.username,
+                display_name: reactor.display_name,
+                pfp_url: reactor.pfp_url,
+                bio: reactor.profile?.bio?.text || "",
+                totalInteractions: 1,
+                lastInteraction: reaction.timestamp,
+                originalEngagementCastUrl: `https://warpcast.com/~/conversations/${cast.hash}`
+              }
+              streamersMap.set(reactor.fid, newStreamer)
+            }
+          }
+        }
+        
+        // Get cast replies
         const conversationResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${cast.hash}&type=hash&reply_depth=1&limit=25`, {
           headers: {
             'x-api-key': NEYNAR_API_KEY,
             'accept': 'application/json'
           },
-          signal: AbortSignal.timeout(8000)
+          signal: AbortSignal.timeout(5000)
         })
         
         if (conversationResponse.ok) {
@@ -83,43 +127,34 @@ export async function POST(request: NextRequest) {
             // Skip self-replies
             if (replyAuthor.fid === parseInt(fid)) continue
             
-            const existing = replyGuysMap.get(replyAuthor.fid)
-            const replyTimestamp = reply.timestamp
+            const existing = streamersMap.get(replyAuthor.fid)
             
             if (existing) {
               existing.totalInteractions++
-              // Update first engagement if this is earlier
-              if (new Date(replyTimestamp) < new Date(existing.firstEngagement)) {
-                existing.firstEngagement = replyTimestamp
-                existing.originalEngagementCastHash = cast.hash
+              // Update last interaction if this is more recent
+              if (new Date(reply.timestamp) > new Date(existing.lastInteraction)) {
+                existing.lastInteraction = reply.timestamp
                 existing.originalEngagementCastUrl = `https://warpcast.com/~/conversations/${cast.hash}`
               }
             } else {
-              // New reply guy
-              const newReplyGuy: ReplyGuyData = {
+              // New streamer
+              const newStreamer: StreamerData = {
                 fid: replyAuthor.fid,
                 username: replyAuthor.username,
                 display_name: replyAuthor.display_name,
                 pfp_url: replyAuthor.pfp_url,
                 bio: replyAuthor.profile?.bio?.text || "",
-                followDate: replyTimestamp, // Use first reply as "follow" date
-                firstEngagement: replyTimestamp,
-                engagementType: 'reply',
                 totalInteractions: 1,
-                relationshipScore: 0,
-                originalEngagementCastHash: cast.hash,
-                originalEngagementCastUrl: `https://warpcast.com/~/conversations/${cast.hash}`,
-                rideOrDieScore: 0,
-                daysSinceFirstEngagement: 0,
-                engagementFrequency: 0
+                lastInteraction: reply.timestamp,
+                originalEngagementCastUrl: `https://warpcast.com/~/conversations/${cast.hash}`
               }
-              replyGuysMap.set(replyAuthor.fid, newReplyGuy)
+              streamersMap.set(replyAuthor.fid, newStreamer)
             }
           }
         }
         
         // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 50))
         
       } catch (error) {
         console.error(`Error processing cast ${cast.hash}:`, error)
@@ -127,25 +162,8 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Calculate scores for all reply guys
-    const now = Date.now()
-    for (const replyGuy of replyGuysMap.values()) {
-      const firstEngagementDate = new Date(replyGuy.firstEngagement)
-      replyGuy.daysSinceFirstEngagement = (now - firstEngagementDate.getTime()) / (1000 * 60 * 60 * 24)
-      replyGuy.engagementFrequency = replyGuy.totalInteractions / Math.max(replyGuy.daysSinceFirstEngagement, 1)
-      
-      // Reply Guy score: heavily weighted on reply frequency
-      replyGuy.rideOrDieScore = Math.round(
-        (replyGuy.totalInteractions * 10) + // Reply count is most important
-        (replyGuy.engagementFrequency * 50) + // Frequency bonus
-        (Math.min(replyGuy.daysSinceFirstEngagement, 30) * 2) // Consistency bonus (capped at 30 days)
-      )
-      
-      replyGuy.relationshipScore = replyGuy.rideOrDieScore
-    }
-    
-    // Sort by reply count and return top 8
-    const friends = Array.from(replyGuysMap.values())
+    // Sort by interaction count and return top 8
+    const friends = Array.from(streamersMap.values())
       .sort((a, b) => b.totalInteractions - a.totalInteractions)
       .slice(0, 8)
       .map(friend => ({
@@ -154,24 +172,21 @@ export async function POST(request: NextRequest) {
         display_name: friend.display_name,
         pfp_url: friend.pfp_url,
         bio: friend.bio,
-        followDate: friend.followDate,
-        firstEngagement: friend.firstEngagement,
-        engagementType: friend.engagementType,
         totalInteractions: friend.totalInteractions,
-        relationshipScore: Math.round(friend.relationshipScore),
-        originalEngagementCastHash: friend.originalEngagementCastHash,
+        lastInteraction: friend.lastInteraction,
         originalEngagementCastUrl: friend.originalEngagementCastUrl,
-        rideOrDieScore: friend.rideOrDieScore,
-        daysSinceFirstEngagement: Math.round(friend.daysSinceFirstEngagement),
-        engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100
+        // For backward compatibility with frontend
+        rideOrDieScore: friend.totalInteractions,
+        daysSinceFirstEngagement: Math.round((Date.now() - new Date(friend.lastInteraction).getTime()) / (1000 * 60 * 60 * 24)),
+        engagementFrequency: friend.totalInteractions / 30
       }))
     
-    console.log(`Found ${friends.length} reply guys`)
+    console.log(`Found ${friends.length} top streamers`)
     
     if (friends.length === 0) {
       return NextResponse.json({ 
         friends: [],
-        message: "No reply guys found! Try posting more content to attract some reply guys."
+        message: "No streamers found! Try posting more content to attract interactions."
       })
     }
     

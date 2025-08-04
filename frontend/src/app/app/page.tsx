@@ -8,18 +8,14 @@ import { Badge } from "@/components/ui/badge"
 import { useMiniApp } from '@/components/MiniAppProvider'
 import { sdk } from '@farcaster/miniapp-sdk'
 
-interface MutualFollow {
+interface Streamer {
   fid: number
   username: string
   display_name: string
   pfp_url: string
   bio: string
-  followDate: string
-  firstEngagement: string
-  engagementType: 'like' | 'recast' | 'reply'
   totalInteractions: number
-  relationshipScore: number
-  originalEngagementCastHash: string
+  lastInteraction: string
   originalEngagementCastUrl: string
   rideOrDieScore: number
   daysSinceFirstEngagement: number
@@ -27,14 +23,14 @@ interface MutualFollow {
 }
 
 export default function App() {
-  const [friends, setFriends] = useState<MutualFollow[]>([])
+  const [friends, setFriends] = useState<Streamer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [isInMiniApp, setIsInMiniApp] = useState(false)
   const [userFid, setUserFid] = useState<number | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
-  const [tippingUser, setTippingUser] = useState<MutualFollow | null>(null)
-  const [tipAmount, setTipAmount] = useState(500)
+  const [tippingUser, setTippingUser] = useState<Streamer | null>(null)
+  const [selectedGift, setSelectedGift] = useState<string>("")
   
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
@@ -112,14 +108,14 @@ export default function App() {
     }
   }
 
-  const handleTip = async (recipientFid: number, amount: number) => {
+  const handleTip = async (recipientFid: number, giftValue: number) => {
     try {
       const response = await fetch("/api/wallet/tip", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ recipientFid, amount }),
+        body: JSON.stringify({ recipientFid, amount: giftValue * 100 }),
       })
 
       if (!response.ok) {
@@ -132,12 +128,12 @@ export default function App() {
         throw new Error(data.error)
       }
 
-      alert(`Successfully tipped ${(amount / 100).toFixed(2)} to your Bitcoin bro! 🎉`)
+      alert(`🎁 Gift sent! You just sent ${giftValue} USDC to your favorite streamer! 🎉`)
       setTippingUser(null)
-      setTipAmount(500)
+      setSelectedGift("")
     } catch (err) {
       console.error("Error tipping:", err)
-      alert(err instanceof Error ? err.message : "Failed to send tip")
+      alert(err instanceof Error ? err.message : "Failed to send gift")
     }
   }
 
@@ -173,45 +169,48 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-red-500 to-yellow-400 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-32 h-32 border-4 border-gray-800 rounded-full transform rotate-45"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 border-4 border-gray-800 rounded-full transform -rotate-12"></div>
-        <div className="absolute bottom-40 left-1/4 w-20 h-20 border-4 border-gray-800 rounded-full transform rotate-30"></div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-600 relative overflow-hidden">
+      {/* Alternating up/down background pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-green-400 rounded-full transform rotate-12 animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-red-400 rounded-full transform -rotate-12 animate-bounce"></div>
+        <div className="absolute bottom-20 left-1/3 w-24 h-24 bg-yellow-400 rounded-full transform rotate-30 animate-pulse"></div>
+        <div className="absolute top-60 left-1/4 w-12 h-12 bg-pink-400 rounded-full transform -rotate-45 animate-bounce"></div>
+        <div className="absolute bottom-40 right-1/3 w-18 h-18 bg-cyan-400 rounded-full transform rotate-60 animate-pulse"></div>
       </div>
 
       <div className="absolute top-4 right-4 z-10">
         <div className="bg-black bg-opacity-80 text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider">
-          BRAINLESS TALES
+          CRYPTO STREAMS
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-yellow-300 animate-bounce">
-              ₿
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-purple-300 animate-bounce">
+              🎮
             </div>
             <h1 className="text-4xl font-bold text-white ml-4 drop-shadow-lg">
-              Ride or Die Top 8
+              Recommended Streamers
             </h1>
           </div>
           <p className="text-white text-lg mb-2 drop-shadow-md">
-            Your longest-standing Farcaster friends on the crypto roller coaster! 🎢
+            Your favorite crypto content creators! 🚀
           </p>
           <div className="flex justify-center space-x-2 mb-4">
-            <span className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm">🔥 Ride or Die</span>
-            <span className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm">💎 Bitcoin Bros</span>
-            <span className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm">🎢 Crypto Coaster</span>
+            <span className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm">🎮 Live Now</span>
+            <span className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm">💎 Crypto Bros</span>
+            <span className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm">🚀 To The Moon</span>
           </div>
         </div>
 
         {loading && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-yellow-300 animate-spin mx-auto mb-4">
-              ₿
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-purple-300 animate-spin mx-auto mb-4">
+              🎮
             </div>
-            <p className="text-white text-lg">Loading your ride or die crew...</p>
+            <p className="text-white text-lg">Loading your favorite streamers...</p>
           </div>
         )}
 
@@ -238,10 +237,10 @@ export default function App() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">
-                Your Crypto Roller Coaster Crew 🎢
+                Live Streamers 🎮
               </h2>
               <p className="text-white opacity-90">
-                These Bitcoin bros have been riding the ups and downs with you!
+                Your favorite crypto content creators are live now!
               </p>
             </div>
 
@@ -249,52 +248,62 @@ export default function App() {
               {friends.map((friend, index) => (
                 <div
                   key={friend.fid}
-                  className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-2 border-yellow-300 hover:border-orange-400 transition-all duration-300 hover:scale-105"
+                  className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-2 transition-all duration-300 hover:scale-105 ${
+                    index % 2 === 0 
+                      ? 'border-green-300 hover:border-green-400' 
+                      : 'border-red-300 hover:border-red-400'
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-lg font-bold text-white shadow-lg border-2 border-yellow-300">
-                      ₿
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white shadow-lg border-2 ${
+                      index % 2 === 0 
+                        ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-green-300' 
+                        : 'bg-gradient-to-br from-red-400 to-pink-500 border-red-300'
+                    }`}>
+                      {index % 2 === 0 ? '📈' : '📉'}
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-600">Ride or Die Score</div>
-                      <div className="text-2xl font-bold text-orange-600">
+                      <div className="text-sm text-gray-600">Viewer Count</div>
+                      <div className={`text-2xl font-bold ${
+                        index % 2 === 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                         {friend.rideOrDieScore}
                       </div>
                     </div>
                   </div>
 
                   <div className="text-center mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold text-lg">
                       {friend.username?.charAt(0).toUpperCase() || '?'}
                     </div>
                     <h3 className="font-bold text-gray-900 text-lg mb-1">
-                      {friend.username || `FID ${friend.fid}`}
+                      {friend.username || `Streamer ${friend.fid}`}
                     </h3>
                     <p className="text-gray-600 text-sm mb-2">
-                      {friend.display_name || 'Crypto Warrior'}
+                      {friend.display_name || 'Crypto Streamer'}
                     </p>
                     <div className="flex justify-center space-x-1 mb-3">
-                      {getRideOrDieBadge(friend.rideOrDieScore)}
+                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">🔴 LIVE</span>
                     </div>
                   </div>
 
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Days Riding:</span>
-                      <span className="font-semibold text-orange-600">
-                        {friend.daysSinceFirstEngagement}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total Interactions:</span>
-                      <span className="font-semibold text-orange-600">
+                      <span className="text-gray-600">Interactions:</span>
+                      <span className="font-semibold text-purple-600">
                         {friend.totalInteractions}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Engagement Freq:</span>
-                      <span className="font-semibold text-orange-600">
-                        {friend.engagementFrequency}
+                      <span className="text-gray-600">Last Active:</span>
+                      <span className="font-semibold text-purple-600">
+                        {friend.daysSinceFirstEngagement}d ago
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Category:</span>
+                      <span className="font-semibold text-purple-600">
+                        Crypto
                       </span>
                     </div>
                   </div>
@@ -305,18 +314,18 @@ export default function App() {
                         href={friend.originalEngagementCastUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 text-sm"
+                        className="block w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white text-center py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 text-sm"
                       >
-                        🎢 View Original Cast
+                        🎮 Watch Stream
                       </a>
                     </div>
                   )}
 
                   <button
                     onClick={() => setTippingUser(friend)}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white py-3 rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    className="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-white py-3 rounded-lg font-semibold hover:from-purple-500 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
-                    💰 Tip Bitcoin Bro
+                    🎁 Send Gift
                   </button>
                 </div>
               ))}
@@ -327,17 +336,17 @@ export default function App() {
         {!loading && !error && friends.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg mx-auto mb-4">
-              🎢
+              🎮
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">
-              No Ride or Die Friends Yet
+              No Live Streamers Found
             </h3>
             <p className="text-white opacity-90 mb-4">
-              Start engaging with your mutual follows to build your crypto roller coaster crew!
+              Start engaging with your mutual follows to discover crypto streamers!
             </p>
             <button
               onClick={() => userFid && handleGetTop8(userFid)}
-              className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Refresh
             </button>
@@ -349,46 +358,69 @@ export default function App() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg mx-auto mb-4">
-                ₿
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg mx-auto mb-4">
+                🎁
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Tip {tippingUser.username || `FID ${tippingUser.fid}`}
+                Send Gift to {tippingUser.username || `Streamer ${tippingUser.fid}`}
               </h3>
               <p className="text-gray-600">
-                Show appreciation for your ride or die Bitcoin bro! 🎢
+                Support your favorite crypto streamer! 🚀
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {[100, 500, 1000, 2500, 5000, 10000].map((amount) => (
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {[
+                { emoji: '💎', value: 1, name: 'Diamond' },
+                { emoji: '🚀', value: 2, name: 'Rocket' },
+                { emoji: '🌙', value: 3, name: 'Moon' },
+                { emoji: '🔥', value: 4, name: 'Fire' },
+                { emoji: '⚡', value: 5, name: 'Lightning' },
+                { emoji: '🎯', value: 6, name: 'Target' },
+                { emoji: '🏆', value: 7, name: 'Trophy' },
+                { emoji: '👑', value: 8, name: 'Crown' },
+                { emoji: '💫', value: 9, name: 'Star' },
+                { emoji: '🌟', value: 10, name: 'Superstar' }
+              ].map((gift) => (
                 <button
-                  key={amount}
-                  onClick={() => setTipAmount(amount)}
+                  key={gift.value}
+                  onClick={() => setSelectedGift(gift.emoji)}
                   className={`p-3 rounded-lg font-semibold transition-all duration-300 ${
-                    tipAmount === amount
-                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg'
+                    selectedGift === gift.emoji
+                      ? 'bg-gradient-to-r from-purple-400 to-pink-500 text-white shadow-lg'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  ${(amount / 100).toFixed(2)}
+                  <div className="text-2xl mb-1">{gift.emoji}</div>
+                  <div className="text-xs">${gift.value}</div>
                 </button>
               ))}
             </div>
 
             <div className="flex space-x-3">
               <button
-                onClick={() => setTippingUser(null)}
+                onClick={() => {
+                  setTippingUser(null)
+                  setSelectedGift("")
+                }}
                 className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleTip(tippingUser.fid, tipAmount)}
-                disabled={!tipAmount}
-                className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white py-3 rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => {
+                  const giftValue = [
+                    { emoji: '💎', value: 1 }, { emoji: '🚀', value: 2 }, { emoji: '🌙', value: 3 },
+                    { emoji: '🔥', value: 4 }, { emoji: '⚡', value: 5 }, { emoji: '🎯', value: 6 },
+                    { emoji: '🏆', value: 7 }, { emoji: '👑', value: 8 }, { emoji: '💫', value: 9 },
+                    { emoji: '🌟', value: 10 }
+                  ].find(g => g.emoji === selectedGift)?.value || 1
+                  handleTip(tippingUser.fid, giftValue)
+                }}
+                disabled={!selectedGift}
+                className="flex-1 bg-gradient-to-r from-purple-400 to-pink-500 text-white py-3 rounded-lg font-semibold hover:from-purple-500 hover:to-pink-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Send Tip
+                Send Gift
               </button>
             </div>
           </div>
