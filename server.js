@@ -2,218 +2,221 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const axios = require('axios');
 require('dotenv').config();
+
+const NeynarIndexer = require('./neynar-indexer');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
-app.use(helmet());
-app.use(morgan('combined'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Initialize Neynar Indexer with optimized settings
+const indexer = new NeynarIndexer(process.env.NEYNAR_API_KEY, {
+  cacheTTL: 10 * 60 * 1000, // 10 minutes for better performance
+  retryAttempts: 2, // Reduced for faster failure detection
+  retryDelay: 500, // Faster retry
+  batchSize: 50 // Smaller batches for better reliability
+});
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
+// Optimized middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.neynar.com", "https://warpcast.com"]
+    }
+  }
 }));
 
-// Neynar API configuration
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
-const NEYNAR_CLIENT_ID = process.env.NEYNAR_CLIENT_ID;
-const NEYNAR_BASE_URL = 'https://api.neynar.com/v2';
+app.use(morgan('combined'));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Helper function to make authenticated requests to Neynar API
-const makeNeynarRequest = async (endpoint, params = {}) => {
-  try {
-    const response = await axios.get(`${NEYNAR_BASE_URL}${endpoint}`, {
-      headers: {
-        'api_key': NEYNAR_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      params
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Neynar API Error:', error.response?.data || error.message);
-    throw error;
-  }
-};
+// CORS configuration for quicktop8-alpha.vercel.app
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://quicktop8-alpha.vercel.app',
+    'https://quicktop8.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const cacheStats = indexer.getCacheStats();
+  const performanceStats = indexer.getPerformanceStats();
+  
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    neynarConfigured: !!NEYNAR_API_KEY 
+    neynarConfigured: !!process.env.NEYNAR_API_KEY,
+    cache: cacheStats,
+    performance: performanceStats,
+    uptime: process.uptime()
   });
 });
 
-// Get user information by FID
+// Main user data endpoint with optimized error handling
 app.get('/api/user/:fid', async (req, res) => {
   try {
     const { fid } = req.params;
-    const userData = await makeNeynarRequest('/farcaster/user/bulk', { fids: fid });
-    res.json(userData);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch user data',
-      details: error.message 
-    });
-  }
-});
-
-// Get user's followers
-app.get('/api/user/:fid/followers', async (req, res) => {
-  try {
-    const { fid } = req.params;
-    const { limit = 25, cursor } = req.query;
+    const { viewer_fid } = req.query;
     
-    const followersData = await makeNeynarRequest('/farcaster/followers', {
-      fid,
-      limit: parseInt(limit),
-      ...(cursor && { cursor })
-    });
-    
-    res.json(followersData);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch followers',
-      details: error.message 
-    });
-  }
-});
-
-// Get user's following
-app.get('/api/user/:fid/following', async (req, res) => {
-  try {
-    const { fid } = req.params;
-    const { limit = 25, cursor } = req.query;
-    
-    const followingData = await makeNeynarRequest('/farcaster/user/following', {
-      fid,
-      limit: parseInt(limit),
-      ...(cursor && { cursor })
-    });
-    
-    res.json(followingData);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch following',
-      details: error.message 
-    });
-  }
-});
-
-// Get user's casts
-app.get('/api/user/:fid/casts', async (req, res) => {
-  try {
-    const { fid } = req.params;
-    const { limit = 25, cursor } = req.query;
-    
-    const castsData = await makeNeynarRequest('/farcaster/casts', {
-      fid,
-      limit: parseInt(limit),
-      ...(cursor && { cursor })
-    });
-    
-    res.json(castsData);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch casts',
-      details: error.message 
-    });
-  }
-});
-
-// Search users
-app.get('/api/search/users', async (req, res) => {
-  try {
-    const { q, limit = 25 } = req.query;
-    
-    if (!q) {
-      return res.status(400).json({ error: 'Search query is required' });
+    if (!fid || isNaN(parseInt(fid))) {
+      return res.status(400).json({ 
+        error: 'Invalid FID provided',
+        fid: fid
+      });
     }
     
-    const searchData = await makeNeynarRequest('/farcaster/user/search', {
-      q,
-      limit: parseInt(limit)
+    console.log(`Fetching user data for FID: ${fid}`);
+    
+    const userData = await indexer.getUserData(fid, viewer_fid);
+    
+    if (!userData.users || userData.users.length === 0) {
+      return res.status(404).json({ 
+        error: 'User not found',
+        fid: fid
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: userData,
+      timestamp: new Date().toISOString()
     });
     
-    res.json(searchData);
   } catch (error) {
+    console.error('Error fetching user data:', error.message);
+    
+    if (error.response?.status === 429) {
+      res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        retryAfter: error.response.headers['retry-after'] || 60
+      });
+    } else if (error.response?.status === 404) {
+      res.status(404).json({ 
+        error: 'User not found',
+        fid: req.params.fid
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Failed to fetch user data',
+        details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
+});
+
+// Top interactions endpoint
+app.get('/api/user/:fid/top-interactions', async (req, res) => {
+  try {
+    const { fid } = req.params;
+    const { limit = 8, filter_spam = 'true' } = req.query;
+    
+    if (!fid || isNaN(parseInt(fid))) {
+      return res.status(400).json({ 
+        error: 'Invalid FID provided',
+        fid: fid
+      });
+    }
+    
+    console.log(`Fetching top interactions for FID: ${fid}`);
+    
+    const topInteractions = await indexer.getTopInteractions(fid, parseInt(limit), {
+      filterSpam: filter_spam === 'true'
+    });
+    
+    res.json({
+      success: true,
+      data: topInteractions,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error fetching top interactions:', error.message);
     res.status(500).json({ 
-      error: 'Failed to search users',
-      details: error.message 
+      error: 'Failed to fetch top interactions',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
 
-// Get trending casts
-app.get('/api/trending/casts', async (req, res) => {
+// Bulk users endpoint for efficient batch processing
+app.get('/api/users/bulk', async (req, res) => {
   try {
-    const { limit = 25, time_window = '24h' } = req.query;
+    const { fids, viewer_fid } = req.query;
     
-    const trendingData = await makeNeynarRequest('/farcaster/feed/trending', {
-      limit: parseInt(limit),
-      time_window
+    if (!fids) {
+      return res.status(400).json({ error: 'FIDs parameter is required' });
+    }
+    
+    const fidArray = fids.split(',').map(fid => parseInt(fid.trim())).filter(fid => !isNaN(fid));
+    
+    if (fidArray.length === 0) {
+      return res.status(400).json({ error: 'No valid FIDs provided' });
+    }
+    
+    if (fidArray.length > 100) {
+      return res.status(400).json({ error: 'Maximum 100 FIDs allowed per request' });
+    }
+    
+    console.log(`Fetching bulk user data for ${fidArray.length} FIDs`);
+    
+    const userData = await indexer.getBulkUsers(fidArray, viewer_fid ? parseInt(viewer_fid) : null);
+    
+    res.json({
+      success: true,
+      data: userData,
+      timestamp: new Date().toISOString()
     });
     
-    res.json(trendingData);
   } catch (error) {
+    console.error('Error fetching bulk users:', error.message);
     res.status(500).json({ 
-      error: 'Failed to fetch trending casts',
-      details: error.message 
+      error: 'Failed to fetch bulk users',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
 
-// Get cast by hash
-app.get('/api/cast/:hash', async (req, res) => {
-  try {
-    const { hash } = req.params;
-    
-    const castData = await makeNeynarRequest('/farcaster/cast', {
-      identifier: hash,
-      type: 'hash'
-    });
-    
-    res.json(castData);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch cast',
-      details: error.message 
-    });
-  }
+// Indexer stats endpoint
+app.get('/api/indexer/stats', (req, res) => {
+  const cacheStats = indexer.getCacheStats();
+  const performanceStats = indexer.getPerformanceStats();
+  
+  res.json({
+    success: true,
+    data: {
+      cache: cacheStats,
+      performance: performanceStats,
+      timestamp: new Date().toISOString()
+    }
+  });
 });
 
-// Get cast reactions
-app.get('/api/cast/:hash/reactions', async (req, res) => {
-  try {
-    const { hash } = req.params;
-    
-    const reactionsData = await makeNeynarRequest('/farcaster/cast/reactions', {
-      identifier: hash,
-      type: 'hash'
-    });
-    
-    res.json(reactionsData);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch cast reactions',
-      details: error.message 
-    });
-  }
+// Cache management
+app.post('/api/indexer/cache/clear', (req, res) => {
+  indexer.clearCache();
+  res.json({
+    success: true,
+    message: 'Cache cleared successfully',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Unhandled error:', err.stack);
   res.status(500).json({ 
     error: 'Something went wrong!',
-    message: err.message 
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
@@ -224,23 +227,21 @@ app.use('*', (req, res) => {
     availableEndpoints: [
       'GET /health',
       'GET /api/user/:fid',
-      'GET /api/user/:fid/followers',
-      'GET /api/user/:fid/following',
-      'GET /api/user/:fid/casts',
-      'GET /api/search/users',
-      'GET /api/trending/casts',
-      'GET /api/cast/:hash',
-      'GET /api/cast/:hash/reactions'
+      'GET /api/user/:fid/top-interactions',
+      'GET /api/users/bulk',
+      'GET /api/indexer/stats',
+      'POST /api/indexer/cache/clear'
     ]
   });
 });
 
-// Only start the server if this file is run directly
+// Start server
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 QuickTop8 Server running on port ${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔑 Neynar API configured: ${!!NEYNAR_API_KEY}`);
+    console.log(`🔑 Neynar API configured: ${!!process.env.NEYNAR_API_KEY}`);
+    console.log(`🌐 Domain: quicktop8-alpha.vercel.app`);
   });
 }
 

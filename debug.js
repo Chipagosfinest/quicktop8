@@ -162,7 +162,10 @@ function checkBuildProcess() {
   // Check if we can build the frontend
   log('\n🎨 Frontend Build Test:');
   try {
-    execSync('cd frontend && npm run build', { stdio: 'pipe' });
+    // Clean the Next.js cache first
+    execSync('cd frontend && rm -rf .next', { stdio: 'pipe' });
+    // Set NODE_ENV to production for the build
+    execSync('cd frontend && NODE_ENV=production npm run build', { stdio: 'pipe' });
     log('✅ Frontend builds successfully', 'green');
   } catch (error) {
     log('❌ Frontend build failed:', 'red');

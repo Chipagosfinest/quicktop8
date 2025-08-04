@@ -1,42 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Proxy to backend API - use production URL for deployed app
+const BACKEND_URL = process.env.BACKEND_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://quicktop8-alpha.vercel.app' 
+    : 'http://localhost:4000');
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ fid: string }> }
 ) {
   try {
-    console.log('Dynamic route called')
-    
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const { fid } = await params;
+    console.log(`User API route called for FID: ${fid}`)
+
+    if (!fid) {
       return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401 }
+        { error: 'Missing FID parameter' },
+        { status: 400 }
       )
     }
 
-    const token = authHeader.split(' ')[1]
-    const { fid } = await params
+    console.log(`Proxying request for FID: ${fid} to backend`)
 
-    console.log(`Processing request for FID: ${fid}`)
-    console.log(`Token present: ${!!token}`)
+    // Proxy the request to the backend
+    const backendResponse = await fetch(`${BACKEND_URL}/api/user/${fid}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    // Simple response for now
-    const userData = {
-      fid: parseInt(fid),
-      username: `user_${fid}`,
-      displayName: `User ${fid}`,
-      message: 'Dynamic route working!',
-      timestamp: new Date().toISOString()
+    if (!backendResponse.ok) {
+      const errorData = await backendResponse.json();
+      return NextResponse.json(
+        errorData,
+        { status: backendResponse.status }
+      );
     }
 
-    return NextResponse.json(userData)
+    const data = await backendResponse.json();
+    return NextResponse.json(data);
+
   } catch (error) {
-    console.error('Error processing user request:', error)
+    console.error('Error in user API proxy:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

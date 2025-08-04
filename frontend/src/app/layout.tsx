@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   title: 'QuickTop8 - Your Top Farcaster Friends',
   description: 'Discover your top 8 friends on Farcaster based on your interactions',
   other: {
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://warpcast.com https://*.warpcast.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://warpcast.com https://*.warpcast.com https://api.neynar.com;"
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://warpcast.com https://*.warpcast.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://warpcast.com https://*.warpcast.com https://api.neynar.com;",
+    'fc:miniapp': 'QuickTop8',
+    'fc:miniapp:domain': 'quicktop8-alpha.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-alpha.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-alpha.vercel.app'
   }
 }
 

@@ -1,12 +1,7 @@
 #!/bin/bash
 
-# QuickTop8 Production Deployment Script
-# This script prepares and deploys the project to production
-
-set -e  # Exit on any error
-
-echo "🚀 QuickTop8 Production Deployment"
-echo "=================================="
+echo "🚀 QuickTop8 Deployment Script"
+echo "================================"
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,196 +12,78 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}$1${NC}"
 }
 
 print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}✅ $1${NC}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "${YELLOW}⚠️ $1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}❌ $1${NC}"
 }
 
-# Check prerequisites
-print_status "Checking prerequisites..."
-
-# Check if Node.js is installed
-if ! command -v node &> /dev/null; then
-    print_error "Node.js is not installed. Please install Node.js 18+ first."
-    exit 1
-fi
-
-# Check if npm is installed
-if ! command -v npm &> /dev/null; then
-    print_error "npm is not installed. Please install npm first."
-    exit 1
-fi
-
-# Check if git is installed
-if ! command -v git &> /dev/null; then
-    print_error "git is not installed. Please install git first."
-    exit 1
-fi
-
-print_success "Prerequisites check passed"
-
 # Check if we're in the right directory
-if [ ! -f "package.json" ] || [ ! -f "server-enhanced.js" ]; then
-    print_error "Please run this script from the project root directory"
+if [ ! -f "package.json" ]; then
+    print_error "Not in the project root directory"
     exit 1
 fi
 
-# Check if .env file exists
-if [ ! -f ".env" ]; then
-    print_warning ".env file not found. Creating from template..."
-    if [ -f "env.example" ]; then
-        cp env.example .env
-        print_status "Please update .env with your Neynar API key"
-    else
-        print_error "No .env or env.example file found. Please create .env with NEYNAR_API_KEY"
-        exit 1
-    fi
-fi
-
-# Check if NEYNAR_API_KEY is set
-if ! grep -q "NEYNAR_API_KEY" .env || grep -q "NEYNAR_API_KEY=your_api_key_here" .env; then
-    print_error "Please set NEYNAR_API_KEY in your .env file"
-    exit 1
-fi
-
-print_success "Environment configuration check passed"
-
-# Run tests
-print_status "Running tests..."
-
-# Test backend
-if node test-performance.js > /dev/null 2>&1; then
-    print_success "Performance tests passed"
-else
-    print_warning "Performance tests failed - continuing anyway"
-fi
-
-# Test frontend connection
-if node test-frontend-connection.js > /dev/null 2>&1; then
-    print_success "Frontend connection tests passed"
-else
-    print_warning "Frontend connection tests failed - continuing anyway"
-fi
-
-# Check git status
-print_status "Checking git status..."
-
-if [ -n "$(git status --porcelain)" ]; then
-    print_warning "You have uncommitted changes. Consider committing them first."
-    echo "Uncommitted files:"
-    git status --porcelain
-    echo ""
-    
-    read -p "Continue with deployment? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Deployment cancelled"
-        exit 0
-    fi
-fi
-
-# Check if we're on main branch
-CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" != "main" ]; then
-    print_warning "You're not on the main branch (currently on $CURRENT_BRANCH)"
-    read -p "Continue with deployment? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Deployment cancelled"
-        exit 0
-    fi
-fi
-
-print_success "Git status check passed"
-
-# Install dependencies
-print_status "Installing dependencies..."
-
+print_status "Step 1: Installing backend dependencies..."
 npm install
-
-if [ -d "frontend" ]; then
-    cd frontend
-    npm install
-    cd ..
+if [ $? -eq 0 ]; then
+    print_success "Backend dependencies installed"
+else
+    print_error "Failed to install backend dependencies"
+    exit 1
 fi
 
-print_success "Dependencies installed"
+print_status "Step 2: Installing frontend dependencies..."
+cd frontend
+npm install
+if [ $? -eq 0 ]; then
+    print_success "Frontend dependencies installed"
+else
+    print_error "Failed to install frontend dependencies"
+    exit 1
+fi
+cd ..
 
-# Build frontend
-print_status "Building frontend..."
-
-if [ -d "frontend" ]; then
-    cd frontend
-    npm run build
-    cd ..
+print_status "Step 3: Building frontend..."
+cd frontend
+npm run build
+if [ $? -eq 0 ]; then
     print_success "Frontend built successfully"
 else
-    print_warning "No frontend directory found - skipping frontend build"
+    print_error "Frontend build failed"
+    exit 1
+fi
+cd ..
+
+print_status "Step 4: Running backend tests..."
+npm run test:backend
+if [ $? -eq 0 ]; then
+    print_success "Backend tests passed"
+else
+    print_warning "Backend tests failed, but continuing deployment"
 fi
 
-# Create deployment summary
-print_status "Creating deployment summary..."
+print_status "Step 5: Deploying to Vercel..."
+npx vercel --prod --yes
+if [ $? -eq 0 ]; then
+    print_success "Deployment completed successfully!"
+    echo ""
+    echo "🌐 Your app is now live at: https://quicktop8-alpha.vercel.app"
+    echo "📊 Health check: https://quicktop8-alpha.vercel.app/health"
+    echo "🔧 API endpoints: https://quicktop8-alpha.vercel.app/api/user/4044"
+else
+    print_error "Deployment failed"
+    exit 1
+fi
 
-cat > DEPLOYMENT_SUMMARY.md << EOF
-# QuickTop8 Deployment Summary
-
-## Deployment Date
-$(date)
-
-## Environment
-- Node.js: $(node --version)
-- npm: $(npm --version)
-- Git: $(git --version)
-
-## Files Deployed
-- Backend: server-enhanced.js
-- Frontend: frontend/ (if exists)
-- Configuration: package.json, vercel.json
-- Documentation: README.md, DEPLOYMENT_GUIDE.md
-
-## Test Results
-- Performance tests: $(node test-performance.js > /dev/null 2>&1 && echo "PASSED" || echo "FAILED")
-- Connection tests: $(node test-frontend-connection.js > /dev/null 2>&1 && echo "PASSED" || echo "FAILED")
-
-## Next Steps
-1. Deploy backend to Vercel: \`vercel --prod\`
-2. Deploy frontend to Vercel: \`cd frontend && vercel --prod\`
-3. Set environment variables in Vercel dashboard
-4. Test the deployed application
-
-## Environment Variables Required
-- Backend: NEYNAR_API_KEY
-- Frontend: BACKEND_URL
-
-## URLs
-- Frontend: https://quicktop8-alpha.vercel.app
-- Backend: https://quicktop8-backend.vercel.app (after deployment)
-- Dashboard: http://localhost:4001 (local only)
-EOF
-
-print_success "Deployment summary created"
-
-# Final status
 echo ""
-print_success "🎉 Deployment preparation complete!"
-echo ""
-echo "📋 Next steps:"
-echo "1. Deploy backend: vercel --prod"
-echo "2. Deploy frontend: cd frontend && vercel --prod"
-echo "3. Set environment variables in Vercel dashboard"
-echo "4. Test the deployed application"
-echo ""
-echo "📊 Check DEPLOYMENT_SUMMARY.md for details"
-echo "📖 Check DEPLOYMENT_GUIDE.md for step-by-step instructions"
-echo ""
-print_status "Ready for production deployment! 🚀" 
+print_success "Deployment script completed!" 

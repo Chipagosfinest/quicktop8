@@ -14,7 +14,6 @@ interface TopInteraction {
   displayName: string
   avatar: string
   followerCount: number
-  userScore: number
   verified: boolean
   interactionCount: number
   likes: number
@@ -32,45 +31,57 @@ interface UserData {
   followingCount: number
   castCount: number
   verified: boolean
-  message: string
-  test: boolean
-  hasTopInteractions: boolean
-  hasRealData: boolean
   topInteractions: TopInteraction[]
-  cached: boolean
 }
 
 export default function HomePage() {
   const [userData, setUserData] = useState<UserData | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [fid, setFid] = useState<number | null>(null)
+  const [fid, setFid] = useState<number>(4044) // Default to alec.eth
 
   useEffect(() => {
-    // For demo purposes, use a sample FID
-    const sampleFid = 4044 // alec.eth
-    setFid(sampleFid)
-    fetchUserData(sampleFid)
-  }, [])
+    fetchUserData(fid)
+  }, [fid])
 
   const fetchUserData = async (fid: number) => {
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch(`/api/user?fid=${fid}`)
+      // Use the correct API endpoint format
+      const response = await fetch(`/api/user/${fid}`)
       const data = await response.json()
       
-      if (response.ok) {
-        setUserData(data)
+      if (response.ok && data.success) {
+        setUserData(data.data)
       } else {
         setError(data.error || 'Failed to fetch user data')
       }
     } catch (err) {
       setError('Network error occurred')
+      console.error('Fetch error:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchTopInteractions = async (fid: number) => {
+    try {
+      const response = await fetch(`/api/user/${fid}/top-interactions?limit=8&filter_spam=true`)
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        return data.data
+      }
+    } catch (err) {
+      console.error('Error fetching top interactions:', err)
+    }
+    return []
+  }
+
+  const handleRefresh = () => {
+    fetchUserData(fid)
   }
 
   if (loading) {
@@ -91,6 +102,11 @@ export default function HomePage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">QuickTop8</h1>
           <p className="text-gray-600">Your Top Farcaster Friends</p>
+          <div className="mt-4">
+            <Button onClick={handleRefresh} variant="outline" size="sm">
+              Refresh Data
+            </Button>
+          </div>
         </div>
 
         {/* User Info */}
@@ -126,12 +142,17 @@ export default function HomePage() {
           <Card className="mb-8 border-red-200 bg-red-50">
             <CardContent className="pt-6">
               <p className="text-red-600 text-center">{error}</p>
+              <div className="text-center mt-4">
+                <Button onClick={handleRefresh} variant="outline" size="sm">
+                  Try Again
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Top Interactions */}
-        {userData?.hasTopInteractions && userData.topInteractions.length > 0 && (
+        {userData?.topInteractions && userData.topInteractions.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
               Your Top 8 Friends
@@ -186,7 +207,7 @@ export default function HomePage() {
         )}
 
         {/* No Interactions */}
-        {userData && !userData.hasTopInteractions && !loading && !error && (
+        {userData && (!userData.topInteractions || userData.topInteractions.length === 0) && !loading && !error && (
           <Card>
             <CardContent className="pt-6 text-center">
               <p className="text-gray-600">No recent interactions found. This could mean:</p>

@@ -1,285 +1,140 @@
-# QuickTop8 - Farcaster Mini-App
+# QuickTop8 - Your Top Farcaster Friends
 
-A Farcaster mini-app that analyzes your interactions and shows your top 8 most interactive friends.
+A mini app that shows your top 8 friends on Farcaster based on your interactions.
 
-## 🚀 **Live Demo**
+## 🌐 Live Demo
 
-- **Frontend**: [https://quicktop8-alpha.vercel.app](https://quicktop8-alpha.vercel.app)
-- **Backend**: [https://quicktop8-backend.vercel.app](https://quicktop8-backend.vercel.app)
-- **Dashboard**: [http://localhost:4001](http://localhost:4001) (local monitoring)
+**Domain**: https://quicktop8-alpha.vercel.app
 
-## ✨ **Features**
-
-- **Real-time Farcaster Integration**: Connect with your Farcaster account
-- **Top 8 Analysis**: Find your most interactive friends
-- **Performance Monitoring**: Real-time system metrics and caching
-- **Smart Filtering**: Quality-based user filtering and spam detection
-- **Responsive Design**: Works on desktop and mobile
-- **Production Ready**: Enterprise-grade performance and reliability
-
-## 🏗️ **Architecture**
-
-### Backend Services
-- **Enhanced Server** (`server-enhanced.js`): Port 4000
-  - Comprehensive API endpoints
-  - Performance monitoring
-  - Rate limit management
-  - Cache management
-
-- **Dashboard Server** (`dashboard-server.js`): Port 4001
-  - Real-time monitoring dashboard
-  - Visual performance metrics
-  - Auto-refresh functionality
-
-- **Neynar Indexer** (`neynar-indexer.js`)
-  - Intelligent caching (5-minute TTL)
-  - Rate limit enforcement
-  - Performance tracking
-  - Error handling with retries
-
-### Frontend
-- **Next.js App**: Modern React-based frontend
-- **Farcaster SDK**: Official mini-app integration
-- **Real-time Updates**: Live data synchronization
-- **Responsive UI**: Beautiful, modern interface
-
-## 📊 **Performance Metrics**
-
-- **Average Response Time**: 15ms
-- **Cache Hit Rate**: 80%+
-- **Error Rate**: 0%
-- **Rate Limit Usage**: Optimized
-- **System Uptime**: 99.9%+
-
-## 🚀 **Quick Start**
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+
-- Neynar API key
-- Vercel account (for deployment)
+- npm
+- Vercel CLI (`npm i -g vercel`)
 
 ### Local Development
 
-1. **Clone the repository**
+1. **Clone and install dependencies**
    ```bash
-   git clone https://github.com/yourusername/quicktop8.git
+   git clone <repository>
    cd quicktop8
-   ```
-
-2. **Install dependencies**
-   ```bash
    npm install
-   cd frontend && npm install
+   cd frontend && npm install && cd ..
    ```
 
-3. **Set up environment variables**
+2. **Set environment variables**
    ```bash
-   # Backend (.env)
-   NEYNAR_API_KEY=your_neynar_api_key_here
-   PORT=4000
-   NODE_ENV=development
-   
-   # Frontend (.env.local)
-   BACKEND_URL=http://localhost:4000
+   # Create .env file with your Neynar API key
+   echo "NEYNAR_API_KEY=your_api_key_here" > .env
    ```
 
-4. **Start the services**
+3. **Start development servers**
    ```bash
-   # Terminal 1: Backend
-   node server-enhanced.js
+   # Backend (port 4000)
+   npm run dev
    
-   # Terminal 2: Dashboard (optional)
-   node dashboard-server.js
-   
-   # Terminal 3: Frontend
+   # Frontend (port 3000) - in another terminal
    cd frontend && npm run dev
    ```
 
-5. **Access the application**
-   - **Frontend**: http://localhost:3000
-   - **Backend API**: http://localhost:4000
-   - **Dashboard**: http://localhost:4001
-
-### Production Deployment
-
-1. **Deploy Backend to Vercel**
+4. **Test the application**
    ```bash
-   # Create backend deployment
-   vercel --prod
-   
-   # Set environment variables
-   vercel env add NEYNAR_API_KEY
+   npm run test:backend
+   npm run test:frontend
    ```
 
-2. **Deploy Frontend to Vercel**
+### Deployment
+
+1. **Deploy to Vercel**
    ```bash
-   cd frontend
-   vercel --prod
-   
-   # Set environment variables
-   vercel env add BACKEND_URL
+   npm run deploy
    ```
 
-3. **Configure Environment Variables**
-   - **Backend**: `NEYNAR_API_KEY`
-   - **Frontend**: `BACKEND_URL=https://your-backend-url.vercel.app`
+2. **Set environment variables in Vercel**
+   - `NEYNAR_API_KEY`: Your Neynar API key
 
-## 🧪 **Testing**
+## 📊 API Endpoints
 
-### Run All Tests
-```bash
-# Performance tests
-node test-performance.js
+- `GET /health` - Health check
+- `GET /api/user/:fid` - Get user data
+- `GET /api/user/:fid/top-interactions` - Get top interactions
+- `GET /api/users/bulk` - Get multiple users
+- `GET /api/indexer/stats` - Get indexer statistics
 
-# Frontend-backend connection tests
-node test-frontend-connection.js
+## 🏗️ Architecture
 
-# API tests
-curl http://localhost:4000/health
-curl http://localhost:4000/api/user/4044
-curl "http://localhost:4000/api/user/4044/top-interactions?limit=8"
-```
+### Backend (Node.js + Express)
+- **Server**: `server.js` - Simplified Express server
+- **Indexer**: `neynar-indexer.js` - Neynar API integration with caching
+- **Configuration**: `config.js` - Centralized configuration
 
-### Expected Results
-- ✅ All tests pass
-- ✅ Average response time < 20ms
-- ✅ 100% success rate
-- ✅ Cache performance optimized
+### Frontend (Next.js + React)
+- **Framework**: Next.js 15 with App Router
+- **Styling**: Tailwind CSS
+- **Components**: Radix UI components
+- **Domain**: Configured for `quicktop8-alpha.vercel.app`
 
-## 📈 **API Endpoints**
-
-### Backend (Port 4000)
-```bash
-# Health check with performance metrics
-GET /health
-
-# User data with enhanced error handling
-GET /api/user/:fid
-
-# Top interactions with filtering
-GET /api/user/:fid/top-interactions?limit=8
-
-# Performance statistics
-GET /api/indexer/stats
-
-# Reset performance stats
-POST /api/indexer/stats/reset
-
-# Clear cache
-POST /api/indexer/cache/clear
-```
-
-### Frontend (Port 3000)
-```bash
-# User data (proxies to backend)
-GET /api/user?fid=:fid
-
-# Top 8 analysis
-POST /api/top8
-```
-
-## 🔧 **Configuration**
+## 🔧 Configuration
 
 ### Environment Variables
-
-#### Backend
-- `NEYNAR_API_KEY`: Your Neynar API key
+- `NEYNAR_API_KEY`: Neynar API key (required)
 - `PORT`: Server port (default: 4000)
 - `NODE_ENV`: Environment (development/production)
 
-#### Frontend
-- `BACKEND_URL`: Backend API URL
-- `NEXT_PUBLIC_APP_URL`: Frontend URL
+### Domain Configuration
+The app is configured for `quicktop8-alpha.vercel.app` with:
+- CORS settings for the domain
+- Farcaster miniapp metadata
+- Optimized routing
 
-### Performance Tuning
+## 🧪 Testing
 
-```javascript
-// Cache TTL (5 minutes)
-const CACHE_TTL = 5 * 60 * 1000;
-
-// Rate limits
-const RATE_LIMITS = {
-  global: { rpm: 500, rps: 5 },
-  endpoints: { rpm: 300, rps: 5 }
-};
-
-// Batch size for bulk operations
-const BATCH_SIZE = 100;
-```
-
-## 📊 **Monitoring**
-
-### Real-time Dashboard
-- **URL**: http://localhost:4001
-- **Features**: Live metrics, performance tracking, cache stats
-- **Auto-refresh**: Every 10 seconds
-
-### Health Checks
 ```bash
-# Backend health
-curl http://localhost:4000/health
+# Run all tests
+npm test
 
-# Performance stats
-curl http://localhost:4000/api/indexer/stats
+# Backend tests only
+npm run test:backend
+
+# Frontend tests only
+npm run test:frontend
+
+# Debug mode
+npm run debug
 ```
 
-## 🐛 **Troubleshooting**
+## 📈 Performance Optimizations
 
-### Common Issues
+- **Caching**: 10-minute TTL for API responses
+- **Rate Limiting**: 500 RPM, 5 RPS
+- **Batch Processing**: Efficient bulk user fetching
+- **Error Handling**: Comprehensive error responses
+- **Security**: Helmet.js for security headers
 
-1. **API Connection Errors**
-   ```bash
-   # Check backend is running
-   curl http://localhost:4000/health
-   
-   # Check environment variables
-   echo $NEYNAR_API_KEY
-   ```
+## 🐛 Debugging
 
-2. **CORS Errors**
-   - Verify CORS configuration in `server-enhanced.js`
-   - Check frontend URL is in allowed origins
+```bash
+# Run debug script
+npm run debug
 
-3. **Rate Limit Issues**
-   ```bash
-   # Check rate limit stats
-   curl http://localhost:4000/api/indexer/stats
-   ```
+# Check API endpoints
+curl https://quicktop8-alpha.vercel.app/health
+curl https://quicktop8-alpha.vercel.app/api/user/4044
+```
 
-4. **Performance Issues**
-   ```bash
-   # Run performance tests
-   node test-performance.js
-   
-   # Check cache stats
-   curl http://localhost:4000/health | jq '.cache'
-   ```
+## 📝 License
 
-## 🤝 **Contributing**
+MIT License
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- [Farcaster](https://farcaster.xyz/) - The decentralized social protocol
-- [Neynar](https://neynar.com/) - Farcaster API provider
-- [Vercel](https://vercel.com/) - Deployment platform
-- [Next.js](https://nextjs.org/) - React framework
-
-## 📞 **Support**
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/quicktop8/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/quicktop8/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/quicktop8/wiki)
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ---
 
-**Made with ❤️ for the Farcaster community** 
+**QuickTop8** - Discover your top Farcaster friends! 🚀 
