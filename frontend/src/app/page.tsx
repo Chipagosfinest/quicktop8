@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { sdk } from '@farcaster/miniapp-sdk'
 
 interface Top8Friend {
   fid: number
@@ -26,6 +27,31 @@ export default function Home() {
   const [friends, setFriends] = useState<Top8Friend[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [userFid, setUserFid] = useState<string>("")
+  const [isConnected, setIsConnected] = useState(false)
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false)
+
+  // Initialize Mini App SDK
+  useEffect(() => {
+    const initSDK = async () => {
+      try {
+        await sdk.actions.ready()
+        setIsSDKLoaded(true)
+        
+        // Get user's FID if available
+        const context = await sdk.context()
+        if (context?.user?.fid) {
+          setUserFid(context.user.fid.toString())
+          setFid(context.user.fid.toString())
+          setIsConnected(true)
+        }
+      } catch (err) {
+        console.error("Failed to initialize SDK:", err)
+      }
+    }
+
+    initSDK()
+  }, [])
 
   const handleGetTop8 = async () => {
     if (!fid) {
@@ -59,6 +85,35 @@ export default function Home() {
     }
   }
 
+  const handleShare = async () => {
+    if (!friends.length) return
+
+    try {
+      // Share to Farcaster feed
+      await sdk.actions.cast({
+        text: `🎯 My Top 8 Friends on Farcaster:\n\n${friends.slice(0, 3).map((friend, i) => 
+          `${i + 1}. @${friend.username} (${friend.interactions} interactions)`
+        ).join('\n')}\n\nDiscover yours at QuickTop8!`,
+        embeds: [{
+          url: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app"
+        }]
+      })
+    } catch (err) {
+      console.error("Failed to share:", err)
+    }
+  }
+
+  const connectWallet = async () => {
+    try {
+      if (sdk.wallet?.ethProvider) {
+        await sdk.wallet.ethProvider.request({ method: 'eth_requestAccounts' })
+        setIsConnected(true)
+      }
+    } catch (err) {
+      console.error("Failed to connect wallet:", err)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
@@ -71,14 +126,44 @@ export default function Home() {
             <p className="text-gray-600 dark:text-gray-300 text-lg">
               Discover your most interactive friends on Farcaster
             </p>
+            {isSDKLoaded && (
+              <div className="mt-4">
+                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
+                  ✅ Mini App Ready
+                </Badge>
+              </div>
+            )}
           </div>
+
+          {/* Wallet Connection */}
+          {isSDKLoaded && !isConnected && (
+            <Card className="mb-8 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+              <CardHeader>
+                <CardTitle className="text-orange-800 dark:text-orange-200">Connect Your Wallet</CardTitle>
+                <CardDescription className="text-orange-700 dark:text-orange-300">
+                  Connect your Farcaster wallet to automatically load your FID
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={connectWallet}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Connect Wallet
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Input Section */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Enter Farcaster ID</CardTitle>
               <CardDescription>
-                Enter your Farcaster ID (FID) to analyze your interactions and find your Top 8 friends
+                {isConnected 
+                  ? "Your FID has been auto-filled from your connected wallet"
+                  : "Enter your Farcaster ID (FID) to analyze your interactions and find your Top 8 friends"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -106,54 +191,65 @@ export default function Home() {
 
           {/* Results */}
           {friends.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {friends.map((friend, index) => (
-                <Card key={friend.fid} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="text-center pb-2">
-                    <div className="flex justify-center mb-2">
-                      <Badge variant="secondary" className="text-xs">
-                        #{index + 1}
-                      </Badge>
-                    </div>
-                    <Avatar className="w-16 h-16 mx-auto mb-2">
-                      <AvatarImage src={friend.pfp_url} alt={friend.display_name} />
-                      <AvatarFallback>{friend.display_name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <CardTitle className="text-lg">{friend.display_name}</CardTitle>
-                    <CardDescription>@{friend.username}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-600 dark:text-gray-300">
-                        {friend.bio && friend.bio.length > 50 
-                          ? `${friend.bio.substring(0, 50)}...` 
-                          : friend.bio}
-                      </div>
-                      
-                      <div className="flex justify-center gap-2 text-xs">
-                        <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
-                          ❤️ {friend.interactionTypes.likes}
-                        </Badge>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                          💬 {friend.interactionTypes.replies}
-                        </Badge>
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                          🔄 {friend.interactionTypes.recasts}
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Your Top 8 Friends</h2>
+                <Button 
+                  onClick={handleShare}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Share to Feed
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {friends.map((friend, index) => (
+                  <Card key={friend.fid} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        <Badge variant="secondary" className="text-xs">
+                          #{index + 1}
                         </Badge>
                       </div>
-                      
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Total: {friend.interactions} interactions
+                      <Avatar className="w-16 h-16 mx-auto mb-2">
+                        <AvatarImage src={friend.pfp_url} alt={friend.display_name} />
+                        <AvatarFallback>{friend.display_name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <CardTitle className="text-lg">{friend.display_name}</CardTitle>
+                      <CardDescription>@{friend.username}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
+                          {friend.bio && friend.bio.length > 50 
+                            ? `${friend.bio.substring(0, 50)}...` 
+                            : friend.bio}
+                        </div>
+                        
+                        <div className="flex justify-center gap-2 text-xs">
+                          <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
+                            ❤️ {friend.interactionTypes.likes}
+                          </Badge>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                            💬 {friend.interactionTypes.replies}
+                          </Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                            🔄 {friend.interactionTypes.recasts}
+                          </Badge>
+                        </div>
+                        
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Total: {friend.interactions} interactions
+                        </div>
+                        
+                        <div className="text-xs text-gray-400 dark:text-gray-500">
+                          Last: {new Date(friend.lastInteraction).toLocaleDateString()}
+                        </div>
                       </div>
-                      
-                      <div className="text-xs text-gray-400 dark:text-gray-500">
-                        Last: {new Date(friend.lastInteraction).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
 
           {/* Empty State */}

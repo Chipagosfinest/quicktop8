@@ -15,6 +15,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Top 8 Friends - Farcaster Analyzer",
   description: "Discover your most interactive friends on Farcaster",
+  other: {
+    "fc:frame": JSON.stringify({
+      version: "vNext",
+      image: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/og-image.png",
+      buttons: [
+        {
+          label: "Launch QuickTop8",
+          action: "launch_miniapp",
+          target: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app"
+        }
+      ],
+      postUrl: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/api/frame"
+    })
+  }
 };
 
 export default function RootLayout({
@@ -24,6 +38,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="fc:frame" content={JSON.stringify({
+          version: "vNext",
+          image: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/og-image.png",
+          buttons: [
+            {
+              label: "Launch QuickTop8",
+              action: "launch_miniapp",
+              target: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app"
+            }
+          ],
+          postUrl: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app/api/frame"
+        })} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
