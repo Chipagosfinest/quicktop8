@@ -148,9 +148,31 @@ export default function Home() {
         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
           Reply Guy
         </h1>
-        <p className="text-gray-600 text-lg mb-8">
+        <p className="text-gray-600 text-lg mb-4">
           Discover your biggest fans on Farcaster (last 45 days)
         </p>
+        
+        {/* Add to Warpcast Button */}
+        <div className="mb-8">
+          <button
+            onClick={async () => {
+              try {
+                await sdk.actions.addMiniApp()
+                alert('✅ App added to your Warpcast! You can now find it in your apps screen.')
+              } catch (error) {
+                if (error === 'RejectedByUser') {
+                  alert('❌ App add cancelled by user')
+                } else {
+                  console.error('Error adding mini app:', error)
+                  alert('❌ Error adding app to Warpcast')
+                }
+              }
+            }}
+            className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-colors font-medium shadow-lg"
+          >
+            ➕ Add to Warpcast
+          </button>
+        </div>
         
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
           <h2 className="text-xl font-semibold mb-4">Welcome!</h2>
