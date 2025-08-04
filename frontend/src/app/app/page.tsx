@@ -747,9 +747,8 @@ export default function App() {
                   // For now, I'm assuming `loadFriends` was a typo and should be `handleGetTop8`.
                   // However, the original code had `loadFriends()` here.
                   // I will remove the call to `loadFriends()` as it's not defined.
-                  // The `Try Again` button should ideally trigger a re-fetch of the current user's friends.
-                  // Since `userFid` is available, we can call `handleGetTop8` with it.
-              onClick={handleGetTop8}
+            <button
+              onClick={() => userFid && handleGetTop8(userFid)}
               className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Try Again
