@@ -3,15 +3,16 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ErrorHandler from '@/components/ErrorHandler'
+import { MiniAppProvider } from '@/components/MiniAppProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'QuickTop8 - Your Top Farcaster Friends',
-  description: 'Discover your top 8 friends on Farcaster based on your interactions',
+  title: 'Ride or Die Top 8 - Your Longest-Standing Farcaster Friends',
+  description: 'Discover your ride or die friends on Farcaster with original engagement links and tip them!',
   other: {
     'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://warpcast.com https://*.warpcast.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://warpcast.com https://*.warpcast.com https://api.neynar.com;",
-    'fc:miniapp': 'QuickTop8',
+    'fc:miniapp': 'Ride or Die Top 8',
     'fc:miniapp:domain': 'quicktop8-alpha.vercel.app',
     'fc:miniapp:icon': 'https://quicktop8-alpha.vercel.app/icon.png',
     'fc:miniapp:home': 'https://quicktop8-alpha.vercel.app'
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ErrorHandler />
         <ErrorBoundary>
-          {children}
+          <MiniAppProvider>
+            {children}
+          </MiniAppProvider>
         </ErrorBoundary>
       </body>
     </html>

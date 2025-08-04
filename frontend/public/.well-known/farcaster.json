@@ -1,30 +1,27 @@
 {
-  "accountAssociation": {
-    "header": "eyJmaWQiOjQwNDQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg4NDA3RDU4NjgzRDc0QzU5NDM2YzdkMzgyMTgyMzkwODIxNjNmY2Y5In0",
-    "payload": "eyJkb21haW4iOiJxdWlja3RvcDgtYWxwaGEudmVyY2VsLmFwcCJ9",
-    "signature": "MHhmZGM0MGZlMWU3YjMxOTc0YjQwNjJlYTJiMWE3Zjk2NWUzYjYzYWRlMWEzZjkyZWNjYTI3MjAzN2RlNDkyYmI0MjNhMDEzMGUxZjhjYzRkMDNmNDM3ZWU4MjU0YzAxMzNkNDBmMWQ4MDAyMDU1MDZjZDdiOGJjYTM2OWM0ZWRlOTFj"
-  },
   "miniapp": {
     "version": "1",
-    "name": "QuickTop8",
-    "iconUrl": "https://quicktop8-11k3sr9ap-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-11k3sr9ap-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-11k3sr9ap-chipagosfinests-projects.vercel.app/og-image.png",
-    "buttonTitle": "🎯 Discover",
-    "splashImageUrl": "https://quicktop8-11k3sr9ap-chipagosfinests-projects.vercel.app/splash.png",
+    "name": "Ride or Die Top 8",
+    "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-alpha.vercel.app/app",
+    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
+    "buttonTitle": "🔥 Ride or Die",
+    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#8B5CF6",
-    "webhookUrl": "https://quicktop8-11k3sr9ap-chipagosfinests-projects.vercel.app/api/webhook",
-    "subtitle": "Discover Your Top 8 Friends",
-    "description": "Discover your most interactive friends on Farcaster (last 45 days)",
+    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
+    "subtitle": "Discover Your Ride or Die Friends",
+    "description": "Find your longest-standing mutual follows with original engagement history and tip them!",
     "primaryCategory": "social",
     "tags": [
       "social",
       "friends",
       "analytics",
-      "wallet"
+      "wallet",
+      "tipping",
+      "ride-or-die"
     ],
-    "ogTitle": "QuickTop8 - Your Top Farcaster Friends",
-    "ogDescription": "Discover your top 8 friends on Farcaster based on your interactions. Tip and mint NFTs for your top friends!",
-    "ogImageUrl": "https://quicktop8-11k3sr9ap-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogTitle": "Ride or Die Top 8 - Your Longest-Standing Farcaster Friends",
+    "ogDescription": "Discover your ride or die friends on Farcaster with original engagement links and tip them!",
+    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
   }
 } 

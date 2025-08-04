@@ -13,6 +13,12 @@ interface MutualFollowData {
   engagementType: 'like' | 'recast' | 'reply'
   totalInteractions: number
   relationshipScore: number
+  // New fields for ride or die features
+  originalEngagementCastHash: string
+  originalEngagementCastUrl: string
+  rideOrDieScore: number
+  daysSinceFirstEngagement: number
+  engagementFrequency: number
 }
 
 interface UserData {
@@ -29,7 +35,8 @@ function updateMutualFollowData(
   user: UserData, 
   followDate: string,
   engagementType: 'like' | 'recast' | 'reply',
-  engagementDate: string
+  engagementDate: string,
+  castHash?: string
 ) {
   const existing = map.get(user.fid)
   
@@ -39,11 +46,33 @@ function updateMutualFollowData(
     if (new Date(engagementDate) < new Date(existing.firstEngagement)) {
       existing.firstEngagement = engagementDate
       existing.engagementType = engagementType
+      if (castHash) {
+        existing.originalEngagementCastHash = castHash
+        existing.originalEngagementCastUrl = `https://warpcast.com/~/conversations/${castHash}`
+      }
     }
+    
     // Calculate relationship score based on follow duration and interactions
     const followDuration = Date.now() - new Date(followDate).getTime()
     const daysFollowed = followDuration / (1000 * 60 * 60 * 24)
     existing.relationshipScore = daysFollowed + (existing.totalInteractions * 10)
+    
+    // Calculate ride or die specific metrics
+    const firstEngagementDate = new Date(existing.firstEngagement)
+    existing.daysSinceFirstEngagement = (Date.now() - firstEngagementDate.getTime()) / (1000 * 60 * 60 * 24)
+    existing.engagementFrequency = existing.totalInteractions / Math.max(existing.daysSinceFirstEngagement, 1)
+    
+    // Calculate follow duration for scoring
+    const followDurationForScoring = Date.now() - new Date(existing.followDate).getTime()
+    const daysFollowedForScoring = followDurationForScoring / (1000 * 60 * 60 * 24)
+    
+    // Ride or die score: combination of duration, frequency, and consistency
+    existing.rideOrDieScore = Math.round(
+      (existing.daysSinceFirstEngagement * 2) + // Longevity bonus
+      (existing.engagementFrequency * 50) + // Frequency bonus
+      (existing.totalInteractions * 5) + // Total engagement bonus
+      (daysFollowedForScoring * 0.5) // Follow duration bonus
+    )
   } else {
     const newData: MutualFollowData = {
       fid: user.fid,
@@ -55,12 +84,34 @@ function updateMutualFollowData(
       firstEngagement: engagementDate,
       engagementType: engagementType,
       totalInteractions: 1,
-      relationshipScore: 0
+      relationshipScore: 0,
+      // Initialize new fields
+      originalEngagementCastHash: castHash || "",
+      originalEngagementCastUrl: castHash ? `https://warpcast.com/~/conversations/${castHash}` : "",
+      rideOrDieScore: 0,
+      daysSinceFirstEngagement: 0,
+      engagementFrequency: 0
     }
     // Calculate initial relationship score
     const followDuration = Date.now() - new Date(followDate).getTime()
     const daysFollowed = followDuration / (1000 * 60 * 60 * 24)
     newData.relationshipScore = daysFollowed + 10
+    
+    // Calculate initial ride or die metrics
+    const firstEngagementDate = new Date(engagementDate)
+    newData.daysSinceFirstEngagement = (Date.now() - firstEngagementDate.getTime()) / (1000 * 60 * 60 * 24)
+    newData.engagementFrequency = 1 / Math.max(newData.daysSinceFirstEngagement, 1)
+    
+    // Calculate follow duration for scoring
+    const followDurationForScoring = Date.now() - new Date(followDate).getTime()
+    const daysFollowedForScoring = followDurationForScoring / (1000 * 60 * 60 * 24)
+    
+    newData.rideOrDieScore = Math.round(
+      (newData.daysSinceFirstEngagement * 2) + 
+      (newData.engagementFrequency * 50) + 
+      5 + 
+      (daysFollowedForScoring * 0.5)
+    )
     map.set(user.fid, newData)
   }
 }
@@ -73,59 +124,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    console.log(`Starting Longest Mutual Follows calculation for FID: ${fid}`)
+    console.log(`Starting Ride or Die Top 8 calculation for FID: ${fid}`)
     console.log(`API Key available: ${NEYNAR_API_KEY ? 'Yes' : 'No'}`)
 
     const mutualFollowsMap = new Map<number, MutualFollowData>()
     
-    // Step 1: Get user's followers
-    console.log(`Fetching user's followers for FID: ${fid}`)
+    // Step 1: Get reciprocal followers (mutual follows) using the correct endpoint
+    console.log(`Fetching reciprocal followers for FID: ${fid}`)
     
     try {
-      const followersResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers?fid=${fid}&limit=100`, {
+      const reciprocalResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers/reciprocal?fid=${fid}&limit=100`, {
         headers: {
           'x-api-key': NEYNAR_API_KEY,
           'accept': 'application/json'
         },
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(15000)
       })
       
-      if (!followersResponse.ok) {
-        console.error(`Failed to fetch followers: ${followersResponse.status}`)
+      if (!reciprocalResponse.ok) {
+        console.error(`Failed to fetch reciprocal followers: ${reciprocalResponse.status}`)
         return NextResponse.json({ 
-          error: "Failed to fetch user followers. Please try again or check if the FID is correct." 
+          error: "Failed to fetch mutual follows. Please try again or check if the FID is correct." 
         }, { status: 500 })
       }
       
-      const followersData = await followersResponse.json()
-      const followers = followersData.users || []
-      console.log(`Found ${followers.length} followers`)
-      
-      // Step 2: Get user's following
-      console.log(`Fetching user's following for FID: ${fid}`)
-      
-      const followingResponse = await fetch(`https://api.neynar.com/v2/farcaster/following?fid=${fid}&limit=100`, {
-        headers: {
-          'x-api-key': NEYNAR_API_KEY,
-          'accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(10000)
-      })
-      
-      if (!followingResponse.ok) {
-        console.error(`Failed to fetch following: ${followingResponse.status}`)
-        return NextResponse.json({ 
-          error: "Failed to fetch user following. Please try again or check if the FID is correct." 
-        }, { status: 500 })
-      }
-      
-      const followingData = await followingResponse.json()
-      const following = followingData.users || []
-      console.log(`Found ${following.length} following`)
-      
-      // Step 3: Find mutual follows
-      const followersSet = new Set(followers.map((f: any) => f.fid))
-      const mutualFollows = following.filter((f: any) => followersSet.has(f.fid))
+      const reciprocalData = await reciprocalResponse.json()
+      const mutualFollows = reciprocalData.users || []
       console.log(`Found ${mutualFollows.length} mutual follows`)
       
       if (mutualFollows.length === 0) {
@@ -135,68 +159,71 @@ export async function POST(request: NextRequest) {
         })
       }
       
-      // Step 4: For each mutual follow, find their first engagement
+      // Step 2: For each mutual follow, find their recent casts and check for user engagement
       for (let i = 0; i < Math.min(mutualFollows.length, 20); i++) {
         const mutualFollow = mutualFollows[i]
-        console.log(`Processing mutual follow ${i + 1}/${Math.min(mutualFollows.length, 20)}: ${mutualFollow.username}`)
+        const user = mutualFollow.user // The user data is nested under 'user' property
+        console.log(`Processing mutual follow ${i + 1}/${Math.min(mutualFollows.length, 20)}: ${user.username}`)
         
         try {
-          // Get their recent interactions with the user
-          const interactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${mutualFollow.fid}&limit=10`, {
+          // Get the user's recent casts to see if mutual follow engaged with them
+          const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=20&viewer_fid=${user.fid}`, {
             headers: {
               'x-api-key': NEYNAR_API_KEY,
               'accept': 'application/json'
             },
-            signal: AbortSignal.timeout(5000)
+            signal: AbortSignal.timeout(8000)
           })
           
-          if (interactionsResponse.ok) {
-            const interactionsData = await interactionsResponse.json()
-            const casts = interactionsData.casts || []
+          if (userCastsResponse.ok) {
+            const userCastsData = await userCastsResponse.json()
+            const userCasts = userCastsData.casts || []
             
-            // Check reactions to these casts to see if user engaged
-            for (const cast of casts.slice(0, 3)) {
-              const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/reactions/cast?hash=${cast.hash}&limit=50`, {
+            // Check reactions to user's casts to see if mutual follow engaged
+            for (const cast of userCasts.slice(0, 5)) {
+              // Get detailed reactions for this cast
+              const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/reactions/cast?hash=${cast.hash}&types=like,recast&limit=50`, {
                 headers: {
                   'x-api-key': NEYNAR_API_KEY,
                   'accept': 'application/json'
                 },
-                signal: AbortSignal.timeout(3000)
+                signal: AbortSignal.timeout(5000)
               })
               
               if (reactionsResponse.ok) {
                 const reactionsData = await reactionsResponse.json()
+                const reactions = reactionsData.reactions || []
                 
-                // Check if user liked this cast
-                if (reactionsData.reactions?.likes) {
-                  const userLike = reactionsData.reactions.likes.find((like: any) => like.reactor.fid === parseInt(fid))
-                  if (userLike) {
-                    updateMutualFollowData(mutualFollowsMap, {
-                      fid: mutualFollow.fid,
-                      username: mutualFollow.username,
-                      display_name: mutualFollow.display_name,
-                      pfp_url: mutualFollow.pfp_url,
-                      bio: mutualFollow.bio || "",
-                      timestamp: userLike.timestamp
-                    }, mutualFollow.followed_at || new Date().toISOString(), 'like', userLike.timestamp)
-                    break
-                  }
+                // Check if mutual follow liked this cast
+                const mutualFollowLike = reactions.find((reaction: any) => 
+                  reaction.reaction_type === 'like' && reaction.user.fid === user.fid
+                )
+                if (mutualFollowLike) {
+                  updateMutualFollowData(mutualFollowsMap, {
+                    fid: user.fid,
+                    username: user.username,
+                    display_name: user.display_name,
+                    pfp_url: user.pfp_url,
+                    bio: user.profile?.bio?.text || "",
+                    timestamp: mutualFollowLike.reaction_timestamp
+                  }, mutualFollow.timestamp || new Date().toISOString(), 'like', mutualFollowLike.reaction_timestamp, cast.hash)
+                  break
                 }
                 
-                // Check if user recast this cast
-                if (reactionsData.reactions?.recasts) {
-                  const userRecast = reactionsData.reactions.recasts.find((recast: any) => recast.reactor.fid === parseInt(fid))
-                  if (userRecast) {
-                    updateMutualFollowData(mutualFollowsMap, {
-                      fid: mutualFollow.fid,
-                      username: mutualFollow.username,
-                      display_name: mutualFollow.display_name,
-                      pfp_url: mutualFollow.pfp_url,
-                      bio: mutualFollow.bio || "",
-                      timestamp: userRecast.timestamp
-                    }, mutualFollow.followed_at || new Date().toISOString(), 'recast', userRecast.timestamp)
-                    break
-                  }
+                // Check if mutual follow recast this cast
+                const mutualFollowRecast = reactions.find((reaction: any) => 
+                  reaction.reaction_type === 'recast' && reaction.user.fid === user.fid
+                )
+                if (mutualFollowRecast) {
+                  updateMutualFollowData(mutualFollowsMap, {
+                    fid: user.fid,
+                    username: user.username,
+                    display_name: user.display_name,
+                    pfp_url: user.pfp_url,
+                    bio: user.profile?.bio?.text || "",
+                    timestamp: mutualFollowRecast.reaction_timestamp
+                  }, mutualFollow.timestamp || new Date().toISOString(), 'recast', mutualFollowRecast.reaction_timestamp, cast.hash)
+                  break
                 }
               }
               
@@ -205,17 +232,17 @@ export async function POST(request: NextRequest) {
             }
           }
         } catch (error) {
-          console.error(`Error processing mutual follow ${mutualFollow.username}:`, error)
+          console.error(`Error processing mutual follow ${user.username}:`, error)
           continue
         }
         
         // Add delay between mutual follows
-        await new Promise(resolve => setTimeout(resolve, 300))
+        await new Promise(resolve => setTimeout(resolve, 200))
       }
       
-      // Step 5: Sort by relationship score and return top 8
+      // Step 5: Sort by ride or die score and return top 8
       const friends = Array.from(mutualFollowsMap.values())
-        .sort((a, b) => b.relationshipScore - a.relationshipScore)
+        .sort((a, b) => b.rideOrDieScore - a.rideOrDieScore)
         .slice(0, 8)
         .map(friend => ({
           fid: friend.fid,
@@ -227,7 +254,13 @@ export async function POST(request: NextRequest) {
           firstEngagement: friend.firstEngagement,
           engagementType: friend.engagementType,
           totalInteractions: friend.totalInteractions,
-          relationshipScore: Math.round(friend.relationshipScore)
+          relationshipScore: Math.round(friend.relationshipScore),
+          // New ride or die fields
+          originalEngagementCastHash: friend.originalEngagementCastHash,
+          originalEngagementCastUrl: friend.originalEngagementCastUrl,
+          rideOrDieScore: friend.rideOrDieScore,
+          daysSinceFirstEngagement: Math.round(friend.daysSinceFirstEngagement),
+          engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100
         }))
       
       console.log(`Found ${friends.length} top mutual follows`)
