@@ -191,8 +191,8 @@ export default function HomePage() {
             <CardContent className="pt-6 text-center">
               <p className="text-gray-600">No recent interactions found. This could mean:</p>
               <ul className="text-sm text-gray-500 mt-2 space-y-1">
-                <li>• You haven't posted many casts recently</li>
-                <li>• Your casts don't have many likes/replies/recasts</li>
+                <li>• You haven&apos;t posted many casts recently</li>
+                <li>• Your casts don&apos;t have many likes/replies/recasts</li>
                 <li>• The interaction data is still being analyzed</li>
               </ul>
               <p className="text-gray-600 mt-4">Try posting more content and engaging with others to see your top friends!</p>
