@@ -2,12 +2,12 @@
   "name": "quicktop8-backend",
   "version": "1.0.0",
   "description": "Backend for mini app using Neynar data",
-  "main": "server.js",
+  "main": "server-enhanced.js",
   "scripts": {
-    "start": "node server.js",
-    "start:enhanced": "node server-enhanced.js",
-    "dev": "nodemon server.js",
-    "dev:enhanced": "nodemon server-enhanced.js",
+    "start": "node server-enhanced.js",
+    "start:legacy": "node server.js",
+    "dev": "nodemon server-enhanced.js",
+    "dev:legacy": "nodemon server.js",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "node test-api.js && node scripts/validate-urls.js",
     "test:indexer": "node test-indexer.js",
@@ -19,7 +19,8 @@
     "deploy": "bash deploy.sh",
     "deploy:test": "npm run test && npm run deploy",
     "build": "echo 'Backend is ready to deploy'",
-    "lint": "echo 'No linting configured for backend'"
+    "lint": "echo 'No linting configured for backend'",
+    "vercel-build": "echo 'Vercel build completed'"
   },
   "keywords": ["neynar", "api", "backend", "mini-app"],
   "author": "",

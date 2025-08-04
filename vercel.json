@@ -1,24 +1,28 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "builds": [
+    {
+      "src": "server-enhanced.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["neynar-indexer.js"]
+      }
+    },
     {
       "src": "frontend/package.json",
       "use": "@vercel/next"
     }
   ],
-  "redirects": [],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/frontend/api/$1"
+      "src": "/api/(.*)",
+      "dest": "/server-enhanced.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
     }
   ],
-  "headers": [],
   "env": {
     "NODE_ENV": "production"
   }

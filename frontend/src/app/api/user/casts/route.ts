@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 async function makeBackendRequest(endpoint: string, params: Record<string, any> = {}) {
-  const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+  // In production, use the same domain for backend API calls
+  const BACKEND_URL = process.env.NODE_ENV === 'production' 
+    ? '' // Same domain
+    : (process.env.BACKEND_URL || 'http://localhost:4000');
   
   const queryString = new URLSearchParams(params).toString();
   const url = `${BACKEND_URL}${endpoint}?${queryString}`;
