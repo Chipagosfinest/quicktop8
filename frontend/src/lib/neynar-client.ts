@@ -1,4 +1,4 @@
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
 
 // Create a singleton Neynar client
 let neynarClient: NeynarAPIClient | null = null;
@@ -10,7 +10,11 @@ export function getNeynarClient(): NeynarAPIClient {
       throw new Error('NEYNAR_API_KEY environment variable is required');
     }
     
-    neynarClient = new NeynarAPIClient(apiKey);
+    const config = new Configuration({
+      apiKey: apiKey,
+    });
+    
+    neynarClient = new NeynarAPIClient(config);
   }
   
   return neynarClient;
