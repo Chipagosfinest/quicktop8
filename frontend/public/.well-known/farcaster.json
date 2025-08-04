@@ -6,23 +6,25 @@
   },
   "miniapp": {
     "version": "1",
-    "name": "Reply Guy",
+    "name": "QuickTop8",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
     "homeUrl": "https://quicktop8-alpha.vercel.app",
     "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "buttonTitle": "Send Prayer",
+    "buttonTitle": "Find Top Friends",
     "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
     "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
-    "subtitle": "Send Prayer NFTs",
-    "description": "Send prayer emoji NFTs to your biggest fans on Farcaster",
+    "subtitle": "Discover Your Top 8 Friends",
+    "description": "Find your most engaged friends on Farcaster based on your interactions. Tip and mint NFTs for your top friends!",
     "primaryCategory": "social",
     "tags": [
       "social",
-      "prayer"
+      "friends",
+      "analytics",
+      "wallet"
     ],
-    "ogTitle": "Reply Guy",
-    "ogDescription": "Send prayer emoji NFTs to your biggest fans on Farcaster",
+    "ogTitle": "QuickTop8 - Your Top Farcaster Friends",
+    "ogDescription": "Discover your top 8 friends on Farcaster based on your interactions. Tip and mint NFTs for your top friends!",
     "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
   }
 } 
