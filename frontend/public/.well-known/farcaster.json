@@ -27,7 +27,12 @@
     "tagline": "Your Top 8 Crypto Streamers",
     "ogTitle": "Crypto Streams",
     "ogDescription": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
-    "ogImageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogImageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/og-image.png",
+    "requiredCapabilities": [
+      "actions.signIn",
+      "wallet.getEthereumProvider",
+      "actions.ready"
+    ]
   },
   "accountAssociation": {
     "header": "eyJmaWQiOjQwNDQsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg1NzJGZWYzZDlhMTcxMkM3ZDQ0OWM3ZTE1QzMzNUQ2ODYwMzI4MDg2In0",

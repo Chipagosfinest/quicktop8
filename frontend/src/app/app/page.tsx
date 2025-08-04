@@ -34,13 +34,26 @@ export default function App() {
   
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
+  // Mini App detection pattern from Farcaster docs
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const isMiniApp = window.location.href.includes('farcaster.com') || 
-                       window.location.href.includes('warpcast.com') ||
-                       window.parent !== window ||
-                       (window as any).ReactNativeWebView
-      setIsInMiniApp(isMiniApp)
+      const url = new URL(window.location.href)
+      const isMini = url.pathname.startsWith('/app') || url.searchParams.get('miniApp') === 'true'
+      setIsInMiniApp(isMini)
+      
+      if (isMini) {
+        console.log('Detected Mini App environment')
+        // Lazy load the SDK for Mini App specific functionality
+        import('@farcaster/miniapp-sdk').then(({ sdk }) => {
+          console.log('Mini App SDK loaded')
+          // Mini App specific bootstrap here
+          sdk.actions.ready().then(() => {
+            console.log('Mini App ready - splash screen hidden')
+          }).catch((err) => {
+            console.log('Ready() call failed (may be running outside Mini App):', err)
+          })
+        })
+      }
     }
   }, [])
 
@@ -58,18 +71,6 @@ export default function App() {
       handleGetTop8(fid)
     }
   }, [isSDKLoaded, isConnected, contextUserFid, context])
-
-  useEffect(() => {
-    if (isSDKLoaded && isInMiniApp) {
-      sdk.actions.ready()
-        .then(() => {
-          console.log('Mini App ready - splash screen hidden')
-        })
-        .catch((err) => {
-          console.log('Ready() call failed (may be running outside Mini App):', err)
-        })
-    }
-  }, [isSDKLoaded, isInMiniApp])
 
   const handleGetTop8 = async (fid: number) => {
     if (!fid) {

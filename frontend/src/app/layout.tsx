@@ -14,14 +14,14 @@ export const metadata: Metadata = {
     'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://warpcast.com https://*.warpcast.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://warpcast.com https://*.warpcast.com https://api.neynar.com;",
     'fc:miniapp': JSON.stringify({
       "version": "1",
-      "imageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/og-image.png",
+      "imageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/og-image.png",
       "button": {
         "title": "🎮 Crypto Streams",
         "action": {
           "type": "launch_miniapp",
           "name": "Crypto Streams",
-          "url": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/app",
-          "splashImageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/splash.png",
+          "url": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/app",
+          "splashImageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/splash.png",
           "splashBackgroundColor": "#8B5CF6"
         }
       }
