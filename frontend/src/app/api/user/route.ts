@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create top interactions from actual interaction data
-    let topInteractions = []
+    let topInteractions: any[] = []
     
     if (interactionMap.size > 0) {
       // Convert interaction map to array and sort by total interactions
