@@ -13,13 +13,11 @@ interface Top8Friend {
   display_name: string
   pfp_url: string
   bio: string
-  interactions: number
+  replyCount: number
+  likeCount: number
+  recastCount: number
+  totalScore: number
   lastInteraction: string
-  interactionTypes: {
-    likes: number
-    replies: number
-    recasts: number
-  }
 }
 
 export default function AppPage() {
@@ -204,18 +202,18 @@ export default function AppPage() {
                         
                         <div className="flex justify-center gap-2 text-xs">
                           <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
-                            ❤️ {friend.interactionTypes.likes}
+                            ❤️ {friend.likeCount}
                           </Badge>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                            💬 {friend.interactionTypes.replies}
+                            💬 {friend.replyCount}
                           </Badge>
                           <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                            🔄 {friend.interactionTypes.recasts}
+                            🔄 {friend.recastCount}
                           </Badge>
                         </div>
                         
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Total: {friend.interactions} interactions
+                          Total: {friend.totalScore} interactions
                         </div>
                         
                         <div className="text-xs text-gray-400 dark:text-gray-500">
