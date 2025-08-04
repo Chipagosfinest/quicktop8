@@ -8,7 +8,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/.well-known/farcaster.json',
-        destination: '/farcaster.json',
+        destination: '/api/farcaster.json',
+        permanent: true,
+      },
+      {
+        source: '/farcaster.json',
+        destination: '/api/farcaster.json',
         permanent: true,
       },
     ];
