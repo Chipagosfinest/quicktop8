@@ -9,8 +9,8 @@ async function makeBackendRequest(endpoint: string, params: Record<string, any> 
   let BACKEND_URL;
   
   if (process.env.NODE_ENV === 'production') {
-    // In production, try to use a deployed backend or fallback to localhost for testing
-    BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+    // In production, use the deployed Vercel backend
+    BACKEND_URL = process.env.BACKEND_URL || 'https://quicktop8-k5zoc4rsj-chipagosfinests-projects.vercel.app';
   } else {
     // In development, use localhost
     BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
@@ -43,15 +43,9 @@ async function makeBackendRequest(endpoint: string, params: Record<string, any> 
   } catch (error) {
     console.error('Backend request failed:', error);
     
-    // If we're in production and the backend is not available, return mock data
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Production mode: Returning mock data due to backend unavailability');
-      return {
-        success: false,
-        message: 'Backend unavailable in production - using mock data',
-        mock: true
-      };
-    }
+    // If backend is not available, throw error
+    console.log('Backend unavailable - throwing error');
+    throw new Error('Backend service unavailable');
     
     throw error;
   }
@@ -111,27 +105,15 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      // If no cached data and we're in production, return mock data
-      if (process.env.NODE_ENV === 'production') {
-        console.log('Production mode: Returning mock user data');
-        return NextResponse.json({
-          fid: parseInt(fid),
-          username: 'mock.user',
-          displayName: 'Mock User',
-          avatar: 'https://via.placeholder.com/150',
-          bio: 'Mock user data - backend unavailable',
-          followerCount: 100,
-          followingCount: 50,
-          castCount: 25,
-          verified: false,
-          message: 'Mock data - backend unavailable in production',
-          test: true,
-          hasTopInteractions: false,
-          hasRealData: false,
-          topInteractions: [],
-          cached: false
-        });
-      }
+      // If no cached data and backend is unavailable, return error
+      console.log('Backend unavailable - returning error');
+      return NextResponse.json(
+        { 
+          error: 'Backend service unavailable',
+          details: 'Unable to connect to backend service'
+        },
+        { status: 503 }
+      );
       
       return NextResponse.json(
         { 
@@ -164,72 +146,16 @@ export async function GET(request: NextRequest) {
         topInteractions = topInteractionsResponse.data.topInteractions;
         hasTopInteractions = true;
       } else if (topInteractionsResponse.mock) {
-        // Mock data for production when backend is unavailable
-        topInteractions = [
-          {
-            fid: 1,
-            username: 'friend1.eth',
-            displayName: 'Friend One',
-            avatar: 'https://via.placeholder.com/150',
-            followerCount: 1000,
-            userScore: 0.8,
-            verified: true,
-            interactionCount: 50,
-            likes: 100,
-            replies: 25,
-            recasts: 10
-          },
-          {
-            fid: 2,
-            username: 'friend2.eth',
-            displayName: 'Friend Two',
-            avatar: 'https://via.placeholder.com/150',
-            followerCount: 500,
-            userScore: 0.7,
-            verified: false,
-            interactionCount: 30,
-            likes: 60,
-            replies: 15,
-            recasts: 5
-          }
-        ];
-        hasTopInteractions = true;
+        // Backend returned mock data - skip top interactions
+        console.log('Backend returned mock data for top interactions');
+        hasTopInteractions = false;
       }
     } catch (error) {
       console.warn('Failed to fetch top interactions:', error);
       
-      // In production, provide mock interactions
-      if (process.env.NODE_ENV === 'production') {
-        topInteractions = [
-          {
-            fid: 1,
-            username: 'friend1.eth',
-            displayName: 'Friend One',
-            avatar: 'https://via.placeholder.com/150',
-            followerCount: 1000,
-            userScore: 0.8,
-            verified: true,
-            interactionCount: 50,
-            likes: 100,
-            replies: 25,
-            recasts: 10
-          },
-          {
-            fid: 2,
-            username: 'friend2.eth',
-            displayName: 'Friend Two',
-            avatar: 'https://via.placeholder.com/150',
-            followerCount: 500,
-            userScore: 0.7,
-            verified: false,
-            interactionCount: 30,
-            likes: 60,
-            replies: 15,
-            recasts: 5
-          }
-        ];
-        hasTopInteractions = true;
-      }
+      // Log the error but don't provide mock data
+      console.warn('Failed to fetch top interactions from backend:', error);
+      hasTopInteractions = false;
     }
 
     const responseData = {
