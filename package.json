@@ -18,9 +18,9 @@
     "debug": "node debug.js",
     "deploy": "bash deploy.sh",
     "deploy:test": "npm run test && npm run deploy",
-    "build": "echo 'Backend is ready to deploy'",
+    "build": "cd frontend && npm install && npm run build",
     "lint": "echo 'No linting configured for backend'",
-    "vercel-build": "echo 'Vercel build completed'"
+    "vercel-build": "npm run build"
   },
   "keywords": ["neynar", "api", "backend", "mini-app"],
   "author": "",

@@ -70,22 +70,23 @@ export async function GET(request: NextRequest) {
 
     console.log(`Processing user: ${userData.username} (FID: ${userData.fid})`)
 
-    // Get best friends using Neynar's built-in affinity scoring
+    // Get top connections using followers/following data
     let topInteractions: any[] = [];
     let hasTopInteractions = false;
     
     try {
-      // Use Neynar's best friends endpoint which ranks by mutual affinity score
-      const bestFriendsResponse = await client.fetchUserBestFriends({ fid: parseInt(fid), limit: 8 });
+      // Get user's followers to find top connections
+      const followersResponse = await client.fetchUserFollowers({ fid: parseInt(fid), limit: 50 });
       
-      if (bestFriendsResponse.users && bestFriendsResponse.users.length > 0) {
-        // Get detailed user data for the best friends
-        const bestFriendFids = bestFriendsResponse.users.map(user => user.fid);
-        const bulkUsersResponse = await client.fetchBulkUsers({ fids: bestFriendFids });
+      if (followersResponse.users && followersResponse.users.length > 0) {
+        // Get detailed user data for top followers
+        const followerFids = followersResponse.users.slice(0, 8).map(user => user.fid);
+        const bulkUsersResponse = await client.fetchBulkUsers({ fids: followerFids });
         
         if (bulkUsersResponse.users) {
           topInteractions = bulkUsersResponse.users.map((user, index) => {
-            const bestFriend = bestFriendsResponse.users.find(bf => bf.fid === user.fid);
+            // Use follower count as a proxy for interaction potential
+            const interactionScore = Math.floor(user.follower_count / 1000) + 1;
             
             return {
               fid: user.fid,
@@ -95,10 +96,10 @@ export async function GET(request: NextRequest) {
               followerCount: user.follower_count,
               userScore: user.score || 0,
               verified: !!user.verified_addresses,
-              interactionCount: bestFriend?.mutual_affinity_score || 0,
-              likes: Math.floor((bestFriend?.mutual_affinity_score || 0) * 0.6), // Estimate
-              replies: Math.floor((bestFriend?.mutual_affinity_score || 0) * 0.3), // Estimate
-              recasts: Math.floor((bestFriend?.mutual_affinity_score || 0) * 0.1)  // Estimate
+              interactionCount: interactionScore,
+              likes: Math.floor(interactionScore * 0.6), // Estimate
+              replies: Math.floor(interactionScore * 0.3), // Estimate
+              recasts: Math.floor(interactionScore * 0.1)  // Estimate
             };
           });
           
@@ -106,11 +107,11 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch best friends:', error);
+      console.error('Failed to fetch top connections:', error);
       hasTopInteractions = false;
       // Log the specific error for debugging
       if (error instanceof Error) {
-        console.error('Best friends error:', error.message);
+        console.error('Top connections error:', error.message);
       }
       // Don't throw error, just return empty interactions
     }
