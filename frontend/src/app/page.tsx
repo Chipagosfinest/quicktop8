@@ -343,11 +343,17 @@ export default function Home() {
                                         </button>
                                         <button
                                           onClick={() => {
-                                            alert(`🙏 Prayer hand emoji minted and sent to @${friend.username}'s wallet!\n\n(Note: This is a demo - in production this would mint a real NFT)`)
+                                            // Generate the thanks image URL
+                                            const thanksImageUrl = `https://quicktop8-alpha.vercel.app/api/thanks/${friend.fid}`
+                                            
+                                            // Open the thanks image in a new tab
+                                            window.open(thanksImageUrl, '_blank')
+                                            
+                                            alert(`🙏 LinkedIn-style "Thanks!" frame created for @${friend.username}!\n\nCheck the new tab to see their profile picture with the appreciation frame.`)
                                           }}
-                                          className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
+                                          className="px-3 py-1 bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white text-xs rounded-full transition-colors font-medium"
                                         >
-                                          🙏 Pray
+                                          🙏 Thanks Frame
                                         </button>
                                       </div>
                                     </div>
