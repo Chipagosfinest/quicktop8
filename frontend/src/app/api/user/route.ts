@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       
       if (followersResponse.users && followersResponse.users.length > 0) {
         // Get detailed user data for top followers
-        const followerFids = followersResponse.users.slice(0, 8).map(user => user.fid);
+        const followerFids = followersResponse.users.slice(0, 8).map(user => user.user.fid);
         const bulkUsersResponse = await client.fetchBulkUsers({ fids: followerFids });
         
         if (bulkUsersResponse.users) {
