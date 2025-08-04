@@ -121,9 +121,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
+interface UserData {
+  fid: number
+  username: string
+  display_name: string
+  pfp_url: string
+  bio: string
+  timestamp: string
+}
+
 function updateInteractionScore(
   map: Map<number, InteractionData>, 
-  user: any, 
+  user: UserData, 
   type: 'like' | 'recast' | 'reply'
 ) {
   const existing = map.get(user.fid) || {
