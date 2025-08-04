@@ -3,24 +3,13 @@
   "builds": [
     {
       "src": "server-enhanced.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["neynar-indexer.js"]
-      }
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server-enhanced.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "dest": "/server-enhanced.js"
     }
   ],
   "env": {

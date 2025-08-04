@@ -30,7 +30,8 @@ app.use(cors({
     'http://localhost:3001',
     'https://quicktop8-alpha.vercel.app',
     'https://quicktop8.vercel.app',
-    'https://quicktop8-frontend.vercel.app'
+    'https://quicktop8-frontend.vercel.app',
+    'https://quicktop8-kr7tkp3wc-chipagosfinests-projects.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
