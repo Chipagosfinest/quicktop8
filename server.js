@@ -55,7 +55,7 @@ app.get('/health', (req, res) => {
 app.get('/api/user/:fid', async (req, res) => {
   try {
     const { fid } = req.params;
-    const userData = await makeNeynarRequest('/farcaster/user', { fid });
+    const userData = await makeNeynarRequest('/farcaster/user/bulk', { fids: fid });
     res.json(userData);
   } catch (error) {
     res.status(500).json({ 
@@ -71,7 +71,7 @@ app.get('/api/user/:fid/followers', async (req, res) => {
     const { fid } = req.params;
     const { limit = 25, cursor } = req.query;
     
-    const followersData = await makeNeynarRequest('/farcaster/user/followers', {
+    const followersData = await makeNeynarRequest('/farcaster/followers', {
       fid,
       limit: parseInt(limit),
       ...(cursor && { cursor })

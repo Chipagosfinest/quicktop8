@@ -9,6 +9,7 @@ A full-stack application that analyzes your Farcaster interactions to discover y
 - **Real-time Analysis**: Analyzes likes, replies, and recasts
 - **Beautiful UI**: Modern, responsive design with dark mode support
 - **Top 8 Algorithm**: Ranks friends by total interactions and recency
+- **Neynar MCP Integration**: AI-powered development assistance with real-time documentation access
 
 ## 📁 Project Structure
 
@@ -17,6 +18,9 @@ quicktop8/
 ├── server.js              # Backend Express server
 ├── package.json           # Backend dependencies
 ├── env.example           # Backend environment template
+├── test-api.js           # API connectivity test
+├── mcp-test.js           # MCP integration test
+├── NEYNAR_MCP_GUIDE.md   # MCP integration guide
 ├── frontend/             # Next.js frontend application
 │   ├── src/app/          # Next.js app directory
 │   ├── src/components/   # shadcn/ui components
@@ -143,6 +147,14 @@ quicktop8/
 2. Deploy to Vercel, Netlify, or similar platform
 3. Configure environment variables on hosting platform
 
+### 📍 Standardized URLs
+
+- **Production URL**: `https://quicktop8-alpha.vercel.app`
+- **App URL**: `https://quicktop8-alpha.vercel.app/app`
+- **Manifest URL**: `https://quicktop8-alpha.vercel.app/.well-known/farcaster.json`
+- **API URL**: `https://quicktop8-alpha.vercel.app/api/top8`
+- **Webhook URL**: `https://quicktop8-alpha.vercel.app/api/webhook`
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -155,8 +167,38 @@ quicktop8/
 
 MIT License - see LICENSE file for details
 
+## 🤖 Neynar MCP Integration
+
+This project includes Neynar MCP (Model Context Protocol) integration for enhanced AI-powered development assistance.
+
+### MCP Features
+
+- **Real-time Documentation Access**: AI assistants can search Neynar docs for the latest API changes
+- **Farcaster Standards Compliance**: Maintains official Farcaster documentation as primary reference
+- **Enhanced Development Experience**: Get contextual help while coding Farcaster mini-apps
+- **API Best Practices**: Access to Neynar's recommended patterns and examples
+
+### Using MCP
+
+1. **For AI Assistants**: Use MCP search to query Neynar documentation
+2. **For Developers**: Get API documentation, best practices, and troubleshooting help
+3. **Standards Priority**: Always reference official Farcaster docs first, use Neynar MCP for implementation details
+
+### Testing MCP Integration
+
+```bash
+# Test MCP functionality
+node mcp-test.js
+
+# Test API connectivity
+node test-api.js
+```
+
+For detailed MCP usage, see [NEYNAR_MCP_GUIDE.md](./NEYNAR_MCP_GUIDE.md).
+
 ## 🔗 Links
 
 - [Neynar API Documentation](https://docs.neynar.com/)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [shadcn/ui Components](https://ui.shadcn.com/) 
+- [shadcn/ui Components](https://ui.shadcn.com/)
+- [Farcaster Documentation](https://docs.farcaster.xyz/) 

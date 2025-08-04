@@ -1,66 +1,71 @@
-const axios = require('axios');
-
-const BASE_URL = 'http://localhost:4000';
+const NEYNAR_API_KEY = "1E58A226-A64C-4CF3-A047-FBED94F36101"
 
 async function testAPI() {
-  console.log('🧪 Testing QuickTop8 Backend API\n');
-
+  console.log('Testing Neynar API...')
+  
+  // Test 1: Try to get user info for a known FID (Dwr, FID 194)
   try {
-    // Test health endpoint
-    console.log('1. Testing health endpoint...');
-    const health = await axios.get(`${BASE_URL}/health`);
-    console.log('✅ Health check:', health.data);
-    console.log('');
-
-    // Test user search
-    console.log('2. Testing user search...');
-    const search = await axios.get(`${BASE_URL}/api/search/users?q=dwr&limit=3`);
-    console.log(`✅ Found ${search.data.result.users.length} users matching "dwr"`);
-    search.data.result.users.forEach(user => {
-      console.log(`   - ${user.display_name} (@${user.username}) - ${user.follower_count} followers`);
-    });
-    console.log('');
-
-    // Test trending casts
-    console.log('3. Testing trending casts...');
-    const trending = await axios.get(`${BASE_URL}/api/trending/casts?limit=2`);
-    console.log(`✅ Found ${trending.data.casts.length} trending casts`);
-    trending.data.casts.forEach(cast => {
-      console.log(`   - ${cast.author.display_name}: "${cast.text.substring(0, 50)}..."`);
-    });
-    console.log('');
-
-    // Test user info (using Dan Romero's FID)
-    console.log('4. Testing user info...');
-    const user = await axios.get(`${BASE_URL}/api/user/3`);
-    console.log(`✅ User info: ${user.data.result.user.display_name} (@${user.data.result.user.username})`);
-    console.log(`   Followers: ${user.data.result.user.follower_count}, Following: ${user.data.result.user.following_count}`);
-    console.log('');
-
-    // Test user followers
-    console.log('5. Testing user followers...');
-    const followers = await axios.get(`${BASE_URL}/api/user/3/followers?limit=3`);
-    console.log(`✅ Found ${followers.data.result.users.length} followers`);
-    followers.data.result.users.forEach(follower => {
-      console.log(`   - ${follower.display_name} (@${follower.username})`);
-    });
-    console.log('');
-
-    console.log('🎉 All API tests passed!');
-    console.log('\n📊 API Endpoints Summary:');
-    console.log('   - GET /health - Server health check');
-    console.log('   - GET /api/search/users?q=query - Search users');
-    console.log('   - GET /api/trending/casts - Get trending casts');
-    console.log('   - GET /api/user/:fid - Get user info');
-    console.log('   - GET /api/user/:fid/followers - Get user followers');
-    console.log('   - GET /api/user/:fid/following - Get user following');
-    console.log('   - GET /api/user/:fid/casts - Get user casts');
-    console.log('   - GET /api/cast/:hash - Get cast by hash');
-    console.log('   - GET /api/cast/:hash/reactions - Get cast reactions');
-
+    console.log('\n1. Testing user info endpoint...')
+    const userResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=194`, {
+      headers: {
+        'x-api-key': NEYNAR_API_KEY,
+        'accept': 'application/json'
+      }
+    })
+    
+    if (userResponse.ok) {
+      const userData = await userResponse.json()
+      console.log('✅ User info endpoint works:', userData.users?.length || 0, 'users found')
+    } else {
+      console.log('❌ User info endpoint failed:', userResponse.status, userResponse.statusText)
+    }
   } catch (error) {
-    console.error('❌ API test failed:', error.response?.data || error.message);
+    console.log('❌ User info endpoint error:', error.message)
+  }
+
+  // Test 2: Try to get casts for FID 194
+  try {
+    console.log('\n2. Testing user casts endpoint...')
+    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=194&limit=5`, {
+      headers: {
+        'x-api-key': NEYNAR_API_KEY,
+        'accept': 'application/json'
+      }
+    })
+    
+    if (castsResponse.ok) {
+      const castsData = await castsResponse.json()
+      console.log('✅ User casts endpoint works:', castsData.casts?.length || 0, 'casts found')
+    } else {
+      const errorText = await castsResponse.text()
+      console.log('❌ User casts endpoint failed:', castsResponse.status, castsResponse.statusText)
+      console.log('Error details:', errorText)
+    }
+  } catch (error) {
+    console.log('❌ User casts endpoint error:', error.message)
+  }
+
+  // Test 3: Try popular casts endpoint
+  try {
+    console.log('\n3. Testing popular casts endpoint...')
+    const popularResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular?fid=194`, {
+      headers: {
+        'x-api-key': NEYNAR_API_KEY,
+        'accept': 'application/json'
+      }
+    })
+    
+    if (popularResponse.ok) {
+      const popularData = await popularResponse.json()
+      console.log('✅ Popular casts endpoint works:', popularData.casts?.length || 0, 'casts found')
+    } else {
+      const errorText = await popularResponse.text()
+      console.log('❌ Popular casts endpoint failed:', popularResponse.status, popularResponse.statusText)
+      console.log('Error details:', errorText)
+    }
+  } catch (error) {
+    console.log('❌ Popular casts endpoint error:', error.message)
   }
 }
 
-testAPI(); 
+testAPI() 

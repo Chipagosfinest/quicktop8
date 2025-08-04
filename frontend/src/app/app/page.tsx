@@ -53,13 +53,19 @@ export default function AppPage() {
     ensureReady()
   }, [])
 
-  // Check if we're running in a Mini App environment
+  // Check if we're running in a Mini App environment and get user info
   useEffect(() => {
     const checkMiniAppEnvironment = async () => {
       try {
         const context = await sdk.context
         console.log('Mini App context:', context)
         setIsInMiniApp(!!context)
+        
+        // If we have user context, auto-fill the FID
+        if (context?.user?.fid) {
+          console.log('Auto-filling FID from context:', context.user.fid)
+          setFid(context.user.fid.toString())
+        }
       } catch (err) {
         console.log('Not running in Mini App environment:', err)
         setIsInMiniApp(false)
@@ -136,22 +142,49 @@ export default function AppPage() {
             )}
           </div>
 
-          {/* Wallet Connection */}
-          {isSDKLoaded && !isConnected && (
-            <Card className="mb-8 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+          {/* Authentication Section */}
+          {isSDKLoaded && (
+            <Card className="mb-8 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
               <CardHeader>
-                <CardTitle className="text-orange-800 dark:text-orange-200">Connect Your Wallet</CardTitle>
-                <CardDescription className="text-orange-700 dark:text-orange-300">
-                  Connect your Farcaster wallet to automatically load your FID
+                <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                  🔐 Authentication
+                  {isConnected && <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Connected</Badge>}
+                </CardTitle>
+                <CardDescription className="text-blue-700 dark:text-blue-300">
+                  {isConnected 
+                    ? `Welcome! Your FID (${userFid}) has been automatically detected.`
+                    : isInMiniApp 
+                      ? "You're in a Farcaster mini-app! Your FID should be automatically detected."
+                      : "Connect your Farcaster wallet or enter your FID manually to get started."
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button 
-                  onClick={connectWallet}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  Connect Wallet
-                </Button>
+                <div className="space-y-4">
+                  {!isConnected && (
+                    <div className="flex gap-4">
+                      <Button 
+                        onClick={connectWallet}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        disabled={isInMiniApp}
+                      >
+                        {isInMiniApp ? "Auto-detecting..." : "Connect Wallet"}
+                      </Button>
+                      {isInMiniApp && (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300">
+                          ⏳ Waiting for Farcaster context...
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  
+                  {isConnected && (
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+                      <span>✅</span>
+                      <span>FID {userFid} connected successfully</span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -159,13 +192,18 @@ export default function AppPage() {
           {/* Input Section */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Enter Farcaster ID</CardTitle>
-                                   <CardDescription>
-                       {isConnected 
-                         ? "Your FID has been auto-filled from your connected wallet"
-                         : "Enter your Farcaster ID (FID) to analyze your recent interactions and find your Top 8 friends"
-                       }
-                     </CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                📊 Analyze Your Friends
+                {fid && <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">FID: {fid}</Badge>}
+              </CardTitle>
+              <CardDescription>
+                {isConnected 
+                  ? "Your FID has been auto-filled from your connected wallet"
+                  : fid 
+                    ? "Ready to analyze your Top 8 friends"
+                    : "Enter your Farcaster ID (FID) to analyze your recent interactions and find your Top 8 friends"
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-4">

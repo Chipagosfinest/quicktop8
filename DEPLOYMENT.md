@@ -3,28 +3,37 @@
 ## 🚀 Deployment Status
 
 ### ✅ Frontend (Vercel) - DEPLOYED
-- **North Star URL**: https://quicktop8-alpha.vercel.app
-- **Dashboard**: https://vercel.com/chipagosfinests-projects/quicktop8_/A5JswiQ3aLp5gRk4DH5UgQc4r2rz
+- **URL**: https://quicktop8-alpha.vercel.app
+- **Dashboard**: https://vercel.com/chipagosfinests-projects/quicktop8_/FawRkAQT9y7uZRXaKo9coCP9MMKE
 
-### ✅ Backend (Railway) - DEPLOYED
-- **URL**: https://top8-production.up.railway.app
-- **Dashboard**: https://railway.com/project/d1a9a88f-8bad-45fd-b338-a4a81ea2fe6b
+### ✅ Backend (Vercel) - DEPLOYED
+- **URL**: https://quicktop8-alpha.vercel.app
+- **Dashboard**: https://vercel.com/chipagosfinests-projects/quicktop8_/FdK3pVctuAGTtnM2Lxe91LXrbe9t
 
 ## 🔧 Environment Variables
 
-### Railway Backend Variables
-Add these to your Railway project:
+### Vercel Backend Variables
+Add these to your Vercel backend project:
 - `NEYNAR_API_KEY` = `1E58A226-A64C-4CF3-A047-FBED94F36101`
 - `NEYNAR_CLIENT_ID` = `b196e811-4d4a-4adb-bb5a-eb07dbd7765e`
+- `NEYNAR_WEBHOOK_SECRET` = `UuMoOuzbWbXgu00uRWsk3-cOS`
 - `CORS_ORIGIN` = `https://quicktop8-alpha.vercel.app`
 
 ### Vercel Frontend Variables
-Add these to your Vercel project:
-- `BACKEND_URL` = `https://top8-production.up.railway.app`
+Add these to your Vercel frontend project:
+- `BACKEND_URL` = `https://quicktop8-alpha.vercel.app`
+- `NEYNAR_WEBHOOK_SECRET` = `UuMoOuzbWbXgu00uRWsk3-cOS`
+
+### Standardized URLs
+- **Production URL**: `https://quicktop8-alpha.vercel.app`
+- **App URL**: `https://quicktop8-alpha.vercel.app/app`
+- **Manifest URL**: `https://quicktop8-alpha.vercel.app/.well-known/farcaster.json`
+- **API URL**: `https://quicktop8-alpha.vercel.app/api/top8`
+- **Webhook URL**: `https://quicktop8-alpha.vercel.app/api/webhook`
 
 ## 🔗 API Endpoints
 
-### Backend (Railway)
+### Backend (Vercel)
 - `GET /health` - Health check
 - `GET /api/user/:fid` - Get user info
 - `GET /api/user/:fid/followers` - Get followers
@@ -39,7 +48,7 @@ Add these to your Vercel project:
 
 ## 🧪 Testing
 
-1. **Test Backend Health**: https://top8-production.up.railway.app/health
+1. **Test Backend Health**: https://quicktop8-alpha.vercel.app/health
 2. **Test Frontend**: https://quicktop8-alpha.vercel.app
 3. **Test Manifest**: https://quicktop8-alpha.vercel.app/.well-known/farcaster.json
 
@@ -51,13 +60,14 @@ cd frontend
 npx vercel --prod
 ```
 
-### Backend (Railway)
+### Backend (Vercel)
 ```bash
-npx @railway/cli up
+npx vercel --prod
 ```
 
 ## 🔄 Updates
-- Frontend now calls Railway backend instead of Neynar directly
+- Both frontend and backend now deployed on Vercel
 - CORS configured for cross-origin requests
 - Environment variables properly configured
-- Using `quicktop8-alpha.vercel.app` as north star domain 
+- Using Vercel for consistent deployment
+- MCP integration included in deployment 
