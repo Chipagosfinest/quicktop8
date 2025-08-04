@@ -1,5 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Simple in-memory cache for the frontend
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function makeBackendRequest(endpoint: string, params: Record<string, any> = {}) {
+  const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+  
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${BACKEND_URL}${endpoint}?${queryString}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'accept': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Backend API error: ${response.status} - ${errorText}`);
+  }
+  
+  return response.json();
+}
+
 export async function GET(request: NextRequest) {
   try {
     console.log('User API route called')
@@ -26,53 +50,68 @@ export async function GET(request: NextRequest) {
 
     console.log(`Processing request for FID: ${fid}`)
 
-    // Get Neynar API key from environment
-    const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
-
-    if (!NEYNAR_API_KEY) {
-      console.log('No Neynar API key found, returning test data')
+    // Check cache first
+    const cacheKey = `user_${fid}`;
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log('Returning cached user data');
       return NextResponse.json({
-        fid: fid,
-        username: `user_${fid}`,
-        displayName: `User ${fid}`,
-        message: 'No Neynar API key configured - using test data',
-        test: true,
-        topInteractions: []
-      })
+        ...cached.data,
+        cached: true
+      });
     }
 
-    // Fetch user info from Neynar
-    const userResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
-      headers: {
-        'accept': 'application/json',
-        'api_key': NEYNAR_API_KEY
+    // Fetch user info from enhanced backend
+    let userData;
+    try {
+      userData = await makeBackendRequest('/api/user/' + fid);
+    } catch (error) {
+      console.error('Backend API request failed:', error);
+      
+      // Return cached data if available, even if expired
+      if (cached) {
+        console.log('Returning expired cached data due to API failure');
+        return NextResponse.json({
+          ...cached.data,
+          cached: true,
+          warning: 'Using cached data due to API failure'
+        });
       }
-    })
-
-    if (!userResponse.ok) {
-      const errorText = await userResponse.text()
-      console.error(`Neynar user API failed: ${userResponse.status} - ${userResponse.statusText}`)
-      console.error('Error response:', errorText)
+      
       return NextResponse.json(
-        { error: `Neynar user API failed: ${userResponse.status}`, details: errorText },
-        { status: userResponse.status }
+        { 
+          error: 'Failed to fetch user data from backend',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        },
+        { status: 500 }
       )
     }
 
-    const userData = await userResponse.json()
-    const user = userData.users?.[0]
+    const user = userData.data?.users?.[0]
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found in Neynar response' },
+        { error: 'User not found in backend response' },
         { status: 404 }
       )
     }
 
     console.log(`Processing user: ${user.username} (FID: ${user.fid})`)
 
-    // For now, return basic user data without complex indexing
-    return NextResponse.json({
+    // Get top interactions from enhanced backend
+    let topInteractions = [];
+    try {
+      const topInteractionsResponse = await makeBackendRequest('/api/user/' + fid + '/top-interactions');
+      
+      if (topInteractionsResponse.success && topInteractionsResponse.data?.topInteractions) {
+        topInteractions = topInteractionsResponse.data.topInteractions;
+      }
+    } catch (error) {
+      console.warn('Failed to fetch top interactions:', error);
+      // Continue without top interactions
+    }
+
+    const responseData = {
       fid: user.fid,
       username: user.username,
       displayName: user.display_name,
@@ -82,15 +121,24 @@ export async function GET(request: NextRequest) {
       followingCount: user.following_count,
       castCount: user.cast_count,
       verified: user.verified_addresses?.length > 0,
-      message: 'Basic user data loaded successfully',
+      message: 'User data loaded successfully',
       test: false,
-      topInteractions: [] // We'll add this back once basic data works
-    })
+      topInteractions: topInteractions,
+      cached: false
+    };
+
+    // Cache the response
+    cache.set(cacheKey, {
+      data: responseData,
+      timestamp: Date.now()
+    });
+
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Error in user API:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

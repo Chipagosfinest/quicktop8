@@ -5,9 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:enhanced": "node server-enhanced.js",
     "dev": "nodemon server.js",
+    "dev:enhanced": "nodemon server-enhanced.js",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "node test-api.js && node scripts/validate-urls.js",
+    "test:indexer": "node test-indexer.js",
     "test:frontend": "cd frontend && npm run lint && npm run build",
     "test:api": "node test-api.js",
     "test:deployment": "node test-deployment.js",
