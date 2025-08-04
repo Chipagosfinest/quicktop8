@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   other: {
     'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://warpcast.com https://*.warpcast.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://warpcast.com https://*.warpcast.com https://api.neynar.com;",
     'fc:miniapp': 'Ride or Die Top 8',
-    'fc:miniapp:domain': 'quicktop8-alpha.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-alpha.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-alpha.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app'
   }
 }
 

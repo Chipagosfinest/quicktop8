@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Ride or Die Top 8 - Your Longest-Standing Farcaster Friends',
     description: 'Discover your ride or die friends on Farcaster with original engagement links and tip them!',
-    images: ['https://quicktop8-alpha.vercel.app/og-image.png'],
+    images: ['https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/og-image.png'],
   },
   other: {
     'fc:miniapp': 'Ride or Die Top 8',
-    'fc:miniapp:domain': 'quicktop8-alpha.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-alpha.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-alpha.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app'
   }
 };
 
