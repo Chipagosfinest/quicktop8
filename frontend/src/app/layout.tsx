@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Top 8 Friends - Farcaster Analyzer",
+  title: "Reply Guy - Farcaster Analyzer",
   description: "Discover your most interactive friends on Farcaster",
   other: {
     "fc:miniapp": JSON.stringify({
       version: "1",
-      name: "QuickTop8",
+      name: "Reply Guy",
       description: "Discover your most interactive friends on Farcaster (last 45 days)",
       homeUrl: "https://quicktop8-alpha.vercel.app/app",
       iconUrl: "https://quicktop8-alpha.vercel.app/icon.png",

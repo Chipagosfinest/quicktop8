@@ -145,7 +145,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          QuickTop8
+          Reply Guy
         </h1>
         <p className="text-gray-600 text-lg mb-8">
           Discover your most interactive friends on Farcaster (last 45 days)
@@ -230,24 +230,82 @@ export default function Home() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-blue-700">📊 Followers:</span>
-                          <span className="text-sm font-medium text-blue-800">{userData.followers?.toLocaleString()}</span>
+                          <span className="text-sm font-medium text-blue-800">{userData.followerCount?.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-blue-700">📝 Casts:</span>
-                          <span className="text-sm font-medium text-blue-800">{userData.casts?.toLocaleString()}</span>
+                          <span className="text-sm font-medium text-blue-800">{userData.castCount?.toLocaleString()}</span>
                         </div>
+                        
+                        {userData.bio && (
+                          <div className="mt-3 p-3 bg-white rounded border">
+                            <p className="text-sm text-gray-700">{userData.bio}</p>
+                          </div>
+                        )}
                         
                         {userData.topInteractions && userData.topInteractions.length > 0 && (
                           <div className="mt-4">
-                            <h4 className="text-sm font-semibold text-blue-800 mb-2">🏆 Top Interactions (Last 45 Days)</h4>
-                            <div className="space-y-2">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold text-blue-800">🏆 Top Interactions (Last 45 Days)</h4>
+                              <button
+                                onClick={() => {
+                                  const shareText = `🎯 My Top 8 Farcaster Friends:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) => 
+                                    `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions`
+                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
+                                  
+                                  if (navigator.share) {
+                                    navigator.share({
+                                      title: 'Reply Guy - My Top 8 Friends',
+                                      text: shareText,
+                                      url: 'https://quicktop8-alpha.vercel.app'
+                                    })
+                                  } else {
+                                    navigator.clipboard.writeText(shareText)
+                                    alert('Share text copied to clipboard!')
+                                  }
+                                }}
+                                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-full transition-colors"
+                              >
+                                📤 Share
+                              </button>
+                            </div>
+                            <div className="space-y-3">
                               {userData.topInteractions.slice(0, 8).map((friend: any, index: number) => (
-                                <div key={friend.fid} className="flex items-center justify-between bg-white rounded px-3 py-2">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-xs font-bold text-blue-600">#{index + 1}</span>
-                                    <span className="text-sm text-blue-800">@{friend.username}</span>
+                                <div key={friend.fid} className="bg-white rounded-lg border p-4 shadow-sm">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="flex-shrink-0">
+                                      <div className="relative">
+                                        <img 
+                                          src={friend.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`} 
+                                          alt={friend.displayName}
+                                          className="w-12 h-12 rounded-full border-2 border-gray-200"
+                                        />
+                                        {friend.verified && (
+                                          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                            ✓
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-2">
+                                        <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                                          #{index + 1}
+                                        </span>
+                                        <h5 className="text-sm font-semibold text-gray-900 truncate">
+                                          {friend.displayName}
+                                        </h5>
+                                      </div>
+                                      <p className="text-xs text-gray-500 truncate">@{friend.username}</p>
+                                      {friend.bio && (
+                                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{friend.bio}</p>
+                                      )}
+                                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                        <span>{friend.followerCount?.toLocaleString()} followers</span>
+                                        <span>{friend.interactionCount} interactions</span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <span className="text-xs text-blue-600">{friend.interactionCount} interactions</span>
                                 </div>
                               ))}
                             </div>
