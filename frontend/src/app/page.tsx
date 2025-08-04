@@ -148,7 +148,7 @@ export default function Home() {
           Reply Guy
         </h1>
         <p className="text-gray-600 text-lg mb-8">
-          Discover your most interactive friends on Farcaster (last 45 days)
+          Discover your biggest fans on Farcaster (last 45 days)
         </p>
         
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
@@ -257,16 +257,16 @@ export default function Home() {
                         {userData.topInteractions && userData.topInteractions.length > 0 ? (
                           <div className="mt-4">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-blue-800">🏆 Top Interactions (Last 45 Days)</h4>
+                              <h4 className="text-sm font-semibold text-blue-800">🏆 Your Biggest Fans (Last 45 Days)</h4>
                               <button
                                 onClick={() => {
-                                  const shareText = `🎯 My Top 8 Farcaster Friends:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) => 
+                                  const shareText = `🎯 My Biggest Farcaster Fans:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) => 
                                     `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions`
                                   ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
                                   
                                   if (navigator.share) {
                                     navigator.share({
-                                      title: 'Reply Guy - My Top 8 Friends',
+                                      title: 'Reply Guy - My Biggest Fans',
                                       text: shareText,
                                       url: 'https://quicktop8-alpha.vercel.app'
                                     })
@@ -306,6 +306,11 @@ export default function Home() {
                                         <h5 className="text-sm font-semibold text-gray-900 truncate">
                                           {friend.displayName}
                                         </h5>
+                                        {index === 0 && (
+                                          <span className="text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
+                                            👑 Biggest Fan
+                                          </span>
+                                        )}
                                       </div>
                                       <p className="text-xs text-gray-500 truncate">@{friend.username}</p>
                                       {friend.bio && (
@@ -322,6 +327,29 @@ export default function Home() {
                                           <span className="text-green-500">🔄 {friend.recasts} recasts</span>
                                         </div>
                                       )}
+                                      
+                                      {/* Appreciation Buttons */}
+                                      <div className="flex items-center space-x-2 mt-3">
+                                        <button
+                                          onClick={() => {
+                                            const tipAmount = prompt(`Tip @${friend.username} (in ETH):`, '0.001')
+                                            if (tipAmount) {
+                                              alert(`💝 Tip of ${tipAmount} ETH sent to @${friend.username}!\n\n(Note: This is a demo - in production this would use real wallet integration)`)
+                                            }
+                                          }}
+                                          className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
+                                        >
+                                          💝 Tip
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            alert(`🙏 Prayer hand emoji minted and sent to @${friend.username}'s wallet!\n\n(Note: This is a demo - in production this would mint a real NFT)`)
+                                          }}
+                                          className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
+                                        >
+                                          🙏 Pray
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
