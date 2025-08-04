@@ -83,24 +83,6 @@ export default function Home() {
     }
   }
 
-  const handleShare = async () => {
-    if (!friends.length) return
-
-    try {
-      // Share to Farcaster feed
-      await sdk.actions.cast({
-        text: `🎯 My Top 8 Friends on Farcaster:\n\n${friends.slice(0, 3).map((friend, i) => 
-          `${i + 1}. @${friend.username} (${friend.interactions} interactions)`
-        ).join('\n')}\n\nDiscover yours at QuickTop8!`,
-        embeds: [{
-          url: "https://quicktop8-6tvw43wfu-chipagosfinests-projects.vercel.app"
-        }]
-      })
-    } catch (err) {
-      console.error("Failed to share:", err)
-    }
-  }
-
   const connectWallet = async () => {
     try {
       if (sdk.wallet?.ethProvider) {
@@ -192,12 +174,9 @@ export default function Home() {
             <>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Your Top 8 Friends</h2>
-                <Button 
-                  onClick={handleShare}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Share to Feed
-                </Button>
+                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
+                  🎯 {friends.length} Friends Found
+                </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {friends.map((friend, index) => (
