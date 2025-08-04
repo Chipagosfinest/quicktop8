@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global error handling */
+.error-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: none;
+}
+
+.error-overlay.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Suppress console errors from external sources */
+@media (max-width: 0px) {
+  /* This rule will never apply but helps with CSS parsing */
+  .suppress-external-errors {
+    display: none;
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --background: 0 0% 100%;
