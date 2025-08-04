@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
             // Check reactions to user's casts to see if mutual follow engaged
             for (const cast of userCasts.slice(0, 5)) {
               // Get detailed reactions for this cast
-              const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/reactions/cast?hash=${cast.hash}&types=like,recast&limit=50`, {
+              const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash&limit=50`, {
                 headers: {
                   'x-api-key': NEYNAR_API_KEY,
                   'accept': 'application/json'
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
                 
                 // Check if mutual follow liked this cast
                 const mutualFollowLike = reactions.find((reaction: any) => 
-                  reaction.reaction_type === 'like' && reaction.user.fid === user.fid
+                  reaction.reaction_type === 'like' && reaction.reactor_user?.fid === user.fid
                 )
                 if (mutualFollowLike) {
                   updateMutualFollowData(mutualFollowsMap, {
@@ -205,14 +205,14 @@ export async function POST(request: NextRequest) {
                     display_name: user.display_name,
                     pfp_url: user.pfp_url,
                     bio: user.profile?.bio?.text || "",
-                    timestamp: mutualFollowLike.reaction_timestamp
-                  }, mutualFollow.timestamp || new Date().toISOString(), 'like', mutualFollowLike.reaction_timestamp, cast.hash)
+                    timestamp: mutualFollowLike.timestamp
+                  }, mutualFollow.timestamp || new Date().toISOString(), 'like', mutualFollowLike.timestamp, cast.hash)
                   break
                 }
                 
                 // Check if mutual follow recast this cast
                 const mutualFollowRecast = reactions.find((reaction: any) => 
-                  reaction.reaction_type === 'recast' && reaction.user.fid === user.fid
+                  reaction.reaction_type === 'recast' && reaction.reactor_user?.fid === user.fid
                 )
                 if (mutualFollowRecast) {
                   updateMutualFollowData(mutualFollowsMap, {
@@ -221,8 +221,44 @@ export async function POST(request: NextRequest) {
                     display_name: user.display_name,
                     pfp_url: user.pfp_url,
                     bio: user.profile?.bio?.text || "",
-                    timestamp: mutualFollowRecast.reaction_timestamp
-                  }, mutualFollow.timestamp || new Date().toISOString(), 'recast', mutualFollowRecast.reaction_timestamp, cast.hash)
+                    timestamp: mutualFollowRecast.timestamp
+                  }, mutualFollow.timestamp || new Date().toISOString(), 'recast', mutualFollowRecast.timestamp, cast.hash)
+                  break
+                }
+              }
+              
+              // Add delay to avoid rate limiting
+              await new Promise(resolve => setTimeout(resolve, 200))
+            }
+            
+            // Also check for replies from mutual follow to user's casts
+            for (const cast of userCasts.slice(0, 3)) {
+              const conversationResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${cast.hash}&type=hash&reply_depth=1&limit=25`, {
+                headers: {
+                  'x-api-key': NEYNAR_API_KEY,
+                  'accept': 'application/json'
+                },
+                signal: AbortSignal.timeout(5000)
+              })
+              
+              if (conversationResponse.ok) {
+                const conversationData = await conversationResponse.json()
+                const conversation = conversationData.conversation || {}
+                const directReplies = conversation.direct_replies || []
+                
+                // Check if mutual follow replied to this cast
+                const mutualFollowReply = directReplies.find((reply: any) => 
+                  reply.author?.fid === user.fid
+                )
+                if (mutualFollowReply) {
+                  updateMutualFollowData(mutualFollowsMap, {
+                    fid: user.fid,
+                    username: user.username,
+                    display_name: user.display_name,
+                    pfp_url: user.pfp_url,
+                    bio: user.profile?.bio?.text || "",
+                    timestamp: mutualFollowReply.timestamp
+                  }, mutualFollow.timestamp || new Date().toISOString(), 'reply', mutualFollowReply.timestamp, cast.hash)
                   break
                 }
               }
@@ -240,7 +276,7 @@ export async function POST(request: NextRequest) {
         await new Promise(resolve => setTimeout(resolve, 200))
       }
       
-      // Step 5: Sort by ride or die score and return top 8
+      // Step 3: Sort by ride or die score and return top 8
       const friends = Array.from(mutualFollowsMap.values())
         .sort((a, b) => b.rideOrDieScore - a.rideOrDieScore)
         .slice(0, 8)
@@ -263,12 +299,36 @@ export async function POST(request: NextRequest) {
           engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100
         }))
       
-      console.log(`Found ${friends.length} top mutual follows`)
+      console.log(`Found ${friends.length} top mutual follows with engagement`)
       
+      // If no mutual follows with engagement found, return some mutual follows anyway
       if (friends.length === 0) {
+        console.log("No mutual follows with engagement found, returning mutual follows without engagement data")
+        
+        const fallbackFriends = mutualFollows.slice(0, 8).map((mutualFollow, index) => {
+          const user = mutualFollow.user
+          return {
+            fid: user.fid,
+            username: user.username,
+            display_name: user.display_name,
+            pfp_url: user.pfp_url,
+            bio: user.profile?.bio?.text || "",
+            followDate: mutualFollow.timestamp || new Date().toISOString(),
+            firstEngagement: "",
+            engagementType: 'follow' as any,
+            totalInteractions: 0,
+            relationshipScore: 10 + index, // Give some basic scoring
+            originalEngagementCastHash: "",
+            originalEngagementCastUrl: "",
+            rideOrDieScore: 10 + index,
+            daysSinceFirstEngagement: 0,
+            engagementFrequency: 0
+          }
+        })
+        
         return NextResponse.json({ 
-          friends: [],
-          message: "No mutual follows with engagement found. Try with a different FID or check back later."
+          friends: fallbackFriends,
+          message: "Found mutual follows but no engagement data yet. Start interacting with them!"
         })
       }
       

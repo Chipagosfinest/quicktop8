@@ -81,7 +81,7 @@ export default function App() {
     setError("")
 
     try {
-      const response = await fetch("/api/replyguys", {
+      const response = await fetch("/api/top8", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
