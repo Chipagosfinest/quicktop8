@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     console.log(`Processing user: ${user.username} (FID: ${user.fid})`)
 
     // Get top interactions directly from Neynar
-    let topInteractions = [];
+    let topInteractions: any[] = [];
     let hasTopInteractions = false;
     
     try {
