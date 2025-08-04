@@ -146,10 +146,10 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          🙏 Prayer Emoji
+          Reply Guy
         </h1>
         <p className="text-gray-600 text-lg mb-4">
-          Send prayer emoji NFTs to your biggest fans on Farcaster!
+          Discover your biggest fans on Farcaster and send them prayer emoji NFTs!
         </p>
         
         {/* Add to Warpcast Button */}
@@ -280,16 +280,16 @@ export default function Home() {
                         {userData.topInteractions && userData.topInteractions.length > 0 ? (
                           <div className="mt-4">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-blue-800">🙏 Your Top Reply Guys & Inner Circle</h4>
+                              <h4 className="text-sm font-semibold text-blue-800">💬 Your Top Reply Guys & Inner Circle</h4>
                               <button
                                 onClick={() => {
-                                  const shareText = `🙏 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) =>
+                                  const shareText = `💬 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) =>
                                     `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions (${friend.likes} likes, ${friend.replies} replies, ${friend.recasts} recasts)`
-                                  ).join('\n')}\n\nSend prayer emoji NFTs to your fans at: https://quicktop8-alpha.vercel.app`
+                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
 
                                   if (navigator.share) {
                                     navigator.share({
-                                      title: 'Prayer Emoji - My Top Reply Guys',
+                                      title: 'Reply Guy - My Top Reply Guys',
                                       text: shareText,
                                       url: 'https://quicktop8-alpha.vercel.app'
                                     })
