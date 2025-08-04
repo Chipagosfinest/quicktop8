@@ -1,32 +1,33 @@
 {
   "accountAssociation": {
     "header": "PLACEHOLDER_HEADER",
-    "payload": "PLACEHOLDER_PAYLOAD", 
+    "payload": "PLACEHOLDER_PAYLOAD",
     "signature": "PLACEHOLDER_SIGNATURE"
   },
   "miniapp": {
     "version": "1",
     "name": "Ride or Die Top 8",
-    "iconUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/og-image.png",
+    "iconUrl": "https://quicktop8-ddoijak01-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-ddoijak01-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-ddoijak01-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "🔥 Ride or Die",
-    "splashImageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/splash.png",
-    "splashBackgroundColor": "#8B5CF6",
-    "webhookUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/api/webhook",
-    "subtitle": "Discover Your Ride or Die Friends",
-    "description": "Find your longest-standing mutual follows with original engagement history and tip them!",
+    "splashImageUrl": "https://quicktop8-ddoijak01-chipagosfinests-projects.vercel.app/splash.png",
+    "splashBackgroundColor": "#F97316",
+    "webhookUrl": "https://quicktop8-ddoijak01-chipagosfinests-projects.vercel.app/api/webhook",
+    "subtitle": "Your Crypto Roller Coaster Crew",
+    "description": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
     "primaryCategory": "social",
     "tags": [
       "social",
       "friends",
       "analytics",
-      "wallet",
-      "tipping",
+      "crypto",
+      "bitcoin",
+      "roller-coaster",
       "ride-or-die"
     ],
-    "ogTitle": "Ride or Die Top 8 - Your Longest-Standing Farcaster Friends",
-    "ogDescription": "Discover your ride or die friends on Farcaster with original engagement links and tip them!",
-    "ogImageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogTitle": "Ride or Die Top 8 - Your Crypto Roller Coaster Crew",
+    "ogDescription": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
+    "ogImageUrl": "https://quicktop8-ddoijak01-chipagosfinests-projects.vercel.app/og-image.png"
   }
 } 
