@@ -7,7 +7,7 @@
 
 const DOMAIN_CONFIG = {
   // Primary domain for all URLs
-  PRIMARY_DOMAIN: 'quicktop8-alpha.vercel.app',
+  PRIMARY_DOMAIN: 'quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app',
   
   // Protocol
   PROTOCOL: 'https',
