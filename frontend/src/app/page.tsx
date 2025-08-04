@@ -283,30 +283,31 @@ export default function Home() {
                               <h4 className="text-sm font-semibold text-blue-800">💬 Your Top Reply Guys & Inner Circle</h4>
                               <button
                                 onClick={() => {
-                                  const shareText = `💬 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) => 
-                                    `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions`
-                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
-                                  
+                                  const shareText = `💬 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) =>
+                                    `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions (${friend.likes} likes, ${friend.replies} replies, ${friend.recasts} recasts)`
+                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app`
+
                                   if (navigator.share) {
                                     navigator.share({
                                       title: 'Reply Guy - My Top Reply Guys',
                                       text: shareText,
-                                      url: 'https://quicktop8-alpha.vercel.app'
+                                      url: 'https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app'
                                     })
                                   } else {
                                     navigator.clipboard.writeText(shareText)
-                                    alert('Share text copied to clipboard!')
+                                    alert('📋 Share text copied to clipboard!')
                                   }
                                 }}
-                                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-full transition-colors"
+                                className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-xs rounded-full transition-colors font-medium"
                               >
                                 📤 Share
                               </button>
                             </div>
+                            
                             <div className="space-y-3">
                               {userData.topInteractions.slice(0, 8).map((friend: any, index: number) => (
-                                <div 
-                                  key={friend.fid} 
+                                <div
+                                  key={friend.fid}
                                   className="bg-white rounded-lg border p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                   onClick={() => {
                                     // Open user's Farcaster profile
@@ -315,37 +316,38 @@ export default function Home() {
                                 >
                                   <div className="flex items-center space-x-3">
                                     <div className="flex-shrink-0">
-                                      <div className="relative">
-                                        <Image 
-                                          src={friend.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`} 
-                                          alt={friend.displayName}
-                                          width={48}
-                                          height={48}
-                                          className="rounded-full border-2 border-gray-200"
-                                          onError={(e) => {
-                                            // Fallback to dicebear avatar on error
-                                            const target = e.target as HTMLImageElement
-                                            target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`
-                                          }}
-                                        />
-                                        {friend.verified && (
-                                          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                            ✓
-                                          </div>
-                                        )}
-                                      </div>
+                                      <Image
+                                        src={friend.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`}
+                                        alt={`${friend.displayName || friend.username}'s avatar`}
+                                        width={48}
+                                        height={48}
+                                        className="rounded-full border-2 border-gray-200"
+                                        onError={(e) => {
+                                          // Fallback to dicebear avatar on error
+                                          const target = e.target as HTMLImageElement
+                                          target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`
+                                        }}
+                                      />
+                                      {friend.verified && (
+                                        <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                          ✓
+                                        </div>
+                                      )}
                                     </div>
+                                    
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center space-x-2">
-                                        <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                                          #{index + 1}
-                                        </span>
                                         <h5 className="text-sm font-semibold text-gray-900 truncate">
-                                          {friend.displayName}
+                                          {friend.displayName || friend.username}
                                         </h5>
                                         {index === 0 && (
-                                          <span className="text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
-                                            👑 Biggest Fan
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            👑 Top Reply Guy
+                                          </span>
+                                        )}
+                                        {index === 1 && (
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            💜 Inner Circle
                                           </span>
                                         )}
                                       </div>
@@ -353,76 +355,69 @@ export default function Home() {
                                       {friend.bio && (
                                         <p className="text-xs text-gray-600 mt-1 line-clamp-2">{friend.bio}</p>
                                       )}
+                                      
                                       <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
                                         <span>{friend.followerCount?.toLocaleString()} followers</span>
-                                        <span>{friend.interactionCount} interactions</span>
+                                        <span>•</span>
+                                        <span>{friend.interactionCount} total interactions</span>
                                       </div>
-                                      {friend.likes !== undefined && (
-                                        <div className="flex items-center space-x-3 mt-2 text-xs">
-                                          <span className="text-red-500">❤️ {friend.likes} likes</span>
-                                          <span className="text-blue-500">💬 {friend.replies} replies</span>
-                                          <span className="text-green-500">🔄 {friend.recasts} recasts</span>
-                                        </div>
-                                      )}
                                       
-                                      {/* Appreciation Buttons */}
-                                      <div className="flex items-center space-x-2 mt-3">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation() // Prevent card click
-                                            // Tip functionality
-                                            sdk.actions.sendToken({
-                                              recipientFid: friend.fid,
-                                              amount: '1000000', // 1 USDC (6 decimals)
-                                              token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
-                                            }).then((result) => {
-                                              if (result.success) {
-                                                alert(`💝 Tip sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
-                                              } else {
-                                                if (result.reason === 'rejected_by_user') {
-                                                  alert('💝 Tip cancelled by user')
-                                                } else {
-                                                  alert(`💝 Tip failed: ${result.error?.message || 'Unknown error'}`)
-                                                }
-                                              }
-                                            }).catch((error) => {
-                                              console.error('Error sending tip:', error)
-                                              alert(`💝 Error sending tip to @${friend.username}: ${error}`)
-                                            })
-                                          }}
-                                          className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
-                                        >
-                                          💝 Tip
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation() // Prevent card click
-                                            // Mint functionality
-                                            sdk.actions.sendToken({
-                                              recipientFid: friend.fid,
-                                              amount: '1000000000000000', // 0.001 ETH (18 decimals)
-                                              token: 'eip155:8453/native' // Base ETH
-                                            }).then((result) => {
-                                              if (result.success) {
-                                                alert(`🙏 Appreciation sent to @${friend.username}!\n\nTransaction: ${result.send.transaction}\n\nThis represents the "mint fee" for your appreciation NFT!`)
-                                              } else {
-                                                if (result.reason === 'rejected_by_user') {
-                                                  alert('🙏 Mint cancelled by user')
-                                                } else {
-                                                  alert(`🙏 Mint failed: ${result.error?.message || 'Unknown error'}`)
-                                                }
-                                              }
-                                            }).catch((error) => {
-                                              console.error('Error minting appreciation:', error)
-                                              alert(`🙏 Error sending appreciation to @${friend.username}: ${error}`)
-                                            })
-                                          }}
-                                          className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
-                                        >
-                                          🙏 Mint NFT
-                                        </button>
+                                      <div className="flex items-center space-x-3 mt-2">
+                                        <span className="text-xs text-red-500">❤️ {friend.likes}</span>
+                                        <span className="text-xs text-blue-500">💬 {friend.replies}</span>
+                                        <span className="text-xs text-green-500">🔄 {friend.recasts}</span>
                                       </div>
                                     </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2 mt-3">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation() // Prevent card click
+                                        // Tip functionality
+                                        sdk.actions.sendToken({
+                                          recipientFid: friend.fid,
+                                          amount: '1000000', // 1 USDC (6 decimals)
+                                          token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
+                                        }).then((result) => {
+                                          if (result.success) {
+                                            alert(`💝 Tip sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
+                                          } else {
+                                            alert(`💝 Tip failed: ${result.error}`)
+                                          }
+                                        }).catch((error) => {
+                                          console.error('Error sending tip:', error)
+                                          alert(`💝 Error sending tip to @${friend.username}: ${error}`)
+                                        })
+                                      }}
+                                      className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
+                                    >
+                                      💝 Tip
+                                    </button>
+                                    
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation() // Prevent card click
+                                        // Mint NFT functionality
+                                        sdk.actions.sendToken({
+                                          recipientFid: friend.fid,
+                                          amount: '1000000000000000', // 0.001 ETH (18 decimals)
+                                          token: 'eip155:8453/erc20:0x4200000000000000000000000000000000000006' // Base ETH
+                                        }).then((result) => {
+                                          if (result.success) {
+                                            alert(`🙏 Mint fee sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
+                                          } else {
+                                            alert(`🙏 Mint failed: ${result.error}`)
+                                          }
+                                        }).catch((error) => {
+                                          console.error('Error sending mint fee:', error)
+                                          alert(`🙏 Error sending mint fee to @${friend.username}: ${error}`)
+                                        })
+                                      }}
+                                      className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
+                                    >
+                                      🙏 Mint NFT
+                                    </button>
                                   </div>
                                 </div>
                               ))}

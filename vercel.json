@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "builds": [
     {
@@ -6,14 +7,36 @@
       "use": "@vercel/next"
     }
   ],
-  "routes": [
+  "redirects": [
     {
-      "src": "/api/(.*)",
-      "dest": "/frontend/api/$1"
+      "source": "/.well-known/farcaster.json",
+      "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/019874b9-87e4-1185-4928-142f13631490",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/frontend/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/farcaster.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ],
   "env": {

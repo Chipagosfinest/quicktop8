@@ -66,76 +66,195 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch user's popular casts to analyze interactions
-    const popularCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular/?fid=${fid}&viewer_fid=${fid}`, {
+    console.log(`Processing user: ${user.username} (FID: ${user.fid})`)
+
+    // Step 1: Fetch user's recent casts to analyze who interacts with them
+    const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular/?fid=${fid}&viewer_fid=${fid}&limit=20`, {
       headers: {
         'accept': 'application/json',
         'api_key': NEYNAR_API_KEY
       }
     })
 
-    if (!popularCastsResponse.ok) {
-      const errorText = await popularCastsResponse.text()
-      console.error(`Neynar popular casts API failed: ${popularCastsResponse.status} - ${popularCastsResponse.statusText}`)
+    if (!userCastsResponse.ok) {
+      const errorText = await userCastsResponse.text()
+      console.error(`Neynar user casts API failed: ${userCastsResponse.status} - ${userCastsResponse.statusText}`)
       console.error('Error response:', errorText)
       return NextResponse.json(
-        { error: `Neynar popular casts API failed: ${popularCastsResponse.status}`, details: errorText },
-        { status: popularCastsResponse.status }
+        { error: `Neynar user casts API failed: ${userCastsResponse.status}`, details: errorText },
+        { status: userCastsResponse.status }
       )
     }
 
-    const popularCastsData = await popularCastsResponse.json()
-    const popularCasts = popularCastsData.casts || []
-    console.log(`Fetched ${popularCasts.length} popular casts from Neynar`)
+    const userCastsData = await userCastsResponse.json()
+    const userCasts = userCastsData.casts || []
+    console.log(`Fetched ${userCasts.length} user casts`)
 
-    // Fetch user's followers
-    const followersResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers/?fid=${fid}&limit=100`, {
+    // Step 2: Fetch user's recent replies to others
+    const userRepliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/replies/?fid=${fid}&viewer_fid=${fid}&limit=20`, {
       headers: {
         'accept': 'application/json',
         'api_key': NEYNAR_API_KEY
       }
     })
 
-    if (!followersResponse.ok) {
-      const errorText = await followersResponse.text()
-      console.error(`Neynar followers API failed: ${followersResponse.status} - ${followersResponse.statusText}`)
+    if (!userRepliesResponse.ok) {
+      const errorText = await userRepliesResponse.text()
+      console.error(`Neynar user replies API failed: ${userRepliesResponse.status} - ${userRepliesResponse.statusText}`)
       console.error('Error response:', errorText)
       return NextResponse.json(
-        { error: `Neynar followers API failed: ${followersResponse.status}`, details: errorText },
-        { status: followersResponse.status }
+        { error: `Neynar user replies API failed: ${userRepliesResponse.status}`, details: errorText },
+        { status: userRepliesResponse.status }
       )
     }
 
-    const followersData = await followersResponse.json()
-    const followers = followersData.users || []
-    console.log(`Fetched ${followers.length} followers from Neynar`)
-    console.log('Sample follower structure:', JSON.stringify(followers[0], null, 2))
+    const userRepliesData = await userRepliesResponse.json()
+    const userReplies = userRepliesData.casts || []
+    console.log(`Fetched ${userReplies.length} user replies`)
 
-    // Use followers directly as "biggest fans" for now
-    console.log('Using followers as biggest fans')
+    // Step 3: Build interaction map from user's casts
+    const interactionMap = new Map()
     
+    // Process user's casts to find who interacts with them
+    for (const cast of userCasts) {
+      // Count likes
+      if (cast.reactions?.likes) {
+        for (const like of cast.reactions.likes) {
+          const likerFid = like.fid
+          if (!interactionMap.has(likerFid)) {
+            interactionMap.set(likerFid, { likes: 0, replies: 0, recasts: 0, total: 0 })
+          }
+          const stats = interactionMap.get(likerFid)
+          stats.likes++
+          stats.total++
+        }
+      }
+
+      // Count recasts
+      if (cast.reactions?.recasts) {
+        for (const recast of cast.reactions.recasts) {
+          const recasterFid = recast.fid
+          if (!interactionMap.has(recasterFid)) {
+            interactionMap.set(recasterFid, { likes: 0, replies: 0, recasts: 0, total: 0 })
+          }
+          const stats = interactionMap.get(recasterFid)
+          stats.recasts++
+          stats.total++
+        }
+      }
+
+      // Count replies
+      if (cast.replies?.count > 0) {
+        // For replies, we need to fetch the actual replies to this cast
+        try {
+          const castRepliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/cast/replies/?identifier=${cast.hash}&viewer_fid=${fid}&limit=10`, {
+            headers: {
+              'accept': 'application/json',
+              'api_key': NEYNAR_API_KEY
+            }
+          })
+          
+          if (castRepliesResponse.ok) {
+            const castRepliesData = await castRepliesResponse.json()
+            const castReplies = castRepliesData.casts || []
+            
+            for (const reply of castReplies) {
+              const replierFid = reply.author.fid
+              if (!interactionMap.has(replierFid)) {
+                interactionMap.set(replierFid, { likes: 0, replies: 0, recasts: 0, total: 0 })
+              }
+              const stats = interactionMap.get(replierFid)
+              stats.replies++
+              stats.total++
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching cast replies:', error)
+        }
+      }
+    }
+
+    // Step 4: Process user's replies to find who they interact with
+    for (const reply of userReplies) {
+      const targetFid = reply.parent_author?.fid
+      if (targetFid) {
+        if (!interactionMap.has(targetFid)) {
+          interactionMap.set(targetFid, { likes: 0, replies: 0, recasts: 0, total: 0 })
+        }
+        const stats = interactionMap.get(targetFid)
+        stats.replies++
+        stats.total++
+      }
+    }
+
+    console.log(`Built interaction map with ${interactionMap.size} unique users`)
+
+    // Step 5: Get user profiles for top interactors
+    const topFids = Array.from(interactionMap.entries())
+      .sort((a, b) => b[1].total - a[1].total)
+      .slice(0, 20)
+      .map(([fid]) => fid)
+
+    if (topFids.length === 0) {
+      return NextResponse.json(
+        { error: 'No interactions found', details: 'No user interactions available for analysis' },
+        { status: 404 }
+      )
+    }
+
+    // Fetch user profiles for top interactors
+    const bulkUsersResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${topFids.join(',')}`, {
+      headers: {
+        'accept': 'application/json',
+        'api_key': NEYNAR_API_KEY
+      }
+    })
+
+    if (!bulkUsersResponse.ok) {
+      const errorText = await bulkUsersResponse.text()
+      console.error(`Neynar bulk users API failed: ${bulkUsersResponse.status} - ${bulkUsersResponse.statusText}`)
+      console.error('Error response:', errorText)
+      return NextResponse.json(
+        { error: `Neynar bulk users API failed: ${bulkUsersResponse.status}`, details: errorText },
+        { status: bulkUsersResponse.status }
+      )
+    }
+
+    const bulkUsersData = await bulkUsersResponse.json()
+    const userProfiles = bulkUsersData.users || []
+
+    // Step 6: Build final top interactions list
     let topInteractions: any[] = []
     
-    if (followers.length > 0) {
-      // Use top followers as interactions
-      const topFollowers = followers.slice(0, 8)
-      topInteractions = topFollowers.map((follower: any, index: number) => ({
-        fid: follower.user?.fid || follower.fid,
-        username: follower.user?.username || follower.username,
-        displayName: follower.user?.display_name || follower.display_name,
-        avatar: follower.user?.pfp_url || follower.pfp_url,
-        bio: follower.user?.profile?.bio?.text || follower.profile?.bio?.text || '',
-        followerCount: follower.user?.follower_count || follower.follower_count,
-        followingCount: follower.user?.following_count || follower.following_count,
-        interactionCount: Math.floor(Math.random() * 50) + 10, // Mock interaction count
-        likes: Math.floor(Math.random() * 30) + 5,
-        replies: Math.floor(Math.random() * 20) + 3,
-        recasts: Math.floor(Math.random() * 15) + 2,
-        verified: follower.user?.verified_addresses?.length > 0 || follower.verified_addresses?.length > 0
-      }))
-    } else {
+    for (const [fid, stats] of interactionMap.entries()) {
+      const userProfile = userProfiles.find((u: any) => u.fid === fid)
+      if (userProfile) {
+        topInteractions.push({
+          fid: userProfile.fid,
+          username: userProfile.username,
+          displayName: userProfile.display_name,
+          avatar: userProfile.pfp_url,
+          bio: userProfile.profile?.bio?.text || '',
+          followerCount: userProfile.follower_count,
+          followingCount: userProfile.following_count,
+          interactionCount: stats.total,
+          likes: stats.likes,
+          replies: stats.replies,
+          recasts: stats.recasts,
+          verified: userProfile.verified_addresses?.length > 0
+        })
+      }
+    }
+
+    // Sort by total interactions
+    topInteractions.sort((a, b) => b.interactionCount - a.interactionCount)
+
+    // Take top 8 for display
+    topInteractions = topInteractions.slice(0, 8)
+
+    if (topInteractions.length === 0) {
       return NextResponse.json(
-        { error: 'No followers found', details: 'No followers available for this user' },
+        { error: 'No valid interactions found', details: 'No valid user interactions available for display' },
         { status: 404 }
       )
     }
@@ -152,7 +271,7 @@ export async function GET(request: NextRequest) {
       joinedAt: user.registered_at,
       verified: user.verified_addresses?.length > 0,
       topInteractions,
-      message: 'Real data from Neynar API!',
+      message: 'Real interaction data from Neynar API!',
       timestamp: new Date().toISOString()
     }
 
