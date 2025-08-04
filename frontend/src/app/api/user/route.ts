@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
           avatar: user.pfp_url,
           followerCount: user.follower_count,
           userScore: user.score || 0,
-          verified: user.verified_addresses?.length > 0,
+          verified: !!user.verified_addresses,
           interactionCount: 10 - index, // Sample interaction count
           likes: 5 - index,
           replies: 3 - index,
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
       followerCount: userData.follower_count,
       followingCount: userData.following_count,
       castCount: userData.cast_count,
-      verified: userData.verified_addresses?.length > 0,
+      verified: !!userData.verified_addresses,
       message: 'User data loaded successfully',
       test: false,
       hasTopInteractions: hasTopInteractions,
