@@ -2,13 +2,13 @@
   "miniapp": {
     "version": "1",
     "name": "QuickTop8",
-    "description": "Discover your most interactive friends on Farcaster",
-    "homeUrl": "https://quicktop8-nqzw69un7-chipagosfinests-projects.vercel.app/app",
-    "iconUrl": "https://quicktop8-nqzw69un7-chipagosfinests-projects.vercel.app/icon.png",
-    "imageUrl": "https://quicktop8-nqzw69un7-chipagosfinests-projects.vercel.app/og-image.png",
+    "description": "Discover your most interactive friends on Farcaster (last 45 days)",
+    "homeUrl": "https://quicktop8-kscyww7hn-chipagosfinests-projects.vercel.app/app",
+    "iconUrl": "https://quicktop8-kscyww7hn-chipagosfinests-projects.vercel.app/icon.png",
+    "imageUrl": "https://quicktop8-kscyww7hn-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "🎯 Discover",
-    "splashImageUrl": "https://quicktop8-nqzw69un7-chipagosfinests-projects.vercel.app/splash.png",
+    "splashImageUrl": "https://quicktop8-kscyww7hn-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#8B5CF6",
-    "webhookUrl": "https://quicktop8-nqzw69un7-chipagosfinests-projects.vercel.app/api/webhook"
+    "webhookUrl": "https://quicktop8-kscyww7hn-chipagosfinests-projects.vercel.app/api/webhook"
   }
 } 
