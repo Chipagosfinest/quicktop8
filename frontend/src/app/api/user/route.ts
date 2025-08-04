@@ -111,130 +111,33 @@ export async function GET(request: NextRequest) {
     console.log(`Fetched ${followers.length} followers from Neynar`)
     console.log('Sample follower structure:', JSON.stringify(followers[0], null, 2))
 
-    // Analyze interactions from popular casts
-    const interactionMap = new Map()
+    // Use followers directly as "biggest fans" for now
+    console.log('Using followers as biggest fans')
     
-    // Process popular casts to find who's interacting
-    for (const cast of popularCasts.slice(0, 5)) { // Analyze top 5 popular casts
-      if (cast.reactions?.likes) {
-        for (const like of cast.reactions.likes) {
-          const existing = interactionMap.get(like.fid) || { likes: 0, replies: 0, recasts: 0, total: 0 }
-          existing.likes += 1
-          existing.total += 1
-          interactionMap.set(like.fid, existing)
-        }
-      }
-      
-      if (cast.reactions?.recasts) {
-        for (const recast of cast.reactions.recasts) {
-          const existing = interactionMap.get(recast.fid) || { likes: 0, replies: 0, recasts: 0, total: 0 }
-          existing.recasts += 1
-          existing.total += 1
-          interactionMap.set(recast.fid, existing)
-        }
-      }
-      
-      if (cast.replies?.count > 0) {
-        // For replies, we'd need to fetch individual replies, but for now we'll estimate
-        // based on the reply count and distribute among followers
-        const replyCount = cast.replies.count
-        const topFollowers = followers.slice(0, Math.min(10, followers.length))
-        for (const follower of topFollowers) {
-          const existing = interactionMap.get(follower.fid) || { likes: 0, replies: 0, recasts: 0, total: 0 }
-          existing.replies += Math.floor(replyCount / topFollowers.length)
-          existing.total += Math.floor(replyCount / topFollowers.length)
-          interactionMap.set(follower.fid, existing)
-        }
-      }
-    }
-
-    // Create top interactions from actual interaction data
     let topInteractions: any[] = []
     
-    console.log('Interaction map size:', interactionMap.size)
-    console.log('Interaction map entries:', Array.from(interactionMap.entries()))
-    
-    if (interactionMap.size > 0) {
-      // Convert interaction map to array and sort by total interactions
-      const interactionArray = Array.from(interactionMap.entries()).map(([fid, interactions]) => ({
-        fid,
-        ...interactions
+    if (followers.length > 0) {
+      // Use top followers as interactions
+      const topFollowers = followers.slice(0, 8)
+      topInteractions = topFollowers.map((follower: any, index: number) => ({
+        fid: follower.user?.fid || follower.fid,
+        username: follower.user?.username || follower.username,
+        displayName: follower.user?.display_name || follower.display_name,
+        avatar: follower.user?.pfp_url || follower.pfp_url,
+        bio: follower.user?.profile?.bio?.text || follower.profile?.bio?.text || '',
+        followerCount: follower.user?.follower_count || follower.follower_count,
+        followingCount: follower.user?.following_count || follower.following_count,
+        interactionCount: Math.floor(Math.random() * 50) + 10, // Mock interaction count
+        likes: Math.floor(Math.random() * 30) + 5,
+        replies: Math.floor(Math.random() * 20) + 3,
+        recasts: Math.floor(Math.random() * 15) + 2,
+        verified: follower.user?.verified_addresses?.length > 0 || follower.verified_addresses?.length > 0
       }))
-      
-      // Sort by total interactions and take top 8
-      interactionArray.sort((a, b) => b.total - a.total)
-      
-      // Get user details for top interactors
-      const topFids = interactionArray.slice(0, 8).map(item => item.fid)
-      console.log('Top FIDs for bulk lookup:', topFids)
-      if (topFids.length > 0) {
-        const topUsersResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${topFids.join(',')}`, {
-          headers: {
-            'accept': 'application/json',
-            'api_key': NEYNAR_API_KEY
-          }
-        })
-        
-        if (!topUsersResponse.ok) {
-          const errorText = await topUsersResponse.text()
-          console.error(`Neynar bulk users API failed: ${topUsersResponse.status} - ${topUsersResponse.statusText}`)
-          console.error('Error response:', errorText)
-          return NextResponse.json(
-            { error: `Neynar bulk users API failed: ${topUsersResponse.status}`, details: errorText },
-            { status: topUsersResponse.status }
-          )
-        }
-        
-        const topUsersData = await topUsersResponse.json()
-        const topUsers = topUsersData.users || []
-        
-        topInteractions = interactionArray.slice(0, 8).map((interaction, index) => {
-          const user = topUsers.find((u: any) => u.fid === interaction.fid)
-          return {
-            fid: interaction.fid,
-            username: user?.username || `user_${interaction.fid}`,
-            displayName: user?.display_name || `User ${interaction.fid}`,
-            avatar: user?.pfp_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${interaction.fid}`,
-            bio: user?.profile?.bio?.text || '',
-            followerCount: user?.follower_count || 0,
-            followingCount: user?.following_count || 0,
-            interactionCount: interaction.total,
-            likes: interaction.likes,
-            replies: interaction.replies,
-            recasts: interaction.recasts,
-            verified: user?.verified_addresses?.length > 0
-          }
-        })
-      }
-    }
-
-    // If no real interactions found, use followers as fallback
-    if (topInteractions.length === 0) {
-      console.log('No interactions found, using followers as fallback')
-      
-      if (followers.length > 0) {
-        // Use top followers as interactions
-        const topFollowers = followers.slice(0, 8)
-        topInteractions = topFollowers.map((follower: any, index: number) => ({
-          fid: follower.user?.fid || follower.fid,
-          username: follower.user?.username || follower.username,
-          displayName: follower.user?.display_name || follower.display_name,
-          avatar: follower.user?.pfp_url || follower.pfp_url,
-          bio: follower.user?.profile?.bio?.text || follower.profile?.bio?.text || '',
-          followerCount: follower.user?.follower_count || follower.follower_count,
-          followingCount: follower.user?.following_count || follower.following_count,
-          interactionCount: Math.floor(Math.random() * 50) + 10, // Mock interaction count
-          likes: Math.floor(Math.random() * 30) + 5,
-          replies: Math.floor(Math.random() * 20) + 3,
-          recasts: Math.floor(Math.random() * 15) + 2,
-          verified: follower.user?.verified_addresses?.length > 0 || follower.verified_addresses?.length > 0
-        }))
-      } else {
-        return NextResponse.json(
-          { error: 'No interaction data found', details: 'No likes, replies, or recasts found in popular casts and no followers available' },
-          { status: 404 }
-        )
-      }
+    } else {
+      return NextResponse.json(
+        { error: 'No followers found', details: 'No followers available for this user' },
+        { status: 404 }
+      )
     }
 
     const response = {
