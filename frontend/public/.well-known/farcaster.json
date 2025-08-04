@@ -2,18 +2,18 @@
   "miniapp": {
     "name": "Crypto Streams",
     "version": "1",
-    "iconUrl": "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/og-image.png",
+    "iconUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "Open Mini App",
-    "splashImageUrl": "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/splash.png",
+    "splashImageUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#8B5CF6",
     "subtitle": "Top 8 Recommended Streamers",
     "description": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
     "screenshotUrls": [
-      "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/screenshot1.png",
-      "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/screenshot2.png",
-      "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/screenshot3.png"
+      "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/screenshot1.png",
+      "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/screenshot2.png",
+      "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/screenshot3.png"
     ],
     "primaryCategory": "social",
     "tags": [
@@ -23,10 +23,10 @@
       "gifting",
       "content"
     ],
-    "heroImageUrl": "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/og-image.png",
+    "heroImageUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/og-image.png",
     "tagline": "Your Top 8 Crypto Streamers",
     "ogTitle": "Crypto Streams",
     "ogDescription": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
-    "ogImageUrl": "https://quicktop8-r2kwx5qze-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogImageUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/og-image.png"
   }
 } 
