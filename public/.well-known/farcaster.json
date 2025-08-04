@@ -7,13 +7,13 @@
   "miniapp": {
     "version": "1",
     "name": "Ride or Die Top 8",
-    "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-alpha.vercel.app/app",
-    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
+    "iconUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "🔥 Ride or Die",
-    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
+    "splashImageUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#F97316",
-    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
+    "webhookUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/api/webhook",
     "subtitle": "Your Crypto Roller Coaster Crew",
     "description": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
     "primaryCategory": "social",
@@ -28,6 +28,6 @@
     ],
     "ogTitle": "Ride or Die Top 8 - Your Crypto Roller Coaster Crew",
     "ogDescription": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
-    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
+    "ogImageUrl": "https://quicktop8-chipagosfinests-projects.vercel.app/og-image.png"
   }
 } 
