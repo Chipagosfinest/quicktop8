@@ -70,80 +70,47 @@ export async function GET(request: NextRequest) {
 
     console.log(`Processing user: ${userData.username} (FID: ${userData.fid})`)
 
-    // Get top interactions using real data analysis
+    // Get best friends using Neynar's built-in affinity scoring
     let topInteractions: any[] = [];
     let hasTopInteractions = false;
     
     try {
-      // Get user's casts to analyze real interactions
-      const castsResponse = await client.fetchCastsForUser({ fid: parseInt(fid), limit: 100 });
+      // Use Neynar's best friends endpoint which ranks by mutual affinity score
+      const bestFriendsResponse = await client.fetchUserBestFriends({ fid: parseInt(fid), limit: 8 });
       
-      if (castsResponse.casts && castsResponse.casts.length > 0) {
-        // Analyze real interactions from casts
-        const interactionMap = new Map();
+      if (bestFriendsResponse.users && bestFriendsResponse.users.length > 0) {
+        // Get detailed user data for the best friends
+        const bestFriendFids = bestFriendsResponse.users.map(user => user.fid);
+        const bulkUsersResponse = await client.fetchBulkUsers({ fids: bestFriendFids });
         
-        for (const cast of castsResponse.casts) {
-          // Count likes
-          if (cast.reactions?.likes) {
-            for (const like of cast.reactions.likes) {
-              const likeFid = like.fid;
-              if (!interactionMap.has(likeFid)) {
-                interactionMap.set(likeFid, { likes: 0, replies: 0, recasts: 0 });
-              }
-              interactionMap.get(likeFid).likes++;
-            }
-          }
-          
-          // Count replies (simplified for now)
-          // Note: Cast replies structure may vary, so we'll skip for now
-          
-          // Count recasts (simplified for now)
-          // Note: Cast recasts structure may vary, so we'll skip for now
-        }
-        
-        // Get user data for top interactions
-        const topFids = Array.from(interactionMap.entries())
-          .sort((a, b) => {
-            const aTotal = a[1].likes + a[1].replies + a[1].recasts;
-            const bTotal = b[1].likes + b[1].replies + b[1].recasts;
-            return bTotal - aTotal;
-          })
-          .slice(0, 8)
-          .map(([fid]) => fid);
-        
-        if (topFids.length > 0) {
-          const bulkUsersResponse = await client.fetchBulkUsers({ fids: topFids });
-          
-          if (bulkUsersResponse.users) {
-            topInteractions = bulkUsersResponse.users.map(user => {
-              const interactions = interactionMap.get(user.fid) || { likes: 0, replies: 0, recasts: 0 };
-              const totalInteractions = interactions.likes + interactions.replies + interactions.recasts;
-              
-              return {
-                fid: user.fid,
-                username: user.username,
-                displayName: user.display_name,
-                avatar: user.pfp_url,
-                followerCount: user.follower_count,
-                userScore: user.score || 0,
-                verified: !!user.verified_addresses,
-                interactionCount: totalInteractions,
-                likes: interactions.likes,
-                replies: interactions.replies,
-                recasts: interactions.recasts
-              };
-            });
+        if (bulkUsersResponse.users) {
+          topInteractions = bulkUsersResponse.users.map((user, index) => {
+            const bestFriend = bestFriendsResponse.users.find(bf => bf.fid === user.fid);
             
-            hasTopInteractions = topInteractions.length > 0;
-          }
+            return {
+              fid: user.fid,
+              username: user.username,
+              displayName: user.display_name,
+              avatar: user.pfp_url,
+              followerCount: user.follower_count,
+              userScore: user.score || 0,
+              verified: !!user.verified_addresses,
+              interactionCount: bestFriend?.mutual_affinity_score || 0,
+              likes: Math.floor((bestFriend?.mutual_affinity_score || 0) * 0.6), // Estimate
+              replies: Math.floor((bestFriend?.mutual_affinity_score || 0) * 0.3), // Estimate
+              recasts: Math.floor((bestFriend?.mutual_affinity_score || 0) * 0.1)  // Estimate
+            };
+          });
+          
+          hasTopInteractions = topInteractions.length > 0;
         }
       }
     } catch (error) {
-      console.error('Failed to fetch top interactions:', error);
+      console.error('Failed to fetch best friends:', error);
       hasTopInteractions = false;
       // Log the specific error for debugging
       if (error instanceof Error) {
-        console.error('Interaction analysis error:', error.message);
+        console.error('Best friends error:', error.message);
       }
       // Don't throw error, just return empty interactions
     }
