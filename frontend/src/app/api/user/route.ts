@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     
     try {
       // Get user's casts to analyze interactions
-      const castsResponse = await client.fetchUserCasts({ fid: parseInt(fid), limit: 50 });
+      const castsResponse = await client.fetchCastsForUser({ fid: parseInt(fid), limit: 50 });
       
       if (castsResponse.casts && castsResponse.casts.length > 0) {
         // Extract interaction data from casts
