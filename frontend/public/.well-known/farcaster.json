@@ -28,5 +28,10 @@
     "ogTitle": "Crypto Streams",
     "ogDescription": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
     "ogImageUrl": "https://quicktop8-aqj02viub-chipagosfinests-projects.vercel.app/og-image.png"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjQwNDQsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg1NzJGZWYzZDlhMTcxMkM3ZDQ0OWM3ZTE1QzMzNUQ2ODYwMzI4MDg2In0",
+    "payload": "eyJkb21haW4iOiJxdWlja3RvcDgtcHh2b2M5d2U2LWNoaXBhZ29zZmluZXN0cy1wcm9qZWN0cy52ZXJjZWwuYXBwIn0",
+    "signature": "1lRWJWG7FxEJoRf0lmzOOcG8izTX38bJVACjKNXxr9ZzcYGQWLX4wYgtVervH8wxgkGb3+w/CfpCGgo8Am9xaBs="
   }
 } 
