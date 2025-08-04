@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 // Neynar webhook secret for verification
-const NEYNAR_WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET || "UuMoOuzbWbXgu00uRWsk3-cOS"
+const NEYNAR_WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,9 +9,11 @@ export async function POST(request: NextRequest) {
     
     // Verify webhook signature (basic implementation)
     const signature = request.headers.get('x-neynar-signature')
-    if (signature) {
+    if (signature && NEYNAR_WEBHOOK_SECRET) {
       console.log("Webhook signature received:", signature)
       // TODO: Implement proper signature verification using NEYNAR_WEBHOOK_SECRET
+      // For now, just log that we have the secret configured
+      console.log("Webhook secret configured:", NEYNAR_WEBHOOK_SECRET ? "Yes" : "No")
     }
     
     // Handle different webhook types
