@@ -7,7 +7,13 @@
       "use": "@vercel/next"
     }
   ],
-  "redirects": [],
+  "redirects": [
+    {
+      "source": "/.well-known/farcaster.json",
+      "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/019874e4-23f7-a7d8-e93e-1d92d1d52bff",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -18,7 +24,21 @@
       "destination": "/frontend/$1"
     }
   ],
-  "headers": [],
+  "headers": [
+    {
+      "source": "/.well-known/farcaster.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ],
   "env": {
     "NODE_ENV": "production"
   }
