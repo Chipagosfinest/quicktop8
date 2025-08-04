@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       bio: userData.profile?.bio?.text || '',
       followerCount: userData.follower_count,
       followingCount: userData.following_count,
-      castCount: userData.cast_count,
+      castCount: 0, // TODO: Implement cast count when available in SDK
       verified: !!userData.verified_addresses,
       message: 'User data loaded successfully',
       test: false,
