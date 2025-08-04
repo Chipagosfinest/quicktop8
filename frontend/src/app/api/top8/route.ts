@@ -34,125 +34,238 @@ export async function POST(request: NextRequest) {
 
     console.log(`Analyzing interactions from: ${fortyFiveDaysAgo.toISOString()}`)
 
-    // Try to get user's recent casts - first try the user casts endpoint
-    let castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=20`, {
-      headers: {
-        'x-api-key': NEYNAR_API_KEY,
-        'accept': 'application/json'
-      },
-      signal: AbortSignal.timeout(10000) // 10 second timeout
-    })
-
-    // If that fails, try the popular casts endpoint as a fallback
-    if (!castsResponse.ok && castsResponse.status === 404) {
-      console.log(`User casts endpoint failed, trying popular casts endpoint...`)
-      castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular?fid=${fid}`, {
+    // Get user's last 50 casts and analyze all interactions
+    console.log(`Fetching user's last 50 casts for FID: ${fid}`)
+    
+    const interactionMap = new Map<number, InteractionData>()
+    
+    // Get user's recent casts
+    try {
+      const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=50`, {
         headers: {
           'x-api-key': NEYNAR_API_KEY,
           'accept': 'application/json'
         },
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        signal: AbortSignal.timeout(15000)
       })
-    }
-
-    if (!castsResponse.ok) {
-      console.error(`Failed to fetch casts: ${castsResponse.status} - ${castsResponse.statusText}`)
       
-      // Try to get more detailed error information
-      let errorMessage = "Failed to fetch user casts. Please try again or check if the FID is correct."
-      try {
-        const errorData = await castsResponse.text()
-        console.error('Error response body:', errorData)
-        if (castsResponse.status === 404) {
-          errorMessage = "User not found or no casts available. Please check the FID."
-        } else if (castsResponse.status === 401) {
-          errorMessage = "API key authentication failed. Please check your configuration."
-        } else if (castsResponse.status === 429) {
-          errorMessage = "Rate limit exceeded. Please try again later."
-        }
-      } catch (e) {
-        console.error('Could not parse error response:', e)
-      }
-      
-      return NextResponse.json({ 
-        error: errorMessage,
-        status: castsResponse.status
-      }, { status: 500 })
-    }
-
-    const castsData = await castsResponse.json()
-    const casts = castsData.casts || []
-
-    if (casts.length === 0) {
-      return NextResponse.json({ 
-        friends: [],
-        message: "No recent casts found for this FID. Try with a different FID or check back later."
-      })
-    }
-
-    console.log(`Found ${casts.length} casts from last 45 days to analyze`)
-
-    const interactionMap = new Map<number, InteractionData>()
-
-    // Process each cast (limit to first 5 for faster response)
-    for (let i = 0; i < Math.min(casts.length, 5); i++) {
-      const cast = casts[i]
-      console.log(`Processing cast ${i + 1}/${Math.min(casts.length, 5)}`)
-
-      try {
-        // Get reactions for this cast
-        const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=30`, {
-          headers: {
-            'x-api-key': NEYNAR_API_KEY,
-            'accept': 'application/json'
-          },
-          signal: AbortSignal.timeout(5000) // 5 second timeout
-        })
-
-      if (reactionsResponse.ok) {
-        const reactionsData = await reactionsResponse.json()
+      if (castsResponse.ok) {
+        const castsData = await castsResponse.json()
+        const casts = castsData.casts || []
+        console.log(`Found ${casts.length} casts to analyze`)
         
-        // Process likes
-        if (reactionsData.reactions?.likes) {
-          for (const like of reactionsData.reactions.likes) {
-            const friendFid = like.reactor.fid
-            if (friendFid !== fid) {
-              updateInteractionScore(interactionMap, {
-                fid: friendFid,
-                username: like.reactor.username,
-                display_name: like.reactor.display_name,
-                pfp_url: like.reactor.pfp_url,
-                bio: like.reactor.bio || "",
-                timestamp: like.timestamp
-              }, 'like')
-            }
-          }
-        }
-
-        // Process recasts
-        if (reactionsData.reactions?.recasts) {
-          for (const recast of reactionsData.reactions.recasts) {
-            const friendFid = recast.reactor.fid
-            if (friendFid !== fid) {
-              updateInteractionScore(interactionMap, {
-                fid: friendFid,
-                username: recast.reactor.username,
-                display_name: recast.reactor.display_name,
-                pfp_url: recast.reactor.pfp_url,
-                bio: recast.reactor.bio || "",
-                timestamp: recast.timestamp
-              }, 'recast')
-            }
-          }
-        }
+        // Process each cast to find all interactions
+        for (let i = 0; i < casts.length; i++) {
+          const cast = casts[i]
+          console.log(`Analyzing cast ${i + 1}/${casts.length}: ${cast.hash}`)
+          
+          try {
+            // Get all reactions for this cast (likes, recasts, replies)
+            const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=100`, {
+              headers: {
+                'x-api-key': NEYNAR_API_KEY,
+                'accept': 'application/json'
+              },
+              signal: AbortSignal.timeout(8000)
+            })
+            
+            if (reactionsResponse.ok) {
+              const reactionsData = await reactionsResponse.json()
+              
+              // Process likes
+              if (reactionsData.reactions?.likes) {
+                for (const like of reactionsData.reactions.likes) {
+                  const reactor = like.reactor
+                  if (reactor && reactor.fid !== fid) {
+                    updateInteractionScore(interactionMap, {
+                      fid: reactor.fid,
+                      username: reactor.username,
+                      display_name: reactor.display_name,
+                      pfp_url: reactor.pfp_url,
+                      bio: reactor.bio || "",
+                      timestamp: like.timestamp
+                    }, 'like')
+                  }
+                }
               }
-
-        // Add delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200))
-      } catch (error) {
-        console.error(`Error processing cast ${i + 1}:`, error)
-        continue // Skip this cast and continue with the next one
+              
+              // Process recasts
+              if (reactionsData.reactions?.recasts) {
+                for (const recast of reactionsData.reactions.recasts) {
+                  const reactor = recast.reactor
+                  if (reactor && reactor.fid !== fid) {
+                    updateInteractionScore(interactionMap, {
+                      fid: reactor.fid,
+                      username: reactor.username,
+                      display_name: reactor.display_name,
+                      pfp_url: reactor.pfp_url,
+                      bio: reactor.bio || "",
+                      timestamp: recast.timestamp
+                    }, 'recast')
+                  }
+                }
+              }
+            }
+            
+            // Get replies to this cast
+            try {
+              const repliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/replies?cast_hash=${cast.hash}&limit=50`, {
+                headers: {
+                  'x-api-key': NEYNAR_API_KEY,
+                  'accept': 'application/json'
+                },
+                signal: AbortSignal.timeout(5000)
+              })
+              
+              if (repliesResponse.ok) {
+                const repliesData = await repliesResponse.json()
+                
+                for (const reply of repliesData.casts || []) {
+                  const replier = reply.author
+                  if (replier && replier.fid !== fid) {
+                    updateInteractionScore(interactionMap, {
+                      fid: replier.fid,
+                      username: replier.username,
+                      display_name: replier.display_name,
+                      pfp_url: replier.pfp_url,
+                      bio: replier.bio || "",
+                      timestamp: reply.timestamp
+                    }, 'reply')
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`Error fetching replies for cast ${cast.hash}:`, error)
+            }
+            
+            // Add delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 300))
+            
+          } catch (error) {
+            console.error(`Error processing cast ${i + 1}:`, error)
+            continue
+          }
+        }
       }
+    } catch (error) {
+      console.error('Error fetching user casts:', error)
+    }
+    
+    // Also get user's own reactions to others' content
+    console.log('Fetching user\'s reactions to others...')
+    
+    // Get user's likes
+    try {
+      const likesResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/reactions?fid=${fid}&reaction_type=like&limit=50`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(10000)
+      })
+      
+      if (likesResponse.ok) {
+        const likesData = await likesResponse.json()
+        console.log(`Found ${likesData.reactions?.length || 0} likes by user`)
+        
+        for (const like of likesData.reactions || []) {
+          const castAuthor = like.cast?.author
+          if (castAuthor && castAuthor.fid !== fid) {
+            updateInteractionScore(interactionMap, {
+              fid: castAuthor.fid,
+              username: castAuthor.username,
+              display_name: castAuthor.display_name,
+              pfp_url: castAuthor.pfp_url,
+              bio: castAuthor.bio || "",
+              timestamp: like.timestamp
+            }, 'like')
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user likes:', error)
+    }
+    
+    // Get user's recasts
+    try {
+      const recastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/reactions?fid=${fid}&reaction_type=recast&limit=50`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(10000)
+      })
+      
+      if (recastsResponse.ok) {
+        const recastsData = await recastsResponse.json()
+        console.log(`Found ${recastsData.reactions?.length || 0} recasts by user`)
+        
+        for (const recast of recastsData.reactions || []) {
+          const castAuthor = recast.cast?.author
+          if (castAuthor && castAuthor.fid !== fid) {
+            updateInteractionScore(interactionMap, {
+              fid: castAuthor.fid,
+              username: castAuthor.username,
+              display_name: castAuthor.display_name,
+              pfp_url: castAuthor.pfp_url,
+              bio: castAuthor.bio || "",
+              timestamp: recast.timestamp
+            }, 'recast')
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user recasts:', error)
+    }
+    
+    // Get user's replies to others
+    try {
+      const repliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/replies?fid=${fid}&limit=50`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(10000)
+      })
+      
+      if (repliesResponse.ok) {
+        const repliesData = await repliesResponse.json()
+        console.log(`Found ${repliesData.casts?.length || 0} replies by user`)
+        
+        for (const reply of repliesData.casts || []) {
+          // Find the parent cast author
+          if (reply.parent_cast_id) {
+            try {
+              const parentCastResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast?cast_hash=${reply.parent_cast_id}`, {
+                headers: {
+                  'x-api-key': NEYNAR_API_KEY,
+                  'accept': 'application/json'
+                },
+                signal: AbortSignal.timeout(5000)
+              })
+              
+              if (parentCastResponse.ok) {
+                const parentCastData = await parentCastResponse.json()
+                const parentAuthor = parentCastData.cast?.author
+                if (parentAuthor && parentAuthor.fid !== fid) {
+                  updateInteractionScore(interactionMap, {
+                    fid: parentAuthor.fid,
+                    username: parentAuthor.username,
+                    display_name: parentAuthor.display_name,
+                    pfp_url: parentAuthor.pfp_url,
+                    bio: parentAuthor.bio || "",
+                    timestamp: reply.timestamp
+                  }, 'reply')
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching parent cast:', error)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user replies:', error)
     }
 
     // Convert to array and sort by total score

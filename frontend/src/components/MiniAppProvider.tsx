@@ -69,6 +69,9 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
     if (isSDKLoaded) {
       const callReady = async () => {
         try {
+          // Wait a bit longer to ensure the app is fully rendered
+          await new Promise(resolve => setTimeout(resolve, 200))
+          
           console.log('Calling sdk.actions.ready() - app is ready to display')
           await sdk.actions.ready()
           console.log('sdk.actions.ready() completed successfully')
@@ -77,8 +80,8 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
         }
       }
       
-      // Small delay to ensure the app content is fully rendered
-      const timer = setTimeout(callReady, 100)
+      // Call ready() after a delay to ensure the app content is fully rendered
+      const timer = setTimeout(callReady, 300)
       return () => clearTimeout(timer)
     }
   }, [isSDKLoaded])

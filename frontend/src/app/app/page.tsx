@@ -37,21 +37,26 @@ export default function AppPage() {
     }
   }, [userFid])
 
-  // Ensure ready() is called when the app page loads
+  // Ensure ready() is called when the app is fully loaded
   useEffect(() => {
     const ensureReady = async () => {
       try {
+        // Wait a bit for the app to fully render
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
         console.log('App page: Ensuring sdk.actions.ready() is called')
         await sdk.actions.ready()
-        console.log('App page: sdk.actions.ready() completed')
+        console.log('App page: sdk.actions.ready() completed successfully')
       } catch (err) {
         console.error('App page: Failed to call sdk.actions.ready():', err)
       }
     }
 
-    // Call ready() when the component mounts
-    ensureReady()
-  }, [])
+    // Only call ready() if SDK is loaded and we're in a mini-app context
+    if (isSDKLoaded) {
+      ensureReady()
+    }
+  }, [isSDKLoaded])
 
   // Check if we're running in a Mini App environment and get user info
   useEffect(() => {
