@@ -9,15 +9,12 @@
     "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
     "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
-    "subtitle": "Send Prayer Emoji NFTs",
-    "description": "Send prayer emoji NFTs to your biggest fans on Farcaster. Discover your Top Reply Guys and Inner Circle based on real engagement.",
+    "subtitle": "Send Prayer NFTs",
+    "description": "Send prayer emoji NFTs to your biggest fans on Farcaster",
     "primaryCategory": "social",
     "tags": [
       "social",
-      "prayer",
-      "community",
-      "engagement",
-      "fans"
+      "prayer"
     ],
     "ogTitle": "Prayer Emoji",
     "ogDescription": "Send prayer emoji NFTs to your biggest fans on Farcaster",
