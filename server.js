@@ -114,45 +114,7 @@ app.get('/api/user/:fid', async (req, res) => {
   }
 });
 
-// Enhanced user profile with detailed data
-app.get('/api/user/:fid/profile', async (req, res) => {
-  try {
-    const { fid } = req.params;
-    const { viewer_fid } = req.query;
 
-    if (!fid || isNaN(parseInt(fid))) {
-      return res.status(400).json({
-        error: 'Invalid FID provided',
-        fid: fid
-      });
-    }
-
-    console.log(`Fetching detailed profile for FID: ${fid}`);
-
-    const userData = await indexer.getUserData(fid, viewer_fid);
-    const followers = await indexer.getFollowers(fid, 20);
-    const following = await indexer.getFollowing(fid, 20);
-    const mutualFollowers = await indexer.getMutualFollowers(fid, viewer_fid);
-
-    res.json({
-      success: true,
-      data: {
-        user: userData.users?.[0] || null,
-        followers: followers.followers || [],
-        following: following.following || [],
-        mutualFollowers: mutualFollowers.users || [],
-        timestamp: new Date().toISOString()
-      }
-    });
-
-  } catch (error) {
-    console.error('Error fetching user profile:', error.message);
-    res.status(500).json({
-      error: 'Failed to fetch user profile',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-});
 
 // Top interactions endpoint
 app.get('/api/user/:fid/top-interactions', async (req, res) => {
@@ -188,75 +150,7 @@ app.get('/api/user/:fid/top-interactions', async (req, res) => {
   }
 });
 
-// Wallet interaction endpoints
-app.post('/api/wallet/tip', async (req, res) => {
-  try {
-    const { from_fid, to_fid, amount, message } = req.body;
 
-    if (!from_fid || !to_fid || !amount) {
-      return res.status(400).json({
-        error: 'Missing required parameters: from_fid, to_fid, amount'
-      });
-    }
-
-    console.log(`Processing tip from ${from_fid} to ${to_fid}: ${amount}`);
-
-    // TODO: Implement actual wallet interaction
-    // For now, return a mock response
-    res.json({
-      success: true,
-      data: {
-        transaction_hash: '0x' + Math.random().toString(16).substr(2, 64),
-        from_fid,
-        to_fid,
-        amount,
-        message,
-        timestamp: new Date().toISOString()
-      }
-    });
-
-  } catch (error) {
-    console.error('Error processing tip:', error.message);
-    res.status(500).json({
-      error: 'Failed to process tip',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-});
-
-app.post('/api/wallet/mint', async (req, res) => {
-  try {
-    const { recipient_fid, token_type, metadata } = req.body;
-
-    if (!recipient_fid || !token_type) {
-      return res.status(400).json({
-        error: 'Missing required parameters: recipient_fid, token_type'
-      });
-    }
-
-    console.log(`Minting ${token_type} for FID: ${recipient_fid}`);
-
-    // TODO: Implement actual NFT minting
-    // For now, return a mock response
-    res.json({
-      success: true,
-      data: {
-        transaction_hash: '0x' + Math.random().toString(16).substr(2, 64),
-        recipient_fid,
-        token_type,
-        metadata,
-        timestamp: new Date().toISOString()
-      }
-    });
-
-  } catch (error) {
-    console.error('Error minting token:', error.message);
-    res.status(500).json({
-      error: 'Failed to mint token',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-});
 
 // Bulk users endpoint for efficient batch processing
 app.get('/api/users/bulk', async (req, res) => {
