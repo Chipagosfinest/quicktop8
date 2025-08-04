@@ -146,10 +146,10 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          Reply Guy
+          🙏 Prayer Emoji
         </h1>
         <p className="text-gray-600 text-lg mb-4">
-          Discover your biggest fans on Farcaster (last 45 days)
+          Send prayer emoji NFTs to your biggest fans on Farcaster!
         </p>
         
         {/* Add to Warpcast Button */}
@@ -280,16 +280,16 @@ export default function Home() {
                         {userData.topInteractions && userData.topInteractions.length > 0 ? (
                           <div className="mt-4">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-blue-800">💬 Your Top Reply Guys & Inner Circle</h4>
+                              <h4 className="text-sm font-semibold text-blue-800">🙏 Your Top Reply Guys & Inner Circle</h4>
                               <button
                                 onClick={() => {
-                                  const shareText = `💬 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) =>
+                                  const shareText = `🙏 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) =>
                                     `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions (${friend.likes} likes, ${friend.replies} replies, ${friend.recasts} recasts)`
-                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
+                                  ).join('\n')}\n\nSend prayer emoji NFTs to your fans at: https://quicktop8-alpha.vercel.app`
 
                                   if (navigator.share) {
                                     navigator.share({
-                                      title: 'Reply Guy - My Top Reply Guys',
+                                      title: 'Prayer Emoji - My Top Reply Guys',
                                       text: shareText,
                                       url: 'https://quicktop8-alpha.vercel.app'
                                     })
@@ -374,49 +374,25 @@ export default function Home() {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation() // Prevent card click
-                                        // Tip functionality
+                                        // Send prayer emoji NFT to the user's address
                                         sdk.actions.sendToken({
                                           recipientFid: friend.fid,
-                                          amount: '1000000', // 1 USDC (6 decimals)
-                                          token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
-                                        }).then((result) => {
-                                          if (result.success) {
-                                            alert(`💝 Tip sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
-                                          } else {
-                                            alert(`💝 Tip failed: ${result.error}`)
-                                          }
-                                        }).catch((error) => {
-                                          console.error('Error sending tip:', error)
-                                          alert(`💝 Error sending tip to @${friend.username}: ${error}`)
-                                        })
-                                      }}
-                                      className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs rounded-full transition-colors font-medium"
-                                    >
-                                      💝 Tip
-                                    </button>
-                                    
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation() // Prevent card click
-                                        // Mint NFT functionality
-                                        sdk.actions.sendToken({
-                                          recipientFid: friend.fid,
-                                          amount: '1000000000000000', // 0.001 ETH (18 decimals)
+                                          amount: '1000000000000000', // 0.001 ETH (18 decimals) - mint fee
                                           token: 'eip155:8453/erc20:0x4200000000000000000000000000000000000006' // Base ETH
                                         }).then((result) => {
                                           if (result.success) {
-                                            alert(`🙏 Mint fee sent successfully to @${friend.username}!\n\nTransaction: ${result.send.transaction}`)
+                                            alert(`🙏 Prayer emoji NFT minted and sent to @${friend.username}!\n\nTransaction: ${result.send.transaction}\n\nYour prayer has been recorded on-chain!`)
                                           } else {
-                                            alert(`🙏 Mint failed: ${result.error}`)
+                                            alert(`🙏 Prayer NFT failed: ${result.error}`)
                                           }
                                         }).catch((error) => {
-                                          console.error('Error sending mint fee:', error)
-                                          alert(`🙏 Error sending mint fee to @${friend.username}: ${error}`)
+                                          console.error('Error minting prayer NFT:', error)
+                                          alert(`🙏 Error minting prayer NFT for @${friend.username}: ${error}`)
                                         })
                                       }}
                                       className="px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white text-xs rounded-full transition-colors font-medium"
                                     >
-                                      🙏 Mint NFT
+                                      🙏 Send Prayer
                                     </button>
                                   </div>
                                 </div>
