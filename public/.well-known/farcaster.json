@@ -6,27 +6,28 @@
   },
   "miniapp": {
     "version": "1",
-    "name": "Trench Warriors",
-    "iconUrl": "https://quicktop8-m2ocp5wnv-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-m2ocp5wnv-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-m2ocp5wnv-chipagosfinests-projects.vercel.app/og-image.png",
-    "buttonTitle": "🪖 Trench Warriors",
-    "splashImageUrl": "https://quicktop8-m2ocp5wnv-chipagosfinests-projects.vercel.app/splash.png",
-    "splashBackgroundColor": "#D97706",
-    "webhookUrl": "https://quicktop8-m2ocp5wnv-chipagosfinests-projects.vercel.app/api/webhook",
-    "subtitle": "Your Crypto Trench Warriors",
-    "description": "Discover your most loyal reply guys - the soldiers fighting alongside you in the crypto trenches!",
+    "name": "Ride or Die Top 8",
+    "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-alpha.vercel.app/app",
+    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
+    "buttonTitle": "🔥 Ride or Die",
+    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
+    "splashBackgroundColor": "#F97316",
+    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
+    "subtitle": "Your Crypto Roller Coaster Crew",
+    "description": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
     "primaryCategory": "social",
     "tags": [
       "social",
       "friends",
       "analytics",
       "crypto",
-      "tipping",
-      "trench-warriors"
+      "bitcoin",
+      "roller-coaster",
+      "ride-or-die"
     ],
-    "ogTitle": "Trench Warriors - Your Most Loyal Crypto Reply Guys",
-    "ogDescription": "Find your trench warriors - the soldiers who've been fighting alongside you in the crypto trenches!",
-    "ogImageUrl": "https://quicktop8-m2ocp5wnv-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogTitle": "Ride or Die Top 8 - Your Crypto Roller Coaster Crew",
+    "ogDescription": "Discover your longest-standing Farcaster friends on the crypto roller coaster! Find your Bitcoin bros who've been riding the ups and downs with you.",
+    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
   }
 } 
