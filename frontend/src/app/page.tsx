@@ -4,6 +4,7 @@
 
 import { useEffect } from 'react'
 import { useMiniApp } from '@/components/MiniAppProvider'
+import { sdk } from '@farcaster/miniapp-sdk'
 
 export default function Home() {
   const { 

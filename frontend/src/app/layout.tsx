@@ -28,6 +28,14 @@ export const metadata: Metadata = {
       splashImageUrl: "https://quicktop8-alpha.vercel.app/splash.png",
       splashBackgroundColor: "#8B5CF6"
     })
+  },
+  icons: {
+    icon: [
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/favicon.ico', type: 'image/x-icon' }
+    ],
+    shortcut: '/icon.png',
+    apple: '/icon.png'
   }
 };
 
