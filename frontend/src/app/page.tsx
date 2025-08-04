@@ -8,12 +8,12 @@ export default function Home() {
           QuickTop8
         </h1>
         <p className="text-gray-600 text-lg mb-8">
-          Discover your most interactive friends on Farcaster
+          Discover your most interactive friends on Farcaster (last 45 days)
         </p>
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
           <h2 className="text-xl font-semibold mb-4">Welcome!</h2>
           <p className="text-gray-600 mb-4">
-            This Mini App analyzes your Farcaster interactions to find your Top 8 friends.
+            This Mini App analyzes your recent Farcaster interactions (last 45 days) to find your Top 8 friends.
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-blue-800 text-sm">

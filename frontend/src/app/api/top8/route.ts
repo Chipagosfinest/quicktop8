@@ -25,8 +25,15 @@ export async function POST(request: NextRequest) {
 
     console.log(`Starting Top 8 calculation for FID: ${fid}`)
 
-    // Get user's recent casts (limit to 20 for performance)
-    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/list?fid=${fid}&limit=20`, {
+    // Calculate date 45 days ago for recent interactions
+    const fortyFiveDaysAgo = new Date()
+    fortyFiveDaysAgo.setDate(fortyFiveDaysAgo.getDate() - 45)
+    const fromTimestamp = Math.floor(fortyFiveDaysAgo.getTime() / 1000)
+
+    console.log(`Analyzing interactions from: ${fortyFiveDaysAgo.toISOString()}`)
+
+    // Get user's recent casts from last 45 days (limit to 50 for better coverage)
+    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/list?fid=${fid}&limit=50&from_timestamp=${fromTimestamp}`, {
       headers: {
         'api_key': NEYNAR_API_KEY,
         'accept': 'application/json'
@@ -45,14 +52,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ friends: [] })
     }
 
-    console.log(`Found ${casts.length} casts to analyze`)
+    console.log(`Found ${casts.length} casts from last 45 days to analyze`)
 
     const interactionMap = new Map<number, InteractionData>()
 
-    // Process each cast (limit to first 10 for performance)
-    for (let i = 0; i < Math.min(casts.length, 10); i++) {
+    // Process each cast (analyze all since they're already filtered by time)
+    for (let i = 0; i < casts.length; i++) {
       const cast = casts[i]
-      console.log(`Processing cast ${i + 1}/${Math.min(casts.length, 10)}`)
+      console.log(`Processing cast ${i + 1}/${casts.length}`)
 
       // Get reactions for this cast
       const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=50`, {

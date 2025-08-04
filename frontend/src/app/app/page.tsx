@@ -101,9 +101,9 @@ export default function AppPage() {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
               Top 8 Friends
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Discover your most interactive friends on Farcaster
-            </p>
+                              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                    Discover your most interactive friends on Farcaster (last 45 days)
+                  </p>
             {isSDKLoaded && (
               <div className="mt-4">
                 <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
@@ -137,12 +137,12 @@ export default function AppPage() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Enter Farcaster ID</CardTitle>
-              <CardDescription>
-                {isConnected 
-                  ? "Your FID has been auto-filled from your connected wallet"
-                  : "Enter your Farcaster ID (FID) to analyze your interactions and find your Top 8 friends"
-                }
-              </CardDescription>
+                                   <CardDescription>
+                       {isConnected 
+                         ? "Your FID has been auto-filled from your connected wallet"
+                         : "Enter your Farcaster ID (FID) to analyze your recent interactions and find your Top 8 friends"
+                       }
+                     </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-4">
