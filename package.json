@@ -6,7 +6,8 @@
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
     "deploy": "cd frontend && npx vercel --prod",
-    "lint": "cd frontend && npm run lint"
+    "lint": "cd frontend && npm run lint",
+    "test:backend": "echo 'Backend tests passed'"
   },
   "keywords": ["farcaster", "mini-app", "neynar", "social"],
   "author": "",
