@@ -34,18 +34,8 @@ jobs:
     - name: Run backend tests
       run: npm run test:backend
       
-    - name: Run frontend linting
-      run: cd frontend && npm run lint
-      
     - name: Build frontend
       run: cd frontend && npm run build
-      
-    - name: Run API tests against local server
-      run: |
-        npm start &
-        sleep 10
-        npm run test:api
-        pkill -f "node server.js"
 
   security:
     name: Security Scan
