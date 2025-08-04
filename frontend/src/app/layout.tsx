@@ -12,10 +12,20 @@ export const metadata: Metadata = {
   description: 'Discover your ride or die friends on Farcaster with original engagement links and tip them!',
   other: {
     'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://warpcast.com https://*.warpcast.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://warpcast.com https://*.warpcast.com https://api.neynar.com;",
-    'fc:miniapp': 'Ride or Die Top 8',
-    'fc:miniapp:domain': 'quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app'
+    'fc:miniapp': JSON.stringify({
+      "version": "1",
+      "imageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/og-image.png",
+      "button": {
+        "title": "🔥 Ride or Die",
+        "action": {
+          "type": "launch_miniapp",
+          "name": "Ride or Die Top 8",
+          "url": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/app",
+          "splashImageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/splash.png",
+          "splashBackgroundColor": "#8B5CF6"
+        }
+      }
+    })
   }
 }
 

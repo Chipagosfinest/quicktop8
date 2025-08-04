@@ -6,13 +6,23 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Ride or Die Top 8 - Your Longest-Standing Farcaster Friends',
     description: 'Discover your ride or die friends on Farcaster with original engagement links and tip them!',
-    images: ['https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/og-image.png'],
+    images: ['https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/og-image.png'],
   },
   other: {
-    'fc:miniapp': 'Ride or Die Top 8',
-    'fc:miniapp:domain': 'quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app'
+    'fc:miniapp': JSON.stringify({
+      "version": "1",
+      "imageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/og-image.png",
+      "button": {
+        "title": "🔥 Ride or Die",
+        "action": {
+          "type": "launch_miniapp",
+          "name": "Ride or Die Top 8",
+          "url": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/app",
+          "splashImageUrl": "https://quicktop8-ft26g4h9l-chipagosfinests-projects.vercel.app/splash.png",
+          "splashBackgroundColor": "#8B5CF6"
+        }
+      }
+    })
   }
 };
 

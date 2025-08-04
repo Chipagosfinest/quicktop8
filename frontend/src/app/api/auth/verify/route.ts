@@ -17,6 +17,17 @@ export async function POST(request: NextRequest) {
     // 4. Generate a session token (JWT)
     // 5. Return the token
 
+    // Extract FID from SIWF message
+    let extractedFid = null
+    if (signInResult?.message) {
+      // Parse the SIWF message to extract FID
+      const message = signInResult.message
+      const fidMatch = message.match(/fid:(\d+)/i)
+      if (fidMatch) {
+        extractedFid = parseInt(fidMatch[1])
+      }
+    }
+    
     // Mock verification for now
     const mockToken = `mock_jwt_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
     
@@ -24,7 +35,7 @@ export async function POST(request: NextRequest) {
       success: true,
       token: mockToken,
       user: {
-        fid: signInResult?.user?.fid || 'unknown',
+        fid: extractedFid || signInResult?.user?.fid || 'unknown',
         username: signInResult?.user?.username || 'unknown'
       }
     })

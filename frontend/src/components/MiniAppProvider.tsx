@@ -53,8 +53,9 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
             console.log("User FID detected:", userContext.user.fid)
             setUserFid(userContext.user.fid.toString())
             setIsConnected(true)
+            setIsAuthenticated(true)
           } else {
-            console.log("No user FID found in context")
+            console.log("No user FID found in context - will need authentication")
           }
         } catch (contextErr) {
           console.log("Context not available (may be running outside Mini App):", contextErr)
@@ -126,7 +127,13 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
             if (result.token) {
               setAuthToken(result.token)
               setIsAuthenticated(true)
+              setIsConnected(true)
               console.log('Credential verified - session token received')
+              
+              // Extract FID from token payload if available
+              if (result.user?.fid) {
+                setUserFid(result.user.fid.toString())
+              }
             }
           }
         } catch (verifyErr) {

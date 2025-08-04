@@ -37,12 +37,16 @@ export default function AppPage() {
   const [tippingUser, setTippingUser] = useState<number | null>(null)
   const [tipAmount, setTipAmount] = useState(500) // Default $5.00
   
-  const { isSDKLoaded, isConnected, userFid: contextUserFid, context } = useMiniApp()
+  const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
   // Check if we're in a Mini App environment and get user data
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const isMiniApp = window.location.href.includes('farcaster.com') || window.location.href.includes('warpcast.com')
+      // Detect Mini App environment more reliably
+      const isMiniApp = window.location.href.includes('farcaster.com') || 
+                       window.location.href.includes('warpcast.com') ||
+                       window.parent !== window || // Running in iframe
+                       (window as any).ReactNativeWebView // Running in React Native WebView
       setIsInMiniApp(isMiniApp)
     }
   }, [])
@@ -229,40 +233,49 @@ export default function AppPage() {
             </Card>
           )}
 
-          {/* Manual FID Input (fallback for non-Mini App users) */}
-          {!isInMiniApp && !userFid && (
-            <Card className="mb-8">
+          {/* Auth Button for users not automatically detected */}
+          {!userFid && (
+            <Card className="mb-8 border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/20">
               <CardHeader>
-                <CardTitle>Enter Your FID</CardTitle>
-                <CardDescription>
-                  Since you're not in the Farcaster app, please enter your Farcaster ID manually
+                <CardTitle className="text-purple-800 dark:text-purple-200">Connect Your Farcaster Account</CardTitle>
+                <CardDescription className="text-purple-700 dark:text-purple-300">
+                  Sign in with Farcaster to discover your ride or die friends
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Enter FID (e.g., 194, 4044)"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const fid = parseInt((e.target as HTMLInputElement).value)
-                        if (fid) handleGetTop8(fid)
+                <Button 
+                  onClick={async () => {
+                    try {
+                      setError("")
+                      // Try to authenticate with Farcaster
+                      const authResult = await signInWithFarcaster()
+                      if (authResult) {
+                        // After auth, try to get context again
+                        const userContext = await sdk.context
+                        if (userContext?.user?.fid) {
+                          const fid = parseInt(userContext.user.fid.toString())
+                          setUserFid(fid)
+                          const profile = {
+                            fid: fid,
+                            username: userContext.user.username || `user_${fid}`,
+                            displayName: userContext.user.displayName || `User ${fid}`,
+                            pfpUrl: userContext.user.pfpUrl || ''
+                          }
+                          setUserProfile(profile)
+                          // Automatically fetch top 8
+                          handleGetTop8(fid)
+                        }
                       }
-                    }}
-                  />
-                  <Button 
-                    onClick={() => {
-                      const input = document.querySelector('input[type="number"]') as HTMLInputElement
-                      const fid = parseInt(input?.value || '')
-                      if (fid) handleGetTop8(fid)
-                    }}
-                    disabled={loading}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
-                  >
-                    {loading ? 'Loading...' : 'Find Top 8'}
-                  </Button>
-                </div>
+                    } catch (err) {
+                      setError("Failed to connect with Farcaster. Please try again.")
+                      console.error("Auth error:", err)
+                    }
+                  }}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white px-8 py-3 rounded-lg font-semibold"
+                >
+                  {loading ? 'Connecting...' : '🔗 Sign In with Farcaster'}
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -395,7 +408,8 @@ export default function AppPage() {
           {loading && (
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-300">Finding your top mutual follows...</p>
+              <p className="text-gray-600 dark:text-gray-300">Finding your ride or die friends...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">This may take 10-30 seconds</p>
             </div>
           )}
 
