@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     console.log(`Processing user: ${user.username} (FID: ${user.fid})`)
 
     // Step 1: Fetch user's recent casts to analyze who interacts with them
-    const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular/?fid=${fid}&viewer_fid=${fid}&limit=20`, {
+    const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular/?fid=${fid}&viewer_fid=${fid}&limit=30`, {
       headers: {
         'accept': 'application/json',
         'api_key': NEYNAR_API_KEY
@@ -90,8 +90,8 @@ export async function GET(request: NextRequest) {
     const userCasts = userCastsData.casts || []
     console.log(`Fetched ${userCasts.length} user casts`)
 
-    // Step 2: Fetch user's recent replies to others
-    const userRepliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/replies/?fid=${fid}&viewer_fid=${fid}&limit=20`, {
+    // Step 2: Fetch user's recent replies to others (increased limit for better analysis)
+    const userRepliesResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/replies/?fid=${fid}&viewer_fid=${fid}&limit=30`, {
       headers: {
         'accept': 'application/json',
         'api_key': NEYNAR_API_KEY

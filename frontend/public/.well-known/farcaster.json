@@ -1,7 +1,7 @@
 {
-  "frame": {
-    "name": "Prayer",
+  "miniapp": {
     "version": "1",
+    "name": "Prayer",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
     "homeUrl": "https://quicktop8-alpha.vercel.app",
     "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
