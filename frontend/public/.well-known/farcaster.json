@@ -1,22 +1,23 @@
 {
   "miniapp": {
     "version": "1",
-    "name": "Prayer",
+    "name": "Reply Guy",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
     "homeUrl": "https://quicktop8-alpha.vercel.app",
     "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "buttonTitle": "Send",
+    "buttonTitle": "Send Prayer",
     "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
     "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
-    "subtitle": "Prayer",
-    "description": "Prayer",
+    "subtitle": "Send Prayer NFTs",
+    "description": "Send prayer emoji NFTs to your biggest fans on Farcaster",
     "primaryCategory": "social",
     "tags": [
-      "social"
+      "social",
+      "prayer"
     ],
-    "ogTitle": "Prayer",
-    "ogDescription": "Prayer",
+    "ogTitle": "Reply Guy",
+    "ogDescription": "Send prayer emoji NFTs to your biggest fans on Farcaster",
     "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
   }
 } 
