@@ -1,26 +1,26 @@
 {
   "frame": {
-    "name": "Reply Guy",
+    "name": "Prayer Emoji",
     "version": "1",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
     "homeUrl": "https://quicktop8-alpha.vercel.app",
     "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "buttonTitle": "Open mini app",
+    "buttonTitle": "Send Prayer",
     "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
     "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
-    "subtitle": "Reward Reply Guys",
-    "description": "Discover your biggest fans on Farcaster and show them appreciation with tips and NFTs. Find your Top Reply Guys and Inner Circle based on real engagement.",
+    "subtitle": "Send Prayer Emoji NFTs",
+    "description": "Send prayer emoji NFTs to your biggest fans on Farcaster. Discover your Top Reply Guys and Inner Circle based on real engagement.",
     "primaryCategory": "social",
     "tags": [
       "social",
-      "reply",
+      "prayer",
       "community",
       "engagement",
       "fans"
     ],
-    "ogTitle": "Reply Guy",
-    "ogDescription": "Discover your biggest fans on Farcaster and show them appreciation",
+    "ogTitle": "Prayer Emoji",
+    "ogDescription": "Send prayer emoji NFTs to your biggest fans on Farcaster",
     "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png"
   }
 } 
