@@ -5,6 +5,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useMiniApp } from '@/components/MiniAppProvider'
 import { sdk } from '@farcaster/miniapp-sdk'
+import Image from 'next/image'
 
 export default function Home() {
   const { 
@@ -286,10 +287,12 @@ export default function Home() {
                                   <div className="flex items-center space-x-3">
                                     <div className="flex-shrink-0">
                                       <div className="relative">
-                                        <img 
+                                        <Image 
                                           src={friend.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.fid}`} 
                                           alt={friend.displayName}
-                                          className="w-12 h-12 rounded-full border-2 border-gray-200"
+                                          width={48}
+                                          height={48}
+                                          className="rounded-full border-2 border-gray-200"
                                         />
                                         {friend.verified && (
                                           <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
