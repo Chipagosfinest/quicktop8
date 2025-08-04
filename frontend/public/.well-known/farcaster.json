@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjQwNDQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg4NDA3RDU4NjgzRDc0QzU5NDM2YzdkMzgyMTgyMzkwODIxNjNmY2Y5In0",
+    "payload": "eyJkb21haW4iOiJxdWlja3RvcDgtYWxwaGEudmVyY2VsLmFwcCJ9",
+    "signature": "MHhmZGM0MGZlMWU3YjMxOTc0YjQwNjJlYTJiMWE3Zjk2NWUzYjYzYWRlMWEzZjkyZWNjYTI3MjAzN2RlNDkyYmI0MjNhMDEzMGUxZjhjYzRkMDNmNDM3ZWU4MjU0YzAxMzNkNDBmMWQ4MDAyMDU1MDZjZDdiOGJjYTM2OWM0ZWRlOTFj"
+  },
   "miniapp": {
     "version": "1",
     "name": "Reply Guy",
