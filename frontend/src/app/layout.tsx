@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Reply Guy - Discover Your Biggest Fans",
     description: "Find out who your biggest fans are on Farcaster and show them some love!",
-    images: ['https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/og-image.png'],
+    images: ['https://quicktop8-alpha.vercel.app/og-image.png'],
   },
   icons: {
     icon: [
@@ -40,11 +40,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/og-image.png" />
+        <meta property="fc:frame:image" content="https://quicktop8-alpha.vercel.app/og-image.png" />
         <meta property="fc:frame:button:1" content="🎯 Discover My Fans" />
-        <meta property="fc:frame:post_url" content="https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app" />
+        <meta property="fc:frame:post_url" content="https://quicktop8-alpha.vercel.app" />
         <meta property="fc:miniapp" content="Reply Guy" />
-        <meta property="fc:miniapp:domain" content="quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app" />
+        <meta property="fc:miniapp:domain" content="quicktop8-alpha.vercel.app" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

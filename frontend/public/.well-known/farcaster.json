@@ -2,11 +2,11 @@
   "miniapp": {
     "version": "1",
     "name": "Reply Guy",
-    "homeUrl": "https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app",
-    "iconUrl": "https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/icon.png",
-    "splashImageUrl": "https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/splash.png",
+    "homeUrl": "https://quicktop8-alpha.vercel.app",
+    "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
+    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
     "splashBackgroundColor": "#6200EA",
-    "webhookUrl": "https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/api/webhook",
+    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
     "subtitle": "Reward Reply Guys",
     "description": "Discover your biggest fans on Farcaster and show them appreciation with tips and NFTs. Find your Top Reply Guys and Inner Circle based on real engagement.",
     "primaryCategory": "social",
@@ -17,11 +17,11 @@
       "engagement",
       "fans"
     ],
-    "heroImageUrl": "https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/og-image.png",
+    "heroImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
     "tagline": "Discover your biggest fans",
     "ogTitle": "Reply Guy",
     "ogDescription": "Discover your biggest fans on Farcaster and show them appreciation",
-    "ogImageUrl": "https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app/og-image.png",
+    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
     "requiredChains": [
       "eip155:8453"
     ],
@@ -32,6 +32,6 @@
       "actions.addMiniApp",
       "wallet.getEthereumProvider"
     ],
-    "canonicalDomain": "quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app"
+    "canonicalDomain": "quicktop8-alpha.vercel.app"
   }
 } 

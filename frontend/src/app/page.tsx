@@ -285,13 +285,13 @@ export default function Home() {
                                 onClick={() => {
                                   const shareText = `💬 My Top Reply Guys & Inner Circle:\n\n${userData.topInteractions.slice(0, 8).map((friend: any, index: number) =>
                                     `${index + 1}. @${friend.username} - ${friend.interactionCount} interactions (${friend.likes} likes, ${friend.replies} replies, ${friend.recasts} recasts)`
-                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app`
+                                  ).join('\n')}\n\nDiscover yours at: https://quicktop8-alpha.vercel.app`
 
                                   if (navigator.share) {
                                     navigator.share({
                                       title: 'Reply Guy - My Top Reply Guys',
                                       text: shareText,
-                                      url: 'https://quicktop8-4a5t79uuo-chipagosfinests-projects.vercel.app'
+                                      url: 'https://quicktop8-alpha.vercel.app'
                                     })
                                   } else {
                                     navigator.clipboard.writeText(shareText)
