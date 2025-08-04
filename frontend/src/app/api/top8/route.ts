@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`Starting Top 8 calculation for FID: ${fid}`)
+    console.log(`API Key available: ${NEYNAR_API_KEY ? 'Yes' : 'No'}`)
+    console.log(`API Key length: ${NEYNAR_API_KEY?.length || 0}`)
 
     // Calculate date 45 days ago for recent interactions
     const fortyFiveDaysAgo = new Date()
@@ -32,19 +34,49 @@ export async function POST(request: NextRequest) {
 
     console.log(`Analyzing interactions from: ${fortyFiveDaysAgo.toISOString()}`)
 
-    // Get user's recent casts from last 45 days (limit to 20 for faster response)
-    const castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/list?fid=${fid}&limit=20&from_timestamp=${fromTimestamp}`, {
+    // Try to get user's recent casts - first try the user casts endpoint
+    let castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=20`, {
       headers: {
-        'api_key': NEYNAR_API_KEY,
+        'x-api-key': NEYNAR_API_KEY,
         'accept': 'application/json'
       },
       signal: AbortSignal.timeout(10000) // 10 second timeout
     })
 
+    // If that fails, try the popular casts endpoint as a fallback
+    if (!castsResponse.ok && castsResponse.status === 404) {
+      console.log(`User casts endpoint failed, trying popular casts endpoint...`)
+      castsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/popular?fid=${fid}`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      })
+    }
+
     if (!castsResponse.ok) {
-      console.error(`Failed to fetch casts: ${castsResponse.status}`)
+      console.error(`Failed to fetch casts: ${castsResponse.status} - ${castsResponse.statusText}`)
+      
+      // Try to get more detailed error information
+      let errorMessage = "Failed to fetch user casts. Please try again or check if the FID is correct."
+      try {
+        const errorData = await castsResponse.text()
+        console.error('Error response body:', errorData)
+        if (castsResponse.status === 404) {
+          errorMessage = "User not found or no casts available. Please check the FID."
+        } else if (castsResponse.status === 401) {
+          errorMessage = "API key authentication failed. Please check your configuration."
+        } else if (castsResponse.status === 429) {
+          errorMessage = "Rate limit exceeded. Please try again later."
+        }
+      } catch (e) {
+        console.error('Could not parse error response:', e)
+      }
+      
       return NextResponse.json({ 
-        error: "Failed to fetch user casts. Please try again or check if the FID is correct." 
+        error: errorMessage,
+        status: castsResponse.status
       }, { status: 500 })
     }
 
@@ -71,7 +103,7 @@ export async function POST(request: NextRequest) {
         // Get reactions for this cast
         const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?cast_hash=${cast.hash}&limit=30`, {
           headers: {
-            'api_key': NEYNAR_API_KEY,
+            'x-api-key': NEYNAR_API_KEY,
             'accept': 'application/json'
           },
           signal: AbortSignal.timeout(5000) // 5 second timeout

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { useMiniApp } from "@/components/MiniAppProvider"
 import { sdk } from '@farcaster/miniapp-sdk'
 
 interface Top8Friend {
@@ -25,29 +26,50 @@ export default function AppPage() {
   const [friends, setFriends] = useState<Top8Friend[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [isConnected, setIsConnected] = useState(false)
-  const [isSDKLoaded, setIsSDKLoaded] = useState(false)
+  
+  const { isSDKLoaded, isConnected, userFid, connectWallet } = useMiniApp()
+  const [isInMiniApp, setIsInMiniApp] = useState(false)
 
-  // Initialize Mini App SDK
+  // Auto-fill FID when user is connected
   useEffect(() => {
-    const initSDK = async () => {
+    if (userFid) {
+      setFid(userFid)
+    }
+  }, [userFid])
+
+  // Ensure ready() is called when the app page loads
+  useEffect(() => {
+    const ensureReady = async () => {
       try {
+        console.log('App page: Ensuring sdk.actions.ready() is called')
         await sdk.actions.ready()
-        setIsSDKLoaded(true)
-        
-        // Get user's FID if available
-        const context = await sdk.context
-        if (context?.user?.fid) {
-          setFid(context.user.fid.toString())
-          setIsConnected(true)
-        }
+        console.log('App page: sdk.actions.ready() completed')
       } catch (err) {
-        console.error("Failed to initialize SDK:", err)
+        console.error('App page: Failed to call sdk.actions.ready():', err)
       }
     }
 
-    initSDK()
+    // Call ready() when the component mounts
+    ensureReady()
   }, [])
+
+  // Check if we're running in a Mini App environment
+  useEffect(() => {
+    const checkMiniAppEnvironment = async () => {
+      try {
+        const context = await sdk.context
+        console.log('Mini App context:', context)
+        setIsInMiniApp(!!context)
+      } catch (err) {
+        console.log('Not running in Mini App environment:', err)
+        setIsInMiniApp(false)
+      }
+    }
+
+    if (isSDKLoaded) {
+      checkMiniAppEnvironment()
+    }
+  }, [isSDKLoaded])
 
   const handleGetTop8 = async () => {
     if (!fid) {
@@ -86,16 +108,7 @@ export default function AppPage() {
     }
   }
 
-  const connectWallet = async () => {
-    try {
-      if (sdk.wallet?.ethProvider) {
-        await sdk.wallet.ethProvider.request({ method: 'eth_requestAccounts' })
-        setIsConnected(true)
-      }
-    } catch (err) {
-      console.error("Failed to connect wallet:", err)
-    }
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
@@ -110,10 +123,15 @@ export default function AppPage() {
                     Discover your most interactive friends on Farcaster (last 45 days)
                   </p>
             {isSDKLoaded && (
-              <div className="mt-4">
+              <div className="mt-4 space-y-2">
                 <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
                   ✅ Mini App Ready
                 </Badge>
+                {isInMiniApp && (
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                    🚀 Running in Mini App
+                  </Badge>
+                )}
               </div>
             )}
           </div>

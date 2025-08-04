@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { MiniAppProvider } from "@/components/MiniAppProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,17 +17,16 @@ export const metadata: Metadata = {
   title: "Top 8 Friends - Farcaster Analyzer",
   description: "Discover your most interactive friends on Farcaster",
   other: {
-    "fc:frame": JSON.stringify({
-      version: "vNext",
-      image: "https://quicktop8-alpha.vercel.app/og-image.png",
-      buttons: [
-        {
-          label: "Launch QuickTop8",
-          action: "launch_miniapp",
-          target: "https://quicktop8-alpha.vercel.app"
-        }
-      ],
-      postUrl: "https://quicktop8-alpha.vercel.app/api/frame"
+    "fc:miniapp": JSON.stringify({
+      version: "1",
+      name: "QuickTop8",
+      description: "Discover your most interactive friends on Farcaster (last 45 days)",
+      homeUrl: "https://quicktop8-alpha.vercel.app/app",
+      iconUrl: "https://quicktop8-alpha.vercel.app/icon.png",
+      imageUrl: "https://quicktop8-alpha.vercel.app/og-image.png",
+      buttonTitle: "🎯 Discover",
+      splashImageUrl: "https://quicktop8-alpha.vercel.app/splash.png",
+      splashBackgroundColor: "#8B5CF6"
     })
   }
 };
@@ -39,23 +39,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="fc:frame" content={JSON.stringify({
-          version: "vNext",
-          image: "https://quicktop8-alpha.vercel.app/og-image.png",
-          buttons: [
-            {
-              label: "Launch QuickTop8",
-              action: "launch_miniapp",
-              target: "https://quicktop8-alpha.vercel.app"
-            }
-          ],
-          postUrl: "https://quicktop8-alpha.vercel.app/api/frame"
+        <meta name="fc:miniapp" content={JSON.stringify({
+          version: "1",
+          name: "QuickTop8",
+          description: "Discover your most interactive friends on Farcaster (last 45 days)",
+          homeUrl: "https://quicktop8-alpha.vercel.app/app",
+          iconUrl: "https://quicktop8-alpha.vercel.app/icon.png",
+          imageUrl: "https://quicktop8-alpha.vercel.app/og-image.png",
+          buttonTitle: "🎯 Discover",
+          splashImageUrl: "https://quicktop8-alpha.vercel.app/splash.png",
+          splashBackgroundColor: "#8B5CF6"
         })} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <MiniAppProvider>
+          {children}
+        </MiniAppProvider>
       </body>
     </html>
   );
