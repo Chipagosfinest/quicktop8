@@ -58,6 +58,12 @@ export default function HomePage() {
       
       if (response.ok && data.success) {
         setUserData(data.data)
+        
+        // Also fetch top interactions
+        const topInteractions = await fetchTopInteractions(fid)
+        if (topInteractions.length > 0) {
+          setUserData(prev => prev ? { ...prev, topInteractions } : null)
+        }
       } else {
         setError(data.error || 'Failed to fetch user data')
       }
@@ -85,6 +91,62 @@ export default function HomePage() {
 
   const handleRefresh = () => {
     fetchUserData(fid)
+  }
+
+  const handleTip = async (toFid: number, amount: number, message?: string) => {
+    try {
+      const response = await fetch('/api/wallet/tip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from_fid: fid,
+          to_fid: toFid,
+          amount,
+          message
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert(`Tip sent! Transaction: ${data.data.transaction_hash}`)
+      } else {
+        alert('Failed to send tip')
+      }
+    } catch (err) {
+      console.error('Tip error:', err)
+      alert('Failed to send tip')
+    }
+  }
+
+  const handleMint = async (recipientFid: number, tokenType: string) => {
+    try {
+      const response = await fetch('/api/wallet/mint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipient_fid: recipientFid,
+          token_type: tokenType,
+          metadata: {
+            name: `QuickTop8 ${tokenType}`,
+            description: `Awarded for being a top friend!`
+          }
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert(`NFT minted! Transaction: ${data.data.transaction_hash}`)
+      } else {
+        alert('Failed to mint NFT')
+      }
+    } catch (err) {
+      console.error('Mint error:', err)
+      alert('Failed to mint NFT')
+    }
   }
 
   if (loading) {
@@ -181,7 +243,7 @@ export default function HomePage() {
                         </Badge>
                       </div>
                       
-                      <div className="space-y-1 text-sm text-gray-600">
+                      <div className="space-y-1 text-sm text-gray-600 mb-4">
                         <div className="flex justify-between">
                           <span>Likes:</span>
                           <span className="font-medium">{interaction.likes}</span>
@@ -200,6 +262,28 @@ export default function HomePage() {
                             <span className="text-purple-600">{interaction.interactionCount}</span>
                           </div>
                         </div>
+                        <div className="text-xs text-gray-500">
+                          {interaction.followerCount.toLocaleString()} followers
+                        </div>
+                      </div>
+
+                      {/* Wallet Actions */}
+                      <div className="space-y-2">
+                        <Button 
+                          onClick={() => handleTip(interaction.fid, 0.001, `Thanks for being a top friend!`)}
+                          size="sm" 
+                          className="w-full bg-purple-600 hover:bg-purple-700"
+                        >
+                          💜 Tip 0.001 ETH
+                        </Button>
+                        <Button 
+                          onClick={() => handleMint(interaction.fid, 'TopFriend')}
+                          size="sm" 
+                          variant="outline"
+                          className="w-full"
+                        >
+                          🎨 Mint NFT
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
