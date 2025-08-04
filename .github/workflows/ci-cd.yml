@@ -93,7 +93,7 @@ jobs:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
+        vercel-args: '--prod --yes'
 
   deploy-production:
     name: Deploy to Production
@@ -121,18 +121,21 @@ jobs:
       run: cd frontend && npm run build
       
     - name: Deploy to Vercel (Production)
+      id: deploy
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
+        vercel-args: '--prod --yes'
         
     - name: Run post-deployment tests
       run: |
         sleep 30
-        curl -f https://quicktop8-alpha.vercel.app/health || echo "Health check failed but continuing"
-        curl -f https://quicktop8-alpha.vercel.app/api/user/4044 || echo "API test failed but continuing"
+        # Get the actual deployment URL from Vercel output
+        DEPLOY_URL=$(echo "${{ steps.deploy.outputs.preview-url }}" | sed 's|https://||')
+        curl -f https://$DEPLOY_URL/health || echo "Health check failed but continuing"
+        curl -f https://$DEPLOY_URL/api/user/4044 || echo "API test failed but continuing"
 
   notify:
     name: Notify Deployment Status

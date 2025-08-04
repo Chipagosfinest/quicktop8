@@ -2,13 +2,13 @@
   "miniapp": {
     "version": "1",
     "name": "Ride or Die Top 8",
-    "iconUrl": "https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/og-image.png",
+    "iconUrl": "https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "🔥 Ride or Die",
-    "splashImageUrl": "https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/splash.png",
+    "splashImageUrl": "https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#8B5CF6",
-    "webhookUrl": "https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/api/webhook",
+    "webhookUrl": "https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/api/webhook",
     "subtitle": "Discover Your Ride or Die Friends",
     "description": "Find your longest-standing mutual follows with original engagement history and tip them!",
     "primaryCategory": "social",
@@ -22,6 +22,6 @@
     ],
     "ogTitle": "Ride or Die Top 8 - Your Longest-Standing Farcaster Friends",
     "ogDescription": "Discover your ride or die friends on Farcaster with original engagement links and tip them!",
-    "ogImageUrl": "https://quicktop8-2u2d5py0o-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogImageUrl": "https://quicktop8-di3y3yllp-chipagosfinests-projects.vercel.app/og-image.png"
   }
 } 
