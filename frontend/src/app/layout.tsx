@@ -14,20 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Reply Guy - Farcaster Analyzer",
-  description: "Discover your most interactive friends on Farcaster",
-  other: {
-    "fc:miniapp": JSON.stringify({
-      version: "1",
-      name: "Reply Guy",
-      description: "Discover your most interactive friends on Farcaster (last 45 days)",
-      homeUrl: "https://quicktop8-alpha.vercel.app/app",
-      iconUrl: "https://quicktop8-alpha.vercel.app/icon.png",
-      imageUrl: "https://quicktop8-alpha.vercel.app/og-image.png",
-      buttonTitle: "🎯 Discover",
-      splashImageUrl: "https://quicktop8-alpha.vercel.app/splash.png",
-      splashBackgroundColor: "#8B5CF6"
-    })
+  title: "Reply Guy - Discover Your Biggest Fans",
+  description: "Find out who your biggest fans are on Farcaster and show them some love!",
+  openGraph: {
+    title: "Reply Guy - Discover Your Biggest Fans",
+    description: "Find out who your biggest fans are on Farcaster and show them some love!",
+    images: ['https://quicktop8-alpha.vercel.app/og-image.png'],
   },
   icons: {
     icon: [
@@ -47,17 +39,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="fc:miniapp" content={JSON.stringify({
-          version: "1",
-          name: "QuickTop8",
-          description: "Discover your most interactive friends on Farcaster (last 45 days)",
-          homeUrl: "https://quicktop8-alpha.vercel.app/app",
-          iconUrl: "https://quicktop8-alpha.vercel.app/icon.png",
-          imageUrl: "https://quicktop8-alpha.vercel.app/og-image.png",
-          buttonTitle: "🎯 Discover",
-          splashImageUrl: "https://quicktop8-alpha.vercel.app/splash.png",
-          splashBackgroundColor: "#8B5CF6"
-        })} />
+        <meta property="fc:frame" content="vNext" />
+        <meta property="fc:frame:image" content="https://quicktop8-alpha.vercel.app/og-image.png" />
+        <meta property="fc:frame:button:1" content="🎯 Discover My Fans" />
+        <meta property="fc:frame:post_url" content="https://quicktop8-alpha.vercel.app" />
+        <meta property="fc:miniapp" content="Reply Guy" />
+        <meta property="fc:miniapp:domain" content="quicktop8-alpha.vercel.app" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

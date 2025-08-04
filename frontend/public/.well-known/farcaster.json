@@ -1,14 +1,23 @@
 {
+  "accountAssociation": {
+    "header": "eyJ0eXBlIjoiYWNjb3VudC1hc3NvY2lhdGlvbiIsImZyb20iOiIweDViNzI3YWM2Mzk2MzZlNTM0YjY3OGU4MTc2OGNhMTllMmM2MjgwYjciLCJ0aW1lc3RhbXAiOjE3NDkxNjA4NjZ9",
+    "payload": "eyJmcm9tIjoiMHg1YjcyN2FjNjM5NjM2ZTUzNGI2NzhhODgxNzY4Y2ExOWUyYzYyODBiNyIsInRpbWVzdGFtcCI6MTc0OTE2MDg2Nn0=",
+    "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  },
   "miniapp": {
     "version": "1",
-    "name": "QuickTop8",
-    "description": "Discover your most interactive friends on Farcaster (last 45 days)",
-    "homeUrl": "https://quicktop8-alpha.vercel.app/app",
+    "name": "Reply Guy",
+    "description": "Discover your biggest fans on Farcaster and show them appreciation",
     "iconUrl": "https://quicktop8-alpha.vercel.app/icon.png",
-    "imageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
-    "buttonTitle": "🎯 Discover",
-    "splashImageUrl": "https://quicktop8-alpha.vercel.app/splash.png",
-    "splashBackgroundColor": "#8B5CF6",
-    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook"
+    "homeUrl": "https://quicktop8-alpha.vercel.app",
+    "webhookUrl": "https://quicktop8-alpha.vercel.app/api/webhook",
+    "ogTitle": "Reply Guy - Discover Your Biggest Fans",
+    "ogDescription": "Find out who your biggest fans are on Farcaster and show them some love!",
+    "ogImageUrl": "https://quicktop8-alpha.vercel.app/og-image.png",
+    "permissions": [
+      "user:read",
+      "user:write",
+      "notifications:write"
+    ]
   }
 } 
