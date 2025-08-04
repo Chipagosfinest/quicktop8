@@ -1,27 +1,19 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "quicktop8-frontend",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npm run lint && npm run build",
-    "test:unit": "echo 'No unit tests configured'",
-    "test:e2e": "echo 'No e2e tests configured'",
-    "deploy": "vercel --prod",
-    "deploy:preview": "vercel"
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@farcaster/miniapp-sdk": "^0.1.8",
-    "@neynar/nodejs-sdk": "^3.31.0",
-    "@neynar/react": "^1.2.7",
     "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
     "autoprefixer": "^10.4.21",
-    "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.536.0",

@@ -5,37 +5,33 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-// Removed Neynar React SDK dependencies for now
 
-interface Top8Friend {
+interface MutualFollow {
   fid: number
   username: string
   display_name: string
   pfp_url: string
   bio: string
-  replyCount: number
-  likeCount: number
-  recastCount: number
-  totalScore: number
-  lastInteraction: string
+  followDate: string
+  firstEngagement: string
+  engagementType: 'like' | 'recast' | 'reply'
+  totalInteractions: number
+  relationshipScore: number
 }
 
 export default function AppPage() {
   const [fid, setFid] = useState("")
-  const [friends, setFriends] = useState<Top8Friend[]>([])
+  const [friends, setFriends] = useState<MutualFollow[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  
   const [isInMiniApp, setIsInMiniApp] = useState(false)
 
-  // Auto-fill FID with sample data for demo
+  // Check if we're in a Mini App environment
   useEffect(() => {
-    setFid("4044") // Sample FID for demo
+    if (typeof window !== 'undefined') {
+      setIsInMiniApp(window.location.href.includes('farcaster.com') || window.location.href.includes('warpcast.com'))
+    }
   }, [])
-
-  // Simplified for demo - removed SDK initialization
-
-  // Simplified for demo - removed Mini App environment check
 
   const handleGetTop8 = async () => {
     if (!fid) {
@@ -63,7 +59,6 @@ export default function AppPage() {
 
       setFriends(data.friends || [])
       
-      // Show message if provided
       if (data.message) {
         console.log(data.message)
       }
@@ -74,7 +69,22 @@ export default function AppPage() {
     }
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
 
+  const getEngagementIcon = (type: string) => {
+    switch (type) {
+      case 'like': return '❤️'
+      case 'recast': return '🔄'
+      case 'reply': return '💬'
+      default: return '💬'
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
@@ -83,136 +93,132 @@ export default function AppPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-              Top 8 Friends
+              QuickTop8
             </h1>
-                              <p className="text-gray-600 dark:text-gray-300 text-lg">
-                    Discover your most interactive friends on Farcaster (last 45 days)
-                  </p>
-            <div className="mt-4 space-y-2">
-              <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
-                ✅ Demo Mode
+            <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
+              Discover your longest-standing mutual follows with engagement history
+            </p>
+            <div className="flex justify-center gap-2">
+              {isInMiniApp && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
+                  🎯 Mini App
+                </Badge>
+              )}
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                🔗 Mutual Follows
               </Badge>
             </div>
           </div>
 
-          {/* Demo Info Section */}
-          <Card className="mb-8 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
-            <CardHeader>
-              <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
-                🎯 Demo Mode
-              </CardTitle>
-              <CardDescription className="text-blue-700 dark:text-blue-300">
-                Using sample FID (4044 - alec.eth) for demonstration
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Input Section */}
+          {/* FID Input */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                📊 Analyze Your Friends
-                {fid && <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">FID: {fid}</Badge>}
-              </CardTitle>
+              <CardTitle>Find Your Top 8</CardTitle>
               <CardDescription>
-                Ready to analyze your Top 8 friends using the sample FID
+                Enter a Farcaster ID (FID) to discover their longest-standing mutual follows
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4">
+              <div className="flex gap-2">
                 <input
                   type="number"
-                  placeholder="Enter your FID (e.g., 194)"
                   value={fid}
                   onChange={(e) => setFid(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  placeholder="Enter FID (e.g., 194, 4044)"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
                 <Button 
-                  onClick={handleGetTop8} 
-                  disabled={loading}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  onClick={handleGetTop8}
+                  disabled={loading || !fid}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
                 >
-                  {loading ? "Analyzing..." : "Get Top 8"}
+                  {loading ? 'Loading...' : 'Find Top 8'}
                 </Button>
               </div>
-              {error && (
-                <p className="text-red-500 mt-2 text-sm">{error}</p>
-              )}
             </CardContent>
           </Card>
 
+          {/* Error Display */}
+          {error && (
+            <Card className="mb-8 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+              <CardContent className="pt-6">
+                <p className="text-red-700 dark:text-red-300 text-center">{error}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Results */}
           {friends.length > 0 && (
-            <>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Your Top 8 Friends</h2>
-                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
-                  🎯 {friends.length} Friends Found
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+                Top 8 Mutual Follows
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {friends.map((friend, index) => (
-                  <Card key={friend.fid} className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="text-center pb-2">
-                      <div className="flex justify-center mb-2">
+                  <Card key={friend.fid} className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={friend.pfp_url} alt={friend.display_name} />
+                          <AvatarFallback>{friend.display_name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-semibold truncate dark:text-white">
+                            {friend.display_name || friend.username}
+                          </CardTitle>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">@{friend.username}</p>
+                        </div>
                         <Badge variant="secondary" className="text-xs">
                           #{index + 1}
                         </Badge>
                       </div>
-                      <Avatar className="w-16 h-16 mx-auto mb-2">
-                        <AvatarImage src={friend.pfp_url} alt={friend.display_name} />
-                        <AvatarFallback>{friend.display_name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <CardTitle className="text-lg">{friend.display_name}</CardTitle>
-                      <CardDescription>@{friend.username}</CardDescription>
                     </CardHeader>
-                    <CardContent className="text-center">
-                      <div className="space-y-2">
-                        <div className="text-sm text-gray-600 dark:text-gray-300">
-                          {friend.bio && friend.bio.length > 50 
-                            ? `${friend.bio.substring(0, 50)}...` 
-                            : friend.bio}
+                    
+                    <CardContent className="space-y-3">
+                      {friend.bio && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                          {friend.bio}
+                        </p>
+                      )}
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Followed since:</span>
+                          <span className="font-medium dark:text-white">{formatDate(friend.followDate)}</span>
                         </div>
                         
-                        <div className="flex justify-center gap-2 text-xs">
-                          <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300">
-                            ❤️ {friend.likeCount}
-                          </Badge>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                            💬 {friend.replyCount}
-                          </Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                            🔄 {friend.recastCount}
-                          </Badge>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">First engagement:</span>
+                          <span className="font-medium flex items-center gap-1 dark:text-white">
+                            {getEngagementIcon(friend.engagementType)}
+                            {formatDate(friend.firstEngagement)}
+                          </span>
                         </div>
                         
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Total: {friend.totalScore} interactions
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Total interactions:</span>
+                          <span className="font-medium dark:text-white">{friend.totalInteractions}</span>
                         </div>
                         
-                        <div className="text-xs text-gray-400 dark:text-gray-500">
-                          Last: {new Date(friend.lastInteraction).toLocaleDateString()}
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Relationship score:</span>
+                          <span className="font-medium dark:text-white">{friend.relationshipScore}</span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
-            </>
+            </div>
           )}
 
           {/* Empty State */}
-          {!loading && friends.length === 0 && !error && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <div className="text-gray-400 dark:text-gray-500 mb-4">
-                  <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">No Top 8 Yet</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Enter your Farcaster ID above to discover your most interactive friends
+          {!loading && !error && friends.length === 0 && fid && (
+            <Card className="text-center dark:bg-gray-800 dark:border-gray-700">
+              <CardContent className="pt-6">
+                <p className="text-gray-600 dark:text-gray-300">
+                  No mutual follows with engagement found for this FID. Try with a different FID or check back later.
                 </p>
               </CardContent>
             </Card>

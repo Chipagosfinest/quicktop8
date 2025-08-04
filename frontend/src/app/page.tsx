@@ -8,60 +8,46 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
-interface TopInteraction {
+interface MutualFollow {
   fid: number
   username: string
-  displayName: string
-  avatar: string
-  followerCount: number
-  verified: boolean
-  interactionCount: number
-  likes: number
-  replies: number
-  recasts: number
-}
-
-interface UserData {
-  fid: number
-  username: string
-  displayName: string
-  avatar: string
+  display_name: string
+  pfp_url: string
   bio: string
-  followerCount: number
-  followingCount: number
-  castCount: number
-  verified: boolean
-  topInteractions: TopInteraction[]
+  followDate: string
+  firstEngagement: string
+  engagementType: 'like' | 'recast' | 'reply'
+  totalInteractions: number
+  relationshipScore: number
 }
 
 export default function HomePage() {
-  const [userData, setUserData] = useState<UserData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [friends, setFriends] = useState<MutualFollow[]>([])
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fid, setFid] = useState<number>(4044) // Default to alec.eth
+  const [fid, setFid] = useState<string>('')
 
-  useEffect(() => {
-    fetchUserData(fid)
-  }, [fid])
-
-  const fetchUserData = async (fid: number) => {
+  const fetchTop8 = async (fid: string) => {
+    if (!fid) return
+    
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch(`/api/user/${fid}`)
+      const response = await fetch('/api/top8', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fid: parseInt(fid) }),
+      })
+      
       const data = await response.json()
       
-      if (response.ok && data.success) {
-        setUserData(data.data)
-        
-        // Also fetch top interactions
-        const topInteractions = await fetchTopInteractions(fid)
-        if (topInteractions.length > 0) {
-          setUserData(prev => prev ? { ...prev, topInteractions } : null)
-        }
+      if (response.ok) {
+        setFriends(data.friends || [])
       } else {
-        setError(data.error || 'Failed to fetch user data')
+        setError(data.error || 'Failed to fetch top 8')
       }
     } catch (err) {
       setError('Network error occurred')
@@ -71,140 +57,130 @@ export default function HomePage() {
     }
   }
 
-  const fetchTopInteractions = async (fid: number) => {
-    try {
-      const response = await fetch(`/api/user/${fid}/top-interactions?limit=8&filter_spam=true`)
-      const data = await response.json()
-      
-      if (response.ok && data.success) {
-        return data.data
-      }
-    } catch (err) {
-      console.error('Error fetching top interactions:', err)
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    fetchTop8(fid)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const getEngagementIcon = (type: string) => {
+    switch (type) {
+      case 'like': return '❤️'
+      case 'recast': return '🔄'
+      case 'reply': return '💬'
+      default: return '💬'
     }
-    return []
-  }
-
-  const handleRefresh = () => {
-    fetchUserData(fid)
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading QuickTop8...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">QuickTop8</h1>
-          <p className="text-gray-600">Your Top Farcaster Friends</p>
-          <div className="mt-4">
-            <Button onClick={handleRefresh} variant="outline" size="sm">
-              Refresh Data
-            </Button>
-          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            QuickTop8
+          </h1>
+          <p className="text-lg text-gray-600 mb-6">
+            Discover your longest-standing mutual follows with engagement history
+          </p>
+          
+          {/* FID Input */}
+          <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-8">
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={fid}
+                onChange={(e) => setFid(e.target.value)}
+                placeholder="Enter Farcaster ID (FID)"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
+              />
+              <Button 
+                type="submit" 
+                disabled={loading || !fid}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+              >
+                {loading ? 'Loading...' : 'Find Top 8'}
+              </Button>
+            </div>
+          </form>
         </div>
 
-        {/* User Info */}
-        {userData && (
-          <Card className="mb-8">
-            <CardHeader>
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={userData.avatar} alt={userData.displayName} />
-                  <AvatarFallback>{userData.displayName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-xl">{userData.displayName}</CardTitle>
-                  <p className="text-gray-600">@{userData.username}</p>
-                  <div className="flex space-x-4 mt-2">
-                    <span className="text-sm text-gray-500">{userData.followerCount} followers</span>
-                    <span className="text-sm text-gray-500">{userData.followingCount} following</span>
-                    <span className="text-sm text-gray-500">{userData.castCount} casts</span>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            {userData.bio && (
-              <CardContent>
-                <p className="text-gray-700">{userData.bio}</p>
-              </CardContent>
-            )}
-          </Card>
-        )}
-
-        {/* Error State */}
+        {/* Error Display */}
         {error && (
-          <Card className="mb-8 border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-600 text-center">{error}</p>
-              <div className="text-center mt-4">
-                <Button onClick={handleRefresh} variant="outline" size="sm">
-                  Try Again
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="max-w-2xl mx-auto mb-8">
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-6">
+                <p className="text-red-700 text-center">{error}</p>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {/* Top Interactions */}
-        {userData?.topInteractions && userData.topInteractions.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-              Your Top 8 Friends
+        {/* Results */}
+        {friends.length > 0 && (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
+              Your Top 8 Mutual Follows
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {userData.topInteractions.map((interaction, index) => (
-                <Card key={interaction.fid} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <Avatar className="h-16 w-16 mx-auto mb-3">
-                        <AvatarImage src={interaction.avatar} alt={interaction.displayName} />
-                        <AvatarFallback>{interaction.displayName?.charAt(0)}</AvatarFallback>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {friends.map((friend, index) => (
+                <Card key={friend.fid} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={friend.pfp_url} alt={friend.display_name} />
+                        <AvatarFallback>{friend.display_name?.charAt(0) || friend.username?.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <h3 className="font-semibold text-gray-800 mb-1">{interaction.displayName}</h3>
-                      <p className="text-sm text-gray-600 mb-2">@{interaction.username}</p>
-                      
-                      <div className="flex justify-center space-x-2 mb-3">
-                        {interaction.verified && (
-                          <Badge variant="secondary" className="text-xs">✓ Verified</Badge>
-                        )}
-                        <Badge variant="outline" className="text-xs">
-                          #{index + 1}
-                        </Badge>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-semibold truncate">
+                          {friend.display_name || friend.username}
+                        </CardTitle>
+                        <p className="text-sm text-gray-500 truncate">@{friend.username}</p>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        #{index + 1}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-3">
+                    {friend.bio && (
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {friend.bio}
+                      </p>
+                    )}
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Followed since:</span>
+                        <span className="font-medium">{formatDate(friend.followDate)}</span>
                       </div>
                       
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <div className="flex justify-between">
-                          <span>Likes:</span>
-                          <span className="font-medium">{interaction.likes}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Replies:</span>
-                          <span className="font-medium">{interaction.replies}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Recasts:</span>
-                          <span className="font-medium">{interaction.recasts}</span>
-                        </div>
-                        <div className="border-t pt-1 mt-2">
-                          <div className="flex justify-between font-semibold">
-                            <span>Total:</span>
-                            <span className="text-purple-600">{interaction.interactionCount}</span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {interaction.followerCount.toLocaleString()} followers
-                        </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">First engagement:</span>
+                        <span className="font-medium flex items-center gap-1">
+                          {getEngagementIcon(friend.engagementType)}
+                          {formatDate(friend.firstEngagement)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Total interactions:</span>
+                        <span className="font-medium">{friend.totalInteractions}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Relationship score:</span>
+                        <span className="font-medium">{friend.relationshipScore}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -214,19 +190,17 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* No Interactions */}
-        {userData && (!userData.topInteractions || userData.topInteractions.length === 0) && !loading && !error && (
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <p className="text-gray-600">No recent interactions found. This could mean:</p>
-              <ul className="text-sm text-gray-500 mt-2 space-y-1">
-                <li>• You haven&apos;t posted many casts recently</li>
-                <li>• Your casts don&apos;t have many likes/replies/recasts</li>
-                <li>• The interaction data is still being analyzed</li>
-              </ul>
-              <p className="text-gray-600 mt-4">Try posting more content and engaging with others to see your top friends!</p>
-            </CardContent>
-          </Card>
+        {/* Empty State */}
+        {!loading && !error && friends.length === 0 && fid && (
+          <div className="max-w-2xl mx-auto text-center">
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-gray-600">
+                  No mutual follows with engagement found for this FID. Try with a different FID or check back later.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>
