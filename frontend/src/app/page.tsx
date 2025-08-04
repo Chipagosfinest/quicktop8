@@ -2,7 +2,6 @@
 
 "use client"
 
-import { useMiniApp } from '@neynar/react'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -42,16 +41,17 @@ interface UserData {
 }
 
 export default function HomePage() {
-  const { isSDKLoaded, context } = useMiniApp()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fid, setFid] = useState<number | null>(null)
 
   useEffect(() => {
-    if (isSDKLoaded && context?.user?.fid) {
-      fetchUserData(context.user.fid)
-    }
-  }, [isSDKLoaded, context])
+    // For demo purposes, use a sample FID
+    const sampleFid = 4044 // alec.eth
+    setFid(sampleFid)
+    fetchUserData(sampleFid)
+  }, [])
 
   const fetchUserData = async (fid: number) => {
     setLoading(true)
@@ -73,26 +73,12 @@ export default function HomePage() {
     }
   }
 
-  if (!isSDKLoaded) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading QuickTop8...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!context?.user?.fid) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Welcome to QuickTop8!</h1>
-          <p className="text-gray-600 mb-4">Please sign in to view your top Farcaster friends.</p>
-          <Button className="bg-purple-600 hover:bg-purple-700">
-            Sign In with Farcaster
-          </Button>
         </div>
       </div>
     )
@@ -133,14 +119,6 @@ export default function HomePage() {
               </CardContent>
             )}
           </Card>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Analyzing your interactions...</p>
-          </div>
         )}
 
         {/* Error State */}
