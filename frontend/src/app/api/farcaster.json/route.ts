@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Get the current domain from the request
+  const url = new URL(request.url)
+  const baseUrl = `${url.protocol}//${url.host}`
+  
   const manifest = {
     miniapp: {
       version: "1",
       name: "Crypto Streams",
-      iconUrl: "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/icon.png",
-      homeUrl: "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/app",
-      splashImageUrl: "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/splash.png",
+      iconUrl: `${baseUrl}/icon.png`,
+      homeUrl: `${baseUrl}/app`,
+      splashImageUrl: `${baseUrl}/splash.png`,
       splashBackgroundColor: "#8B5CF6",
       subtitle: "Top 8 Recommended Streamers",
       description: "Discover your favorite crypto content creators on Farcaster and send them gifts!",
@@ -19,15 +23,15 @@ export async function GET() {
         "gifting",
         "content"
       ],
-      heroImageUrl: "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/og-image.png",
+      heroImageUrl: `${baseUrl}/og-image.png`,
       tagline: "Your Top 8 Crypto Streamers",
       ogTitle: "Crypto Streams",
       ogDescription: "Discover your favorite crypto content creators on Farcaster and send them gifts!",
-      ogImageUrl: "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/og-image.png",
+      ogImageUrl: `${baseUrl}/og-image.png`,
       screenshotUrls: [
-        "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/screenshot1.png",
-        "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/screenshot2.png",
-        "https://quicktop8-3k1oex9rk-chipagosfinests-projects.vercel.app/screenshot3.png"
+        `${baseUrl}/screenshot1.png`,
+        `${baseUrl}/screenshot2.png`,
+        `${baseUrl}/screenshot3.png`
       ]
     }
   }
