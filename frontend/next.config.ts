@@ -4,20 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  async redirects() {
-    return [
-      {
-        source: '/.well-known/farcaster.json',
-        destination: '/api/farcaster.json',
-        permanent: true,
-      },
-      {
-        source: '/farcaster.json',
-        destination: '/api/farcaster.json',
-        permanent: true,
-      },
-    ];
-  },
+
   async headers() {
     return [
       {
