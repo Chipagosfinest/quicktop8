@@ -93,7 +93,7 @@ async function fetchCastReplies(castHash: string): Promise<any[]> {
   }
 
   try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/conversation_and_replies?identifier=${castHash}&reply_depth=1&limit=50`, {
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${castHash}&type=hash&reply_depth=1&limit=50`, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
         'accept': 'application/json' 
