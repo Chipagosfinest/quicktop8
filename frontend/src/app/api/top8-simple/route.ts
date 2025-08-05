@@ -145,13 +145,25 @@ export async function GET(request: NextRequest) {
       const userDetail = userDetailsMap.get(friend.fid) || {}
       const globalRank = offset + index + 1
       
+      // Extract bio from the correct nested structure
+      const bio = (userDetail as any).profile?.bio?.text || (friend as any).profile?.bio?.text || ''
+      
+      // Extract profile picture URL
+      const pfp_url = (userDetail as any).pfp_url || (friend as any).pfp_url || ''
+      
+      // Extract display name
+      const display_name = (userDetail as any).display_name || (friend as any).display_name || ''
+      
+      // Extract ENS name
+      const ens_name = (userDetail as any).ens_name || (friend as any).ens_name || ''
+      
       return {
         fid: friend.fid,
         username: friend.username || `user${friend.fid}`,
-        display_name: (userDetail as any).display_name || (friend as any).display_name || '',
-        pfp_url: (userDetail as any).pfp_url || (friend as any).pfp_url || '',
-        bio: (userDetail as any).bio || (friend as any).bio || '',
-        ens_name: (userDetail as any).ens_name || (friend as any).ens_name || '',
+        display_name: display_name,
+        pfp_url: pfp_url,
+        bio: bio,
+        ens_name: ens_name,
         mutual_affinity_score: friend.mutual_affinity_score || 0,
         rank: globalRank, // Global rank across all pages
         verified: (userDetail as any).verified || false,
