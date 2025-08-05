@@ -87,19 +87,19 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
             )}
           </div>
 
-          {/* Affinity Title Badge */}
-          <div className={`inline-block bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-xs font-bold`}>
-            {affinityTitle.icon} {affinityTitle.title}
-          </div>
-
-          {/* Bio - Moved closer to user info */}
+          {/* Bio - Positioned between username and connection type */}
           {user.bio && (
-            <div className="mt-3">
+            <div className="mt-2">
               <p className="text-purple-600 text-xs italic bg-purple-50 p-2 rounded-lg border-l-3 border-purple-400 leading-relaxed">
                 "{user.bio}"
               </p>
             </div>
           )}
+
+          {/* Affinity Title Badge */}
+          <div className={`inline-block bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-xs font-bold`}>
+            {affinityTitle.icon} {affinityTitle.title}
+          </div>
         </div>
       </div>
 
