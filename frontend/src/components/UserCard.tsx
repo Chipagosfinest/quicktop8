@@ -91,24 +91,24 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
           <div className={`inline-block bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-xs font-bold`}>
             {affinityTitle.icon} {affinityTitle.title}
           </div>
+
+          {/* Bio - Moved closer to user info */}
+          {user.bio && (
+            <div className="mt-3">
+              <p className="text-purple-600 text-xs italic bg-purple-50 p-2 rounded-lg border-l-3 border-purple-400 leading-relaxed">
+                "{user.bio}"
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Bio */}
-      {user.bio && (
-        <div className="mb-4">
-          <p className="text-purple-600 text-xs italic bg-purple-50 p-3 rounded-lg border-l-4 border-purple-400">
-            "{user.bio}"
-          </p>
-        </div>
-      )}
-
-      {/* Connections of Connections - Show Directly */}
+      {/* Their Inner Circle - More Meaningful Label */}
       {user.social_scope && user.social_scope.friends_of_friends.length > 0 && (
         <div className="mb-4">
-          <div className="text-xs font-semibold text-purple-800 mb-2">🌟 Friends of Friends</div>
+          <div className="text-xs font-semibold text-purple-800 mb-2">💎 Their Inner Circle</div>
           <div className="text-xs text-purple-600 mb-2 italic">
-            Your top reply guys and their reply guys
+            People they interact with most
           </div>
           <div className="flex flex-wrap gap-1">
             {user.social_scope.friends_of_friends.slice(0, 4).map((friend) => (
@@ -118,21 +118,8 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
                   e.stopPropagation();
                   window.open(`https://warpcast.com/${friend.username}`, '_blank');
                 }}
-                className="flex items-center space-x-1 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-full px-2 py-1 text-xs border border-purple-200 hover:from-purple-100 hover:to-indigo-100 transition-colors"
+                className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-full px-2 py-1 text-xs border border-purple-200 hover:from-purple-100 hover:to-indigo-100 transition-colors"
               >
-                <div className="w-3 h-3 rounded-full overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600">
-                  {friend.pfp_url ? (
-                    <img 
-                      src={friend.pfp_url} 
-                      alt={`${friend.username}'s profile`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
-                      {friend.username?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                  )}
-                </div>
                 <span className="text-purple-800 font-medium text-xs">@{friend.username}</span>
               </button>
             ))}
