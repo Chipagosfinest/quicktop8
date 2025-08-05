@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Discover your closest friends based on mutual affinity scores. Relive the MySpace era with your most interactive Farcaster friends! 🔥',
   openGraph: {
     title: 'QuickTop8 - Your Digital Squad',
-    description: 'Discover your closest friends based on mutual affinity scores. Relive the MySpace era with your most interactive Farcaster friends! 🔥',
+    description: 'Discover your closest friends based on mutual affinity scores and see their friends of friends. Relive the MySpace era with your most interactive Farcaster friends! 🔥',
     images: ['https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/og-image.png'],
     type: 'website',
     url: 'https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/embed',

@@ -103,10 +103,10 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
         </div>
       </div>
 
-      {/* Their Inner Circle - More Meaningful Label */}
+      {/* Friends of Friends - More Meaningful Label */}
       {user.social_scope && user.social_scope.friends_of_friends.length > 0 && (
         <div className="mb-4">
-          <div className="text-xs font-semibold text-purple-800 mb-2">💎 Their Inner Circle</div>
+          <div className="text-xs font-semibold text-purple-800 mb-2">🌟 Friends of Friends</div>
           <div className="text-xs text-purple-600 mb-2 italic">
             People they interact with most
           </div>

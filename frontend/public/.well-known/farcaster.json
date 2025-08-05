@@ -7,7 +7,7 @@
     "splashImageUrl": "https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#8b5cf6",
     "subtitle": "Discover your closest friends",
-    "description": "Find your top 8 friends based on mutual affinity scores. Relive the MySpace era with your most interactive Farcaster friends!",
+    "description": "Find your top 8 friends based on mutual affinity scores and see their friends of friends. Relive the MySpace era with your most interactive Farcaster friends!",
     "primaryCategory": "social",
     "tags": [
       "social",
@@ -19,7 +19,7 @@
     "heroImageUrl": "https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/og-image.png",
     "tagline": "Your Digital Squad",
     "ogTitle": "QuickTop8 - Your Digital Squad",
-    "ogDescription": "Discover your closest friends based on mutual affinity scores. Relive the MySpace era with your most interactive Farcaster friends!",
+    "ogDescription": "Discover your closest friends based on mutual affinity scores and see their friends of friends. Relive the MySpace era with your most interactive Farcaster friends!",
     "ogImageUrl": "https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/og-image.png",
     "screenshotUrls": [
       "https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/screenshot1.png",
