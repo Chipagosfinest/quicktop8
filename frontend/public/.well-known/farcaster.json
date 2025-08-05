@@ -6,5 +6,9 @@
   "imageUrl": "https://friends-of-friends.vercel.app/og-image.png",
   "appUrl": "https://friends-of-friends.vercel.app/app",
   "splashImageUrl": "https://friends-of-friends.vercel.app/splash.png",
-  "appId": "friends-of-friends"
+  "appId": "friends-of-friends",
+  "accountAssociation": {
+    "domain": "friends-of-friends.vercel.app",
+    "signature": "YOUR_SIGNATURE_HERE"
+  }
 }
