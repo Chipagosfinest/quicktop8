@@ -375,16 +375,23 @@ export default function App() {
                       : 'border-orange-400 hover:border-orange-500'
                   }`}
                 >
-                  {/* Wanted Poster Header */}
+                  {/* Rich Header with Rank */}
                   <div className="text-center mb-4">
-                    <div className="text-4xl mb-2">🤠</div>
-                    <div className="text-2xl font-bold text-amber-900 mb-1">WANTED</div>
-                    <div className="text-sm text-amber-700">More Friends Like This</div>
+                    <div className="flex items-center justify-center mb-2">
+                      <div className="text-4xl mr-2">🤠</div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-amber-900">WANTED</div>
+                        <div className="text-xs text-amber-700">#{index + 1} Top Mutual</div>
+                      </div>
+                    </div>
+                    <div className="text-sm text-amber-700 bg-amber-100 px-3 py-1 rounded-full inline-block">
+                      Score: {friend.rideOrDieScore}
+                    </div>
                   </div>
 
-                  {/* Friend Avatar and Info */}
+                  {/* Rich Profile Section */}
                   <div className="text-center mb-4">
-                    <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-amber-500 overflow-hidden bg-gradient-to-br from-amber-600 to-orange-700">
+                    <div className="w-24 h-24 rounded-full mx-auto mb-3 border-4 border-amber-500 overflow-hidden bg-gradient-to-br from-amber-600 to-orange-700">
                       {friend.pfp_url ? (
                         <img 
                           src={friend.pfp_url} 
@@ -401,14 +408,14 @@ export default function App() {
                         {friend.username?.charAt(0).toUpperCase() || '?'}
                       </div>
                     </div>
-                    <h3 className="font-bold text-amber-900 text-lg mb-1">
-                      {friend.username || `Friend ${friend.fid}`}
+                    <h3 className="font-bold text-amber-900 text-xl mb-1">
+                      @{friend.username || `Friend ${friend.fid}`}
                     </h3>
                     <p className="text-amber-700 text-sm mb-2">
                       {friend.display_name || 'Mutual Friend'}
                     </p>
                     {friend.bio && (
-                      <p className="text-amber-600 text-xs mb-3 line-clamp-2 italic">
+                      <p className="text-amber-600 text-xs mb-3 line-clamp-3 italic bg-amber-100 p-2 rounded">
                         "{friend.bio}"
                       </p>
                     )}
@@ -417,50 +424,65 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Friend Stats */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-amber-700">Interactions:</span>
-                      <span className="font-semibold text-amber-800">
-                        {friend.totalInteractions}
-                      </span>
+                  {/* Rich Stats Grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-amber-100 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-amber-800">{friend.totalInteractions}</div>
+                      <div className="text-xs text-amber-600">Total Interactions</div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-amber-700">Followed:</span>
-                      <span className="font-semibold text-amber-800">
-                        {formatDate(friend.followDate)}
-                      </span>
+                    <div className="bg-orange-100 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-orange-800">{friend.daysSinceFirstEngagement}</div>
+                      <div className="text-xs text-orange-600">Days Connected</div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-amber-700">First Engagement:</span>
-                      <span className="font-semibold text-amber-800">
-                        {friend.firstEngagement ? formatDate(friend.firstEngagement) : 'None yet'}
-                      </span>
+                    <div className="bg-yellow-100 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-yellow-800">{friend.engagementFrequency.toFixed(2)}</div>
+                      <div className="text-xs text-yellow-600">Engagement/Day</div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-amber-700">Engagement Type:</span>
-                      <span className="font-semibold text-amber-800">
-                        {getEngagementIcon(friend.engagementType)} {friend.engagementType || 'follow'}
-                      </span>
+                    <div className="bg-green-100 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-green-800">{friend.relationshipScore}</div>
+                      <div className="text-xs text-green-600">Relationship Score</div>
                     </div>
                   </div>
 
-                  {/* Enhanced Stats */}
-                  <div className="space-y-2 mb-4">
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="bg-amber-100 rounded p-2 text-center">
-                        <div className="font-bold text-amber-800">{friend.totalInteractions}</div>
-                        <div className="text-amber-600">Mutual Interactions</div>
+                  {/* Timeline Section */}
+                  <div className="mb-4">
+                    <div className="text-sm font-semibold text-amber-800 mb-2">📅 Connection Timeline</div>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-amber-600">Followed:</span>
+                        <span className="font-semibold text-amber-800">
+                          {formatDate(friend.followDate)}
+                        </span>
                       </div>
-                      <div className="bg-orange-100 rounded p-2 text-center">
-                        <div className="font-bold text-orange-800">{friend.daysSinceFirstEngagement}</div>
-                        <div className="text-orange-600">Days Connected</div>
+                      <div className="flex justify-between">
+                        <span className="text-amber-600">First Engagement:</span>
+                        <span className="font-semibold text-amber-800">
+                          {friend.firstEngagement ? formatDate(friend.firstEngagement) : 'None yet'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-amber-600">Engagement Type:</span>
+                        <span className="font-semibold text-amber-800">
+                          {getEngagementIcon(friend.engagementType)} {friend.engagementType || 'follow'}
+                        </span>
                       </div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-sm text-amber-700 mb-1">Mutual Friend Score</div>
-                      <div className="text-2xl font-bold text-amber-800">
-                        {friend.rideOrDieScore}
+                  </div>
+
+                  {/* Engagement Analysis */}
+                  <div className="mb-4">
+                    <div className="text-sm font-semibold text-amber-800 mb-2">📊 Engagement Analysis</div>
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-amber-800 mb-1">
+                          {friend.rideOrDieScore}
+                        </div>
+                        <div className="text-xs text-amber-600">Mutual Friend Score</div>
+                        <div className="text-xs text-amber-500 mt-1">
+                          {friend.rideOrDieScore > 100 ? '🌟 Elite Connection' : 
+                           friend.rideOrDieScore > 50 ? '💫 Strong Bond' : 
+                           friend.rideOrDieScore > 20 ? '🤝 Good Friend' : '👋 New Connection'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -474,7 +496,7 @@ export default function App() {
                         rel="noopener noreferrer"
                         className="block w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white text-center py-2 rounded-lg font-semibold hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-sm border-2 border-amber-400"
                       >
-                        🤠 View Engagement
+                        🤠 View First Engagement
                       </a>
                     )}
                     
