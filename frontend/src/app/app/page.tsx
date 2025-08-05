@@ -37,7 +37,7 @@ export default function App() {
 
       // Use the compose API to create an embedded cast with mini-app in embeds array
       await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/app')}`
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/embed')}`
       })
 
       console.log('Shared results with embedded cast successfully')
