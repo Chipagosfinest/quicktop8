@@ -21,14 +21,6 @@ interface ReplyGuy {
   verified_addresses?: string[]
   active_status?: string
   last_active?: string
-  // Their recent interactions with others
-  recent_interactions?: Array<{
-    target_username: string
-    target_fid: number
-    interaction_type: 'reply' | 'like' | 'recast'
-    cast_text: string
-    timestamp: string
-  }>
   // Potential new connections
   potential_connections?: Array<{
     fid: number
