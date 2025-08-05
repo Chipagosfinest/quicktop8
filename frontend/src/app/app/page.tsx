@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useMiniApp } from '@/components/MiniAppProvider'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { useTop8 } from '@/lib/hooks/useTop8'
 import { UserCard } from '@/components/UserCard'
@@ -24,8 +23,6 @@ export default function App() {
     isSDKLoaded
   } = useTop8()
 
-  const { signInWithFarcaster } = useMiniApp()
-
   const handleShareResults = async () => {
     if (!userFid || top8.length === 0) return
 
@@ -36,11 +33,11 @@ export default function App() {
       // Create viral embedded cast with dynamic content
       const shareText = `🤠 Just discovered my Top 8 on QuickTop8!\n\n${top3.map((user, i) => 
         `${i + 1}. ${user.display_name || user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
-      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app`
+      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app`
 
       // Use the compose API to create an embedded cast
       await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/embed')}`
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app/embed')}`
       })
 
       console.log('Shared results with embedded cast successfully')

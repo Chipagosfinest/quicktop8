@@ -64,11 +64,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Rate limiting check
-  const checkRateLimit = (endpoint: string) => {
-    // Simple rate limiting - in production you'd use Redis or similar
-    return true
-  }
-
   if (!checkRateLimit('top8-simple')) {
     return NextResponse.json({ 
       error: 'Rate limit exceeded. Please try again in 1 minute.' 

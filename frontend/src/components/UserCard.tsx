@@ -1,6 +1,7 @@
 import { Top8User } from '@/lib/types'
 import { getAffinityTitle, formatLastInteraction } from '@/lib/utils'
 import { sdk } from '@farcaster/miniapp-sdk'
+import Image from 'next/image'
 
 interface UserCardProps {
   user: Top8User
@@ -49,9 +50,11 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
         
         <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-purple-500 overflow-hidden bg-gradient-to-br from-purple-600 to-purple-700 relative">
           {user.pfp_url ? (
-            <img 
+            <Image 
               src={user.pfp_url} 
               alt={`${user.username}'s profile`}
+              width={80}
+              height={80}
               className="w-full h-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;

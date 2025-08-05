@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const health = {
       status: 'healthy',

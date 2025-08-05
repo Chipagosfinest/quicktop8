@@ -10,15 +10,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'QuickTop8 - Your Digital Squad',
     description: 'Discover your closest friends based on mutual affinity scores and see their friends of friends. Relive the MySpace era with your most interactive Farcaster friends! 🔥',
-    images: ['https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/og-image.png'],
+    images: ['https://quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app/og-image.png'],
     type: 'website',
-    url: 'https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/embed',
+    url: 'https://quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app/embed',
   },
   other: {
     'fc:miniapp': 'QuickTop8',
-    'fc:miniapp:domain': 'quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-des6vnsnk-chipagosfinests-projects.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app'
   }
 };
 
