@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useMiniApp } from '@/components/MiniAppProvider'
+import { sdk } from '@farcaster/miniapp-sdk'
 
 interface ReplyGuy {
   fid: number
@@ -67,6 +68,18 @@ export default function App() {
         displayName: (context as any)?.user?.displayName || 'Unknown User'
       }
       setUserProfile(profile)
+      
+      // Call sdk.actions.ready() to hide splash screen
+      const callReady = async () => {
+        try {
+          await sdk.actions.ready()
+          console.log('Mini App ready() called successfully')
+        } catch (error) {
+          console.error('Error calling ready():', error)
+        }
+      }
+      callReady()
+      
       handleGetReplyGuys(fid)
     }
   }, [isSDKLoaded, isConnected, contextUserFid, context])
@@ -125,6 +138,21 @@ export default function App() {
     if (diffHours < 168) return "🟠 Active this week"
     return "🔴 Inactive"
   }
+
+  // Call ready() even if no user context (for testing)
+  useEffect(() => {
+    if (isSDKLoaded && isInMiniApp) {
+      const callReady = async () => {
+        try {
+          await sdk.actions.ready()
+          console.log('Mini App ready() called (fallback)')
+        } catch (error) {
+          console.error('Error calling ready() (fallback):', error)
+        }
+      }
+      callReady()
+    }
+  }, [isSDKLoaded, isInMiniApp])
 
   if (!isSDKLoaded && isInMiniApp) {
     return (
