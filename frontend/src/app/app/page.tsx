@@ -31,9 +31,15 @@ interface Friend {
   last_active?: string
   mutual_friends_count?: number
   engagement_breakdown?: {
-    likes: number
-    recasts: number
-    replies: number
+    uniqueLikes: number
+    uniqueRecasts: number
+    uniqueReplies: number
+    totalLikes: number
+    totalRecasts: number
+    totalReplies: number
+    engagedCasts: number
+    uniqueInteractions: number
+    totalInteractions: number
   }
   recent_casts?: Array<{
     hash: string
@@ -395,26 +401,72 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Engagement Breakdown */}
-                    {friend.engagement_breakdown && (
-                      <div className="mb-4">
-                        <div className="text-sm font-semibold text-amber-800 mb-2">🎯 Your Engagement</div>
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="bg-red-50 rounded p-2 text-center">
-                            <div className="font-bold text-red-800">{friend.engagement_breakdown.likes}</div>
-                            <div className="text-red-600">Likes</div>
-                          </div>
-                          <div className="bg-orange-50 rounded p-2 text-center">
-                            <div className="font-bold text-orange-800">{friend.engagement_breakdown.recasts}</div>
-                            <div className="text-orange-600">Recasts</div>
-                          </div>
-                          <div className="bg-yellow-50 rounded p-2 text-center">
-                            <div className="font-bold text-yellow-800">{friend.engagement_breakdown.replies}</div>
-                            <div className="text-yellow-600">Replies</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                                         {/* Engagement Breakdown */}
+                     {friend.engagement_breakdown && (
+                       <div className="mb-4">
+                         <div className="text-sm font-semibold text-amber-800 mb-2">🎯 Your Engagement</div>
+                         <div className="space-y-3">
+                           {/* Unique Interactions */}
+                           <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                             <div className="text-center mb-2">
+                               <div className="text-lg font-bold text-green-800">{friend.engagement_breakdown.uniqueInteractions}</div>
+                               <div className="text-xs text-green-600">Unique Casts Engaged</div>
+                             </div>
+                             <div className="grid grid-cols-3 gap-2 text-xs">
+                               <div className="bg-red-50 rounded p-1 text-center">
+                                 <div className="font-bold text-red-800">{friend.engagement_breakdown.uniqueLikes}</div>
+                                 <div className="text-red-600">Likes</div>
+                               </div>
+                               <div className="bg-orange-50 rounded p-1 text-center">
+                                 <div className="font-bold text-orange-800">{friend.engagement_breakdown.uniqueRecasts}</div>
+                                 <div className="text-orange-600">Recasts</div>
+                               </div>
+                               <div className="bg-yellow-50 rounded p-1 text-center">
+                                 <div className="font-bold text-yellow-800">{friend.engagement_breakdown.uniqueReplies}</div>
+                                 <div className="text-yellow-600">Replies</div>
+                               </div>
+                             </div>
+                           </div>
+                           
+                           {/* Total Interactions */}
+                           {friend.engagement_breakdown.totalInteractions > friend.engagement_breakdown.uniqueInteractions && (
+                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
+                               <div className="text-center mb-2">
+                                 <div className="text-lg font-bold text-blue-800">{friend.engagement_breakdown.totalInteractions}</div>
+                                 <div className="text-xs text-blue-600">Total Interactions</div>
+                               </div>
+                               <div className="grid grid-cols-3 gap-2 text-xs">
+                                 <div className="bg-red-50 rounded p-1 text-center">
+                                   <div className="font-bold text-red-800">{friend.engagement_breakdown.totalLikes}</div>
+                                   <div className="text-red-600">Likes</div>
+                                 </div>
+                                 <div className="bg-orange-50 rounded p-1 text-center">
+                                   <div className="font-bold text-orange-800">{friend.engagement_breakdown.totalRecasts}</div>
+                                   <div className="text-orange-600">Recasts</div>
+                                 </div>
+                                 <div className="bg-yellow-50 rounded p-1 text-center">
+                                   <div className="font-bold text-yellow-800">{friend.engagement_breakdown.totalReplies}</div>
+                                   <div className="text-yellow-600">Replies</div>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
+                           
+                           {/* Engagement Rate */}
+                           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200">
+                             <div className="text-center">
+                               <div className="text-lg font-bold text-purple-800">{friend.engagement_breakdown.engagedCasts}</div>
+                               <div className="text-xs text-purple-600">Casts They Engaged With</div>
+                               <div className="text-xs text-purple-500 mt-1">
+                                 {friend.engagement_breakdown.uniqueInteractions > 0 ? 
+                                   `${Math.round((friend.engagement_breakdown.uniqueInteractions / friend.engagement_breakdown.engagedCasts) * 100)}% engagement rate` : 
+                                   'No engagement yet'}
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     )}
 
                     {/* Recent Topics */}
                     {topTopics.length > 0 && (

@@ -29,9 +29,15 @@ interface MutualFollowData {
   last_active?: string
   mutual_friends_count?: number
   engagement_breakdown?: {
-    likes: number
-    recasts: number
-    replies: number
+    uniqueLikes: number
+    uniqueRecasts: number
+    uniqueReplies: number
+    totalLikes: number
+    totalRecasts: number
+    totalReplies: number
+    engagedCasts: number
+    uniqueInteractions: number
+    totalInteractions: number
   }
   recent_casts?: Array<{
     hash: string
@@ -105,7 +111,7 @@ async function fetchMutualFriendsCount(userFid: number, friendFid: number): Prom
   return 0
 }
 
-// Function to fetch engagement breakdown
+// Function to fetch engagement breakdown with unique interactions
 async function fetchEngagementBreakdown(userFid: number, friendFid: number): Promise<any> {
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${userFid}&limit=20`, {
@@ -117,10 +123,14 @@ async function fetchEngagementBreakdown(userFid: number, friendFid: number): Pro
       const data = await response.json()
       const casts = data.casts || []
       
-      let likes = 0, recasts = 0, replies = 0
+      let uniqueLikes = 0, uniqueRecasts = 0, uniqueReplies = 0
+      let totalLikes = 0, totalRecasts = 0, totalReplies = 0
+      let engagedCasts = 0
+      const uniqueCastHashes = new Set()
       
       // Get reactions for each cast
       for (const cast of casts.slice(0, 10)) {
+        let castEngaged = false
         const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash&limit=100`, {
           headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
           signal: AbortSignal.timeout(3000)
@@ -132,19 +142,79 @@ async function fetchEngagementBreakdown(userFid: number, friendFid: number): Pro
           
           for (const reaction of reactions) {
             if (reaction.reactor_user?.fid === friendFid) {
-              if (reaction.reaction_type === 'like') likes++
-              else if (reaction.reaction_type === 'recast') recasts++
+              if (reaction.reaction_type === 'like') {
+                totalLikes++
+                if (!uniqueCastHashes.has(cast.hash)) {
+                  uniqueLikes++
+                  uniqueCastHashes.add(cast.hash)
+                }
+                castEngaged = true
+              } else if (reaction.reaction_type === 'recast') {
+                totalRecasts++
+                if (!uniqueCastHashes.has(cast.hash)) {
+                  uniqueRecasts++
+                  uniqueCastHashes.add(cast.hash)
+                }
+                castEngaged = true
+              }
             }
           }
         }
+        
+        // Check for replies
+        const conversationResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${cast.hash}&type=hash&reply_depth=1&limit=25`, {
+          headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+          signal: AbortSignal.timeout(3000)
+        })
+        
+        if (conversationResponse.ok) {
+          const conversationData = await conversationResponse.json()
+          const conversation = conversationData.conversation || {}
+          const directReplies = conversation.direct_replies || []
+          
+          for (const reply of directReplies) {
+            if (reply.author?.fid === friendFid) {
+              totalReplies++
+              if (!uniqueCastHashes.has(cast.hash)) {
+                uniqueReplies++
+                uniqueCastHashes.add(cast.hash)
+              }
+              castEngaged = true
+            }
+          }
+        }
+        
+        if (castEngaged) {
+          engagedCasts++
+        }
       }
       
-      return { likes, recasts, replies }
+      return { 
+        uniqueLikes, 
+        uniqueRecasts, 
+        uniqueReplies,
+        totalLikes,
+        totalRecasts, 
+        totalReplies,
+        engagedCasts,
+        uniqueInteractions: uniqueLikes + uniqueRecasts + uniqueReplies,
+        totalInteractions: totalLikes + totalRecasts + totalReplies
+      }
     }
   } catch (error) {
     console.error(`Error fetching engagement breakdown:`, error)
   }
-  return { likes: 0, recasts: 0, replies: 0 }
+  return { 
+    uniqueLikes: 0, 
+    uniqueRecasts: 0, 
+    uniqueReplies: 0,
+    totalLikes: 0,
+    totalRecasts: 0, 
+    totalReplies: 0,
+    engagedCasts: 0,
+    uniqueInteractions: 0,
+    totalInteractions: 0
+  }
 }
 
 function updateMutualFollowData(
