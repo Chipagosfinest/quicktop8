@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Test 1: Basic user info
     try {
       console.log('🧪 Testing basic user info...')
-      const userResponse = await fetch(`https://api.neynar.com/v2/farcaster/user?fid=${fid}`, {
+      const userResponse = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk/?fids=${fid}`, {
         headers: { 
           'x-api-key': NEYNAR_API_KEY, 
           'accept': 'application/json'
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
       
       for (let i = 0; i < 5; i++) {
         try {
-          const response = await fetch(`https://api.neynar.com/v2/farcaster/user?fid=${fid}`, {
+          const response = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk/?fids=${fid}`, {
             headers: { 
               'x-api-key': NEYNAR_API_KEY, 
               'accept': 'application/json'

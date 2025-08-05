@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         }, { status: 429 })
       }
 
-      const testResponse = await makeNeynarRequest(`https://api.neynar.com/v2/farcaster/user?fid=${userFid}`)
+      const testResponse = await makeNeynarRequest(`https://api.neynar.com/v2/farcaster/user/bulk/?fids=${userFid}`)
 
       if (!testResponse.ok) {
         const errorText = await testResponse.text()

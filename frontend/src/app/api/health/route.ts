@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     // Test Neynar API connectivity
     if (NEYNAR_API_KEY) {
       try {
-        const testResponse = await fetch('https://api.neynar.com/v2/farcaster/user?fid=2', {
+        const testResponse = await fetch('https://api.neynar.com/v2/farcaster/user/bulk/?fids=2', {
           headers: { 
             'x-api-key': NEYNAR_API_KEY, 
             'accept': 'application/json'
