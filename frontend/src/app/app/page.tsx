@@ -18,6 +18,7 @@ interface Friend {
   display_name: string
   pfp_url: string
   bio: string
+  ens_name?: string
   followDate: string
   firstEngagement: string
   engagementType: string
@@ -422,7 +423,14 @@ export default function App() {
                       </div>
                     </div>
                     <h3 className="font-bold text-amber-900 text-xl mb-1">
-                      @{friend.username || `Friend ${friend.fid}`}
+                      {friend.ens_name ? (
+                        <span>
+                          <span className="text-purple-600">{friend.ens_name}</span>
+                          <span className="text-amber-600 text-sm ml-2">@{friend.username}</span>
+                        </span>
+                      ) : (
+                        `@${friend.username || `Friend ${friend.fid}`}`
+                      )}
                     </h3>
                     <p className="text-amber-700 text-sm mb-2">
                       {friend.display_name || 'Mutual Friend'}
@@ -493,8 +501,9 @@ export default function App() {
                           const frequency = friend.engagementFrequency * 50;
                           const interactions = friend.totalInteractions * 5;
                           const followDuration = (Date.now() - new Date(friend.followDate).getTime()) / (1000 * 60 * 60 * 24) * 0.5;
+                          const displayName = friend.ens_name ? `${friend.ens_name} (@${friend.username})` : `@${friend.username}`;
                           
-                          alert(`Friendship Score Breakdown for @${friend.username}:\n\n📊 Score Components:\n• Longevity (${friend.daysSinceFirstEngagement} days × 2): ${longevity.toFixed(1)}\n• Frequency (${friend.engagementFrequency.toFixed(2)}/day × 50): ${frequency.toFixed(1)}\n• Interactions (${friend.totalInteractions} × 5): ${interactions}\n• Follow Duration (${(followDuration/0.5).toFixed(0)} days × 0.5): ${followDuration.toFixed(1)}\n\n🎯 Total Score: ${friend.rideOrDieScore}\n\n💡 What this means:\n${friend.rideOrDieScore > 100 ? '🌟 Elite Connection - You engage frequently and have a long history' : 
+                          alert(`Friendship Score Breakdown for ${displayName}:\n\n📊 Score Components:\n• Longevity (${friend.daysSinceFirstEngagement} days × 2): ${longevity.toFixed(1)}\n• Frequency (${friend.engagementFrequency.toFixed(2)}/day × 50): ${frequency.toFixed(1)}\n• Interactions (${friend.totalInteractions} × 5): ${interactions}\n• Follow Duration (${(followDuration/0.5).toFixed(0)} days × 0.5): ${followDuration.toFixed(1)}\n\n🎯 Total Score: ${friend.rideOrDieScore}\n\n💡 What this means:\n${friend.rideOrDieScore > 100 ? '🌟 Elite Connection - You engage frequently and have a long history' : 
                             friend.rideOrDieScore > 50 ? '💫 Strong Bond - Regular engagement with good history' : 
                             friend.rideOrDieScore > 20 ? '🤝 Good Friend - Some engagement, growing connection' : '👋 New Connection - Early stages of friendship'}`);
                         }}
@@ -529,7 +538,7 @@ export default function App() {
                         onClick={() => window.open(`https://warpcast.com/${friend.username}`, '_blank')}
                         className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-xs border-2 border-blue-400"
                       >
-                        👤 View Profile
+                        👤 {friend.ens_name ? 'View ENS' : 'View Profile'}
                       </button>
                       
                       {friend.originalEngagementCastUrl && (

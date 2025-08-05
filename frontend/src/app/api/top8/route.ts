@@ -8,6 +8,7 @@ interface MutualFollowData {
   display_name: string
   pfp_url: string
   bio: string
+  ens_name?: string
   followDate: string
   firstEngagement: string
   engagementType: 'like' | 'recast' | 'reply'
@@ -27,7 +28,30 @@ interface UserData {
   display_name: string
   pfp_url: string
   bio: string
+  ens_name?: string
   timestamp: string
+}
+
+// Function to fetch ENS name for a user
+async function fetchENSName(fid: number): Promise<string | undefined> {
+  try {
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/user/verifications?fid=${fid}`, {
+      headers: {
+        'x-api-key': NEYNAR_API_KEY,
+        'accept': 'application/json'
+      },
+      signal: AbortSignal.timeout(3000)
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      const ensVerification = data.verifications?.find((v: any) => v.protocol === 'ens')
+      return ensVerification?.username || undefined
+    }
+  } catch (error) {
+    console.error(`Error fetching ENS for FID ${fid}:`, error)
+  }
+  return undefined
 }
 
 function updateMutualFollowData(
@@ -80,6 +104,7 @@ function updateMutualFollowData(
       display_name: user.display_name,
       pfp_url: user.pfp_url,
       bio: user.bio,
+      ens_name: user.ens_name,
       followDate: followDate,
       firstEngagement: engagementDate,
       engagementType: engagementType,
@@ -225,27 +250,37 @@ export async function GET(request: NextRequest) {
       }
       
       // Step 5: Sort by ride or die score and return top 8
-      const friends = Array.from(mutualFollowsMap.values())
+      const topFriends = Array.from(mutualFollowsMap.values())
         .sort((a, b) => b.rideOrDieScore - a.rideOrDieScore)
         .slice(0, 8)
-        .map(friend => ({
-          fid: friend.fid,
-          username: friend.username,
-          display_name: friend.display_name,
-          pfp_url: friend.pfp_url,
-          bio: friend.bio,
-          followDate: friend.followDate,
-          firstEngagement: friend.firstEngagement,
-          engagementType: friend.engagementType,
-          totalInteractions: friend.totalInteractions,
-          relationshipScore: Math.round(friend.relationshipScore),
-          // New ride or die fields
-          originalEngagementCastHash: friend.originalEngagementCastHash,
-          originalEngagementCastUrl: friend.originalEngagementCastUrl,
-          rideOrDieScore: friend.rideOrDieScore,
-          daysSinceFirstEngagement: Math.round(friend.daysSinceFirstEngagement),
-          engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100
-        }))
+      
+      // Fetch ENS names for top friends
+      const friendsWithENS = await Promise.all(
+        topFriends.map(async (friend) => {
+          const ensName = await fetchENSName(friend.fid)
+          return {
+            fid: friend.fid,
+            username: friend.username,
+            display_name: friend.display_name,
+            pfp_url: friend.pfp_url,
+            bio: friend.bio,
+            ens_name: ensName,
+            followDate: friend.followDate,
+            firstEngagement: friend.firstEngagement,
+            engagementType: friend.engagementType,
+            totalInteractions: friend.totalInteractions,
+            relationshipScore: Math.round(friend.relationshipScore),
+            // New ride or die fields
+            originalEngagementCastHash: friend.originalEngagementCastHash,
+            originalEngagementCastUrl: friend.originalEngagementCastUrl,
+            rideOrDieScore: friend.rideOrDieScore,
+            daysSinceFirstEngagement: Math.round(friend.daysSinceFirstEngagement),
+            engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100
+          }
+        })
+      )
+      
+      const friends = friendsWithENS
       
       console.log(`Found ${friends.length} top mutual follows with engagement`)
       
