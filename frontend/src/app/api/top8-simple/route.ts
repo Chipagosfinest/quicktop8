@@ -160,21 +160,62 @@ export async function GET(request: NextRequest) {
         })
       }
 
+      // Get full user details for each best friend
+      const fids = bestFriends.slice(0, 8).map((friend: any) => friend.fid).join(',')
+      
+      if (!checkRateLimit('user-details')) {
+        return NextResponse.json({ 
+          error: 'Rate limit exceeded. Please try again in a minute.',
+          debug: { rate_limited: true }
+        }, { status: 429 })
+      }
+
+      const userDetailsResponse = await makeNeynarRequest(
+        `https://api.neynar.com/v2/farcaster/user/bulk/?fids=${fids}`
+      )
+
+      if (!userDetailsResponse.ok) {
+        const errorText = await userDetailsResponse.text()
+        console.error(`❌ User details API error: ${userDetailsResponse.status}`, errorText)
+        
+        return NextResponse.json({ 
+          error: `User details API error: ${userDetailsResponse.status}`,
+          debug: {
+            status: userDetailsResponse.status,
+            statusText: userDetailsResponse.statusText,
+            error_details: errorText
+          }
+        }, { status: userDetailsResponse.status })
+      }
+
+      const userDetailsData = await userDetailsResponse.json()
+      const userDetailsMap = new Map()
+      
+      if (userDetailsData.users) {
+        userDetailsData.users.forEach((user: any) => {
+          userDetailsMap.set(user.fid, user)
+        })
+      }
+
       // Build simplified Top 8 with enhanced data
-      const top8 = bestFriends.slice(0, 8).map((friend: any, index: number) => ({
-        fid: friend.fid,
-        username: friend.username || `user${friend.fid}`,
-        display_name: friend.display_name || '',
-        pfp_url: friend.pfp_url || '',
-        bio: friend.bio || '',
-        ens_name: friend.ens_name || '',
-        mutual_affinity_score: friend.mutual_affinity_score || 0,
-        rank: index + 1,
-        // Enhanced metadata
-        verified: friend.verified || false,
-        follower_count: friend.follower_count || 0,
-        following_count: friend.following_count || 0
-      }))
+      const top8 = bestFriends.slice(0, 8).map((friend: any, index: number) => {
+        const userDetails = userDetailsMap.get(friend.fid) || {}
+        
+        return {
+          fid: friend.fid,
+          username: friend.username || userDetails.username || `user${friend.fid}`,
+          display_name: userDetails.display_name || '',
+          pfp_url: userDetails.pfp_url || '',
+          bio: userDetails.profile?.bio?.text || '',
+          ens_name: userDetails.username || '',
+          mutual_affinity_score: friend.mutual_affinity_score || 0,
+          rank: index + 1,
+          // Enhanced metadata
+          verified: userDetails.verified_addresses?.eth_addresses?.length > 0 || false,
+          follower_count: userDetails.follower_count || 0,
+          following_count: userDetails.following_count || 0
+        }
+      })
 
       const totalAffinityScore = top8.reduce((sum: number, user: any) => sum + user.mutual_affinity_score, 0)
       const topAffinityScore = Math.max(...top8.map((user: any) => user.mutual_affinity_score))
