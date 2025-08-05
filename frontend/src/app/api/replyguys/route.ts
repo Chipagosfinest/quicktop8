@@ -64,7 +64,7 @@ function checkRateLimit(endpoint: string): boolean {
   return true
 }
 
-// Optimized function to fetch user's recent casts with better error handling
+// Enhanced debugging function to fetch user's recent casts
 async function fetchUserCasts(fid: number, limit: number = 15): Promise<any[]> {
   if (!checkRateLimit('user-casts')) {
     console.warn('Rate limit exceeded for user casts')
@@ -72,28 +72,48 @@ async function fetchUserCasts(fid: number, limit: number = 15): Promise<any[]> {
   }
 
   try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=${limit}`, {
+    console.log(`🔍 Fetching casts for FID: ${fid} with limit: ${limit}`)
+    
+    const url = `https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=${limit}`
+    console.log(`📡 API URL: ${url}`)
+    
+    const response = await fetch(url, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
         'accept': 'application/json' 
       },
-      signal: AbortSignal.timeout(10000) // Increased timeout for reliability
+      signal: AbortSignal.timeout(10000)
     })
     
+    console.log(`📊 Response status: ${response.status} ${response.statusText}`)
+    
     if (!response.ok) {
-      console.error(`Failed to fetch casts for FID ${fid}: ${response.status} ${response.statusText}`)
+      const errorText = await response.text()
+      console.error(`❌ Failed to fetch casts for FID ${fid}: ${response.status} ${response.statusText}`)
+      console.error(`❌ Error details: ${errorText}`)
       return []
     }
     
     const data = await response.json()
+    console.log(`✅ Casts response structure:`, Object.keys(data))
+    console.log(`📝 Found ${data.casts?.length || 0} casts`)
+    
+    if (data.casts && data.casts.length > 0) {
+      console.log(`📝 First cast:`, {
+        hash: data.casts[0].hash,
+        text: data.casts[0].text?.substring(0, 50) + '...',
+        timestamp: data.casts[0].timestamp
+      })
+    }
+    
     return data.casts || []
   } catch (error) {
-    console.error(`Error fetching casts for FID ${fid}:`, error)
+    console.error(`💥 Error fetching casts for FID ${fid}:`, error)
     return []
   }
 }
 
-// Optimized function to fetch replies for a cast using conversation endpoint
+// Enhanced debugging function to fetch replies for a cast
 async function fetchCastReplies(castHash: string): Promise<any[]> {
   if (!checkRateLimit('cast-replies')) {
     console.warn('Rate limit exceeded for cast replies')
@@ -101,30 +121,51 @@ async function fetchCastReplies(castHash: string): Promise<any[]> {
   }
 
   try {
-    // Using conversation endpoint with optimized parameters
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${castHash}&type=hash&reply_depth=1&limit=25`, {
+    console.log(`🔍 Fetching replies for cast: ${castHash}`)
+    
+    const url = `https://api.neynar.com/v2/farcaster/feed/conversation_and_replies?identifier=${castHash}&reply_depth=1&limit=25`
+    console.log(`📡 API URL: ${url}`)
+    
+    const response = await fetch(url, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
         'accept': 'application/json' 
       },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(10000)
     })
     
+    console.log(`📊 Replies response status: ${response.status} ${response.statusText}`)
+    
     if (!response.ok) {
-      console.error(`Failed to fetch replies for cast ${castHash}: ${response.status}`)
+      const errorText = await response.text()
+      console.error(`❌ Failed to fetch replies for cast ${castHash}: ${response.status} ${response.statusText}`)
+      console.error(`❌ Error details: ${errorText}`)
       return []
     }
     
     const data = await response.json()
-    const conversation = data.conversation || {}
-    return conversation.direct_replies || []
+    console.log(`✅ Replies response structure:`, Object.keys(data))
+    
+    // Filter out the original cast and get only replies
+    const replies = data.conversation?.direct_replies || []
+    console.log(`📝 Found ${replies.length} replies`)
+    
+    if (replies.length > 0) {
+      console.log(`📝 First reply:`, {
+        author: replies[0].author?.username,
+        text: replies[0].text?.substring(0, 50) + '...',
+        timestamp: replies[0].timestamp
+      })
+    }
+    
+    return replies
   } catch (error) {
-    console.error(`Error fetching replies for cast ${castHash}:`, error)
+    console.error(`💥 Error fetching replies for cast ${castHash}:`, error)
     return []
   }
 }
 
-// Optimized function to fetch user's recent activity with parallel processing
+// Enhanced debugging function to fetch user's recent activity
 async function fetchUserRecentActivity(fid: number): Promise<any[]> {
   if (!checkRateLimit('user-activity')) {
     console.warn('Rate limit exceeded for user activity')
@@ -132,155 +173,138 @@ async function fetchUserRecentActivity(fid: number): Promise<any[]> {
   }
 
   try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=8`, {
+    console.log(`🔍 Fetching recent activity for FID: ${fid}`)
+    
+    const url = `https://api.neynar.com/v2/farcaster/feed/user/replies_and_recasts?fid=${fid}&limit=8`
+    console.log(`📡 API URL: ${url}`)
+    
+    const response = await fetch(url, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
         'accept': 'application/json' 
       },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(10000)
     })
     
+    console.log(`📊 Activity response status: ${response.status} ${response.statusText}`)
+    
     if (!response.ok) {
-      console.error(`Failed to fetch user activity for FID ${fid}: ${response.status}`)
+      const errorText = await response.text()
+      console.error(`❌ Failed to fetch activity for FID ${fid}: ${response.status} ${response.statusText}`)
+      console.error(`❌ Error details: ${errorText}`)
       return []
     }
     
     const data = await response.json()
-    const casts = data.casts || []
-    const interactions: any[] = []
+    console.log(`✅ Activity response structure:`, Object.keys(data))
+    console.log(`📝 Found ${data.casts?.length || 0} activities`)
     
-    // Process casts in parallel for better performance
-    const activityPromises = casts.slice(0, 4).map(async (cast: any) => {
-      const castInteractions: any[] = []
-      
-      try {
-        // Get reactions in parallel
-        const reactionsPromise = fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash&limit=50`, {
-          headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
-          signal: AbortSignal.timeout(5000)
-        })
-        
-        // Get replies in parallel
-        const repliesPromise = fetchCastReplies(cast.hash)
-        
-        // Wait for both requests
-        const [reactionsResponse, replies] = await Promise.all([reactionsPromise, repliesPromise])
-        
-        if (reactionsResponse.ok) {
-          const reactionsData = await reactionsResponse.json()
-          const reactions = reactionsData.reactions || []
-          
-          for (const reaction of reactions) {
-            if (reaction.reactor_user?.fid !== fid) {
-              castInteractions.push({
-                target_fid: reaction.reactor_user?.fid,
-                target_username: reaction.reactor_user?.username,
-                interaction_type: reaction.reaction_type,
-                cast_text: cast.text,
-                timestamp: cast.timestamp
-              })
-            }
-          }
-        }
-        
-        // Add replies
-        for (const reply of replies) {
-          if (reply.author?.fid !== fid) {
-            castInteractions.push({
-              target_fid: reply.author?.fid,
-              target_username: reply.author?.username,
-              interaction_type: 'reply',
-              cast_text: reply.text,
-              timestamp: reply.timestamp
-            })
-          }
-        }
-      } catch (error) {
-        console.error(`Error processing cast ${cast.hash}:`, error)
-      }
-      
-      return castInteractions
-    })
-    
-    const results = await Promise.all(activityPromises)
-    return results.flat()
+    return data.casts || []
   } catch (error) {
-    console.error(`Error fetching recent activity for FID ${fid}:`, error)
+    console.error(`💥 Error fetching activity for FID ${fid}:`, error)
     return []
   }
 }
 
-// Optimized function to check if user follows someone using followers endpoint
+// Enhanced debugging function to check if following
 async function checkIfFollowing(followerFid: number, followingFid: number): Promise<boolean> {
-  if (!checkRateLimit('followers-check')) {
-    console.warn('Rate limit exceeded for followers check')
+  if (!checkRateLimit('following-check')) {
+    console.warn('Rate limit exceeded for following check')
     return false
   }
 
   try {
-    // Use followers endpoint with optimized parameters
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/followers?fid=${followingFid}&limit=1000`, {
+    console.log(`🔍 Checking if ${followerFid} follows ${followingFid}`)
+    
+    const url = `https://api.neynar.com/v2/farcaster/follows?follower=${followerFid}&following=${followingFid}`
+    console.log(`📡 API URL: ${url}`)
+    
+    const response = await fetch(url, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
         'accept': 'application/json' 
       },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(10000)
     })
     
+    console.log(`📊 Following check response status: ${response.status} ${response.statusText}`)
+    
     if (!response.ok) {
-      console.error(`Failed to check followers for FID ${followingFid}: ${response.status}`)
+      console.error(`❌ Failed to check following: ${response.status} ${response.statusText}`)
       return false
     }
     
     const data = await response.json()
-    const followers = data.users || []
-    return followers.some((user: any) => user.user.fid === followerFid)
+    const isFollowing = data.follows?.length > 0
+    console.log(`✅ Following check result: ${isFollowing}`)
+    
+    return isFollowing
   } catch (error) {
-    console.error(`Error checking if ${followerFid} follows ${followingFid}:`, error)
+    console.error(`💥 Error checking following:`, error)
     return false
   }
 }
 
-// Optimized function to fetch user data with caching
+// Enhanced debugging function to fetch user data with caching
 const userDataCache = new Map<number, { data: any; timestamp: number }>()
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 async function fetchUserData(fid: number): Promise<any> {
-  const now = Date.now()
-  const cached = userDataCache.get(fid)
-  
-  if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    return cached.data
-  }
-
   if (!checkRateLimit('user-data')) {
     console.warn('Rate limit exceeded for user data')
     return {}
   }
 
+  // Check cache first
+  const cached = userDataCache.get(fid)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`📋 Using cached data for FID: ${fid}`)
+    return cached.data
+  }
+
   try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/user?fid=${fid}`, {
+    console.log(`🔍 Fetching user data for FID: ${fid}`)
+    
+    const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`
+    console.log(`📡 API URL: ${url}`)
+    
+    const response = await fetch(url, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
         'accept': 'application/json' 
       },
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(10000)
     })
     
+    console.log(`📊 User data response status: ${response.status} ${response.statusText}`)
+    
     if (!response.ok) {
-      console.error(`Failed to fetch user data for FID ${fid}: ${response.status}`)
+      const errorText = await response.text()
+      console.error(`❌ Failed to fetch user data for FID ${fid}: ${response.status} ${response.statusText}`)
+      console.error(`❌ Error details: ${errorText}`)
       return {}
     }
     
     const data = await response.json()
-    const userData = data.user || {}
+    console.log(`✅ User data response structure:`, Object.keys(data))
     
-    // Cache the result
-    userDataCache.set(fid, { data: userData, timestamp: now })
-    
-    return userData
+    const user = data.users?.[0]
+    if (user) {
+      console.log(`📝 User data:`, {
+        username: user.username,
+        display_name: user.display_name,
+        follower_count: user.follower_count
+      })
+      
+      // Cache the result
+      userDataCache.set(fid, { data: user, timestamp: Date.now() })
+      return user
+    } else {
+      console.warn(`⚠️ No user data found for FID: ${fid}`)
+      return {}
+    }
   } catch (error) {
-    console.error(`Error fetching user data for FID ${fid}:`, error)
+    console.error(`💥 Error fetching user data for FID ${fid}:`, error)
     return {}
   }
 }
@@ -294,29 +318,46 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    console.log(`Finding reply guys for FID: ${fid}`)
+    console.log(`🚀 Starting reply guys analysis for FID: ${fid}`)
+    console.log(`🔑 Using API key: ${NEYNAR_API_KEY.substring(0, 8)}...`)
 
-    // Step 1: Get user's recent casts with optimized limit
+    // Step 1: Get user's recent casts with enhanced debugging
     const userCasts = await fetchUserCasts(parseInt(fid), 12)
-    console.log(`Found ${userCasts.length} recent casts`)
+    console.log(`📊 Found ${userCasts.length} recent casts`)
 
     if (userCasts.length === 0) {
+      console.log(`⚠️ No recent casts found for FID: ${fid}`)
       return NextResponse.json({ 
         replyGuys: [],
-        message: "No recent casts found to analyze replies."
+        message: "No recent casts found to analyze replies. Try posting more content!",
+        debug: {
+          fid: parseInt(fid),
+          castsFound: 0,
+          apiKeyUsed: NEYNAR_API_KEY.substring(0, 8) + '...'
+        }
       })
     }
 
     // Step 2: Get replies for each cast and find reply guys with parallel processing
     const replyGuysMap = new Map<number, ReplyGuyData>()
     
+    console.log(`🔄 Processing ${userCasts.length} casts for replies...`)
+    
     // Process casts in parallel for better performance
-    const replyPromises = userCasts.slice(0, 8).map(async (cast: any) => {
+    const replyPromises = userCasts.slice(0, 8).map(async (cast: any, index: number) => {
+      console.log(`📝 Processing cast ${index + 1}/${userCasts.length}: ${cast.hash}`)
       const replies = await fetchCastReplies(cast.hash)
+      
+      console.log(`📝 Found ${replies.length} replies for cast ${index + 1}`)
       
       for (const reply of replies) {
         const replierFid = reply.author?.fid
-        if (!replierFid) continue
+        if (!replierFid) {
+          console.warn(`⚠️ Reply missing author FID:`, reply)
+          continue
+        }
+        
+        console.log(`👤 Processing reply from FID: ${replierFid}`)
         
         const existing = replyGuysMap.get(replierFid)
         const replyDate = new Date(reply.timestamp)
@@ -327,7 +368,10 @@ export async function GET(request: NextRequest) {
           if (replyDate < new Date(existing.firstReplyDate)) {
             existing.firstReplyDate = reply.timestamp
           }
+          console.log(`📈 Updated reply count for FID ${replierFid}: ${existing.replyCount}`)
         } else {
+          console.log(`🆕 New reply guy found: FID ${replierFid}`)
+          
           // Get basic user data with caching
           const user = await fetchUserData(replierFid)
           
@@ -361,13 +405,33 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.replyCount - a.replyCount)
       .slice(0, 6) // Reduced to 6 for better performance
 
-    console.log(`Found ${replyGuys.length} reply guys`)
+    console.log(`🎉 Found ${replyGuys.length} reply guys total`)
+
+    if (replyGuys.length === 0) {
+      console.log(`⚠️ No reply guys found after processing`)
+      return NextResponse.json({ 
+        replyGuys: [],
+        message: "No reply guys found. Start posting more content to discover who replies to you most!",
+        debug: {
+          fid: parseInt(fid),
+          castsProcessed: userCasts.length,
+          replyGuysFound: 0,
+          apiKeyUsed: NEYNAR_API_KEY.substring(0, 8) + '...'
+        }
+      })
+    }
 
     // Step 4: For each reply guy, find their recent interactions and potential connections
-    const connectionPromises = replyGuys.map(async (replyGuy) => {
+    console.log(`🔗 Finding potential connections for ${replyGuys.length} reply guys...`)
+    
+    const connectionPromises = replyGuys.map(async (replyGuy, index) => {
+      console.log(`🔍 Processing reply guy ${index + 1}/${replyGuys.length}: ${replyGuy.username}`)
+      
       // Get their recent activity
       const recentActivity = await fetchUserRecentActivity(replyGuy.fid)
       replyGuy.recent_interactions = recentActivity.slice(0, 8)
+      
+      console.log(`📝 Found ${recentActivity.length} recent activities for ${replyGuy.username}`)
       
       // Find potential new connections (people they interact with that you don't follow)
       const potentialConnections = new Map<number, any>()
@@ -375,10 +439,14 @@ export async function GET(request: NextRequest) {
       for (const interaction of recentActivity) {
         if (!interaction.target_fid || interaction.target_fid === parseInt(fid)) continue
         
+        console.log(`🔍 Checking potential connection: FID ${interaction.target_fid}`)
+        
         // Check if you already follow this person
         const alreadyFollowing = await checkIfFollowing(parseInt(fid), interaction.target_fid)
         
         if (!alreadyFollowing) {
+          console.log(`✨ New potential connection found: FID ${interaction.target_fid}`)
+          
           const existing = potentialConnections.get(interaction.target_fid)
           if (existing) {
             existing.interaction_count++
@@ -406,19 +474,38 @@ export async function GET(request: NextRequest) {
       replyGuy.potential_connections = Array.from(potentialConnections.values())
         .sort((a, b) => b.interaction_count - a.interaction_count)
         .slice(0, 4) // Reduced to 4 for better performance
+      
+      console.log(`🔗 Found ${replyGuy.potential_connections.length} potential connections for ${replyGuy.username}`)
     })
     
     await Promise.all(connectionPromises)
 
+    console.log(`✅ Reply guys analysis complete!`)
+    console.log(`📊 Final results:`, {
+      totalReplyGuys: replyGuys.length,
+      replyGuysWithConnections: replyGuys.filter(rg => (rg.potential_connections?.length || 0) > 0).length,
+      totalPotentialConnections: replyGuys.reduce((sum, rg) => sum + (rg.potential_connections?.length || 0), 0)
+    })
+
     return NextResponse.json({
       replyGuys,
-      message: `Found ${replyGuys.length} reply guys with potential new connections`
+      message: `Found ${replyGuys.length} reply guys with potential new connections`,
+      debug: {
+        fid: parseInt(fid),
+        castsProcessed: userCasts.length,
+        replyGuysFound: replyGuys.length,
+        apiKeyUsed: NEYNAR_API_KEY.substring(0, 8) + '...'
+      }
     })
 
   } catch (error) {
-    console.error('Error in reply guys API:', error)
+    console.error('💥 Error in reply guys API:', error)
     return NextResponse.json({ 
-      error: "Failed to fetch reply guys. Please try again." 
+      error: "Failed to fetch reply guys. Please try again.",
+      debug: {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      }
     }, { status: 500 })
   }
 } 
