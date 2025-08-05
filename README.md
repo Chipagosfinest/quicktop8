@@ -4,18 +4,21 @@ A Farcaster Mini App that discovers your top 8 mutual follows with engagement hi
 
 ## 🎯 What it does
 
-QuickTop8 analyzes your Farcaster network to find your **longest-standing mutual follows** who have engaged with your content. It shows:
+QuickTop8 analyzes your Farcaster network to find your **top 8 closest friends** based on mutual affinity scores. It shows:
 
-- **Mutual follows** (users who follow each other)
-- **First engagement** (like/recast) between you
-- **Follow date** showing relationship duration
-- **Total interactions** between users
-- **Relationship score** based on duration + engagement
+- **Mutual affinity scores** (calculated by Neynar's algorithm)
+- **Rank and relationship titles** (Ride or Die, Bestie, Squad Leader, etc.)
+- **Profile information** (username, display name, bio, verification status)
+- **Interaction statistics** (total interactions, recent activity)
+- **Friends of friends** (their top connections)
+- **Social insights** (follower counts, engagement patterns)
 
 ## 🚀 Live Demo
 
 - **Mini App**: Available on Farcaster
-- **Web App**: https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app
+- **Web App**: https://quicktop8-1bo6rg9l8-chipagosfinests-projects.vercel.app/app
+- **Embed Page**: https://quicktop8-1bo6rg9l8-chipagosfinests-projects.vercel.app/embed
+- **Health Check**: https://quicktop8-1bo6rg9l8-chipagosfinests-projects.vercel.app/api/health
 
 ## 🛠 Tech Stack
 
@@ -32,15 +35,21 @@ quicktop8/
 │   ├── src/
 │   │   ├── app/             # App router pages
 │   │   │   ├── api/         # API routes
-│   │   │   │   ├── top8/    # Main algorithm
-│   │   │   │   ├── webhook/ # Mini app webhook
-│   │   │   │   └── health/  # Health checks
+│   │   │   │   ├── top8-simple/    # Main algorithm
+│   │   │   │   ├── health/  # Health checks
+│   │   │   │   ├── test/    # API testing
+│   │   │   │   └── user/    # User data endpoints
 │   │   │   ├── app/         # Main app page
-│   │   │   └── page.tsx     # Landing page
+│   │   │   └── embed/       # Embed page
 │   │   ├── components/      # React components
+│   │   │   ├── UserCard.tsx # User card component
+│   │   │   └── StatsSection.tsx # Stats display
 │   │   └── lib/            # Utilities
+│   │       ├── types.ts     # TypeScript types
+│   │       ├── utils.ts     # Utility functions
+│   │       └── hooks/       # Custom hooks
+│   │           └── useTop8.ts # Top 8 state management
 │   └── public/
-│       └── .well-known/    # Farcaster manifest
 └── scripts/                # Utility scripts
 ```
 
@@ -59,26 +68,31 @@ npx vercel --prod
 
 ## 📊 Algorithm
 
-The app uses a sophisticated algorithm that:
+The app uses Neynar's sophisticated affinity scoring algorithm that:
 
-1. **Finds mutual follows** - Users who follow each other
-2. **Tracks engagement** - First like/recast between mutual follows
-3. **Calculates relationship score** - Based on follow duration + interactions
-4. **Ranks by relationship strength** - Longest-standing relationships first
+1. **Analyzes mutual interactions** - Likes, recasts, replies between users
+2. **Calculates affinity scores** - Based on interaction frequency and recency
+3. **Ranks by mutual affinity** - Highest scoring relationships first
+4. **Provides social insights** - Friends of friends and engagement patterns
+5. **Generates relationship titles** - Ride or Die, Bestie, Squad Leader, etc.
 
 ## 🎨 Design
 
 - Clean, modern UI with Tailwind CSS
 - Responsive design for mobile and desktop
 - Farcaster Mini App integration
-- Professional card-based layout
+- Professional card-based layout with rank badges
+- Improved UX with scores below tip buttons
+- Visual hierarchy with ranks above profile pictures
 
 ## 📈 Performance
 
 - Optimized API calls with rate limiting
-- Efficient data processing
-- Fast response times
+- Efficient data processing with modular architecture
+- Fast response times (99.6 kB shared bundle)
 - Scalable serverless architecture
+- Clean, maintainable codebase with no unused endpoints
+- TypeScript coverage with centralized types
 
 ## 🔐 Environment Variables
 
