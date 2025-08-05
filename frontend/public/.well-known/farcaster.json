@@ -12,6 +12,7 @@
     "imageUrl": "https://friends-of-friends.vercel.app/og-image.png",
     "buttonTitle": "🤠 Find My Top 8",
     "splashImageUrl": "https://friends-of-friends.vercel.app/splash.png",
-    "splashBackgroundColor": "#f7f7f7"
+    "splashBackgroundColor": "#f7f7f7",
+    "castShareUrl": "https://friends-of-friends.vercel.app/app"
   }
 }

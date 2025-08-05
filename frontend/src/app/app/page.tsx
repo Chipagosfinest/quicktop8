@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { useTop8 } from '@/lib/hooks/useTop8'
 import { UserCard } from '@/components/UserCard'
-import { StatsSection } from '@/components/StatsSection'
+
 
 export default function App() {
   const [showScoringPrimer, setShowScoringPrimer] = useState(false)
@@ -35,9 +35,10 @@ export default function App() {
         `${i + 1}. ${user.display_name || user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
       ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at friends-of-friends.vercel.app`
 
-      // Use the compose API to create an embedded cast with mini-app in embeds array
-      await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/embed')}`
+      // Use composeCast instead of openUrl for proper mini-app embedding
+      await sdk.actions.composeCast({
+        text: shareText,
+        embeds: ['https://friends-of-friends.vercel.app/embed']
       })
 
       console.log('Shared results with embedded cast successfully')
@@ -183,8 +184,16 @@ export default function App() {
 
         {!loading && !error && top8.length > 0 && (
           <div className="space-y-8">
-            {/* Enhanced Stats Section */}
-            {stats && <StatsSection stats={stats} totalUsers={allUsers.length} />}
+            {/* Network Strength Info */}
+            {stats && (
+              <div className="text-center">
+                <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-4 border-2 border-purple-300 inline-block">
+                  <div className="text-sm text-purple-700">
+                    <span className="font-semibold">💡 Network Strength:</span> {stats.total_followers ? `${(stats.total_followers / 1000).toFixed(1)}K` : 'N/A'} total followers across your squad
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Share Button */}
             <div className="text-center">
