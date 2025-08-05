@@ -151,35 +151,67 @@ export default function App() {
     }
   }
 
-  const handleTipUser = async (fid: number, username: string) => {
-    try {
-      // Use Farcaster's native tipping system
-      await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/tip/${fid}?amount=1000&message=${encodeURIComponent(`Thanks for being in my Top 8! 🤠`)}`
-      })
-
-      console.log(`Tipped ${username} successfully`)
-    } catch (error) {
-      console.error('Error tipping user:', error)
-    }
-  }
-
   const handleShareResults = async () => {
     if (!userFid || top8.length === 0) return
 
     try {
       const top3 = top8.slice(0, 3)
-      const shareText = `🤠 My Top 8 on QuickTop8:\n\n${top3.map((user, i) => 
-        `${i + 1}. @${user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
-      ).join('\n')}\n\nDiscover your Top 8 at quicktop8.vercel.app`
+      const top3Usernames = top3.map(user => `@${user.username}`).join(' ')
+      
+      // Create viral embedded cast with dynamic content
+      const shareText = `🤠 Just discovered my Top 8 on QuickTop8!\n\n${top3.map((user, i) => 
+        `${i + 1}. ${user.display_name || user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
+      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at quicktop8.vercel.app`
 
+      // Use the compose API to create an embedded cast
       await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://quicktop8-ogv23oich-chipagosfinests-projects.vercel.app/embed')}`
       })
 
-      console.log('Shared results successfully')
+      console.log('Shared results with embedded cast successfully')
     } catch (error) {
       console.error('Error sharing results:', error)
+    }
+  }
+
+  const handleTipUser = async (fid: number, username: string) => {
+    try {
+      // Use the latest sendToken API for better wallet integration
+      const result = await sdk.actions.sendToken({
+        token: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDC
+        amount: '1000000', // 1 USDC (6 decimals)
+        recipientFid: fid
+      })
+
+      if (result.success) {
+        console.log(`Tipped ${username} successfully: ${result.send.transaction}`)
+      } else {
+        console.error('Tip failed:', result.reason, result.error)
+      }
+    } catch (error) {
+      console.error('Error tipping user:', error)
+      // Fallback to URL method if sendToken fails
+      try {
+        await sdk.actions.openUrl({
+          url: `https://warpcast.com/~/tip/${fid}?amount=1000&message=${encodeURIComponent(`Thanks for being in my Top 8! 🤠`)}`
+        })
+      } catch (fallbackError) {
+        console.error('Fallback tip also failed:', fallbackError)
+      }
+    }
+  }
+
+  const handleDiscoverMoreUsers = async (userFid: number) => {
+    try {
+      // Fetch friends of friends for discovery
+      const response = await fetch(`/api/user/${userFid}/top-interactions`)
+      if (response.ok) {
+        const data = await response.json()
+        // This would show a modal or navigate to discovery page
+        console.log('Discovery data:', data)
+      }
+    } catch (error) {
+      console.error('Error discovering more users:', error)
     }
   }
 
@@ -506,11 +538,32 @@ export default function App() {
                             </button>
                           ))}
                           {user.social_scope.friends_of_friends.length > 3 && (
-                            <span className="text-xs text-gray-500">+{user.social_scope.friends_of_friends.length - 3} more</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDiscoverMoreUsers(user.fid);
+                              }}
+                              className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                            >
+                              +{user.social_scope.friends_of_friends.length - 3} more
+                            </button>
                           )}
                         </div>
                       </div>
                     )}
+
+                    {/* Discovery Action */}
+                    <div className="mb-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDiscoverMoreUsers(user.fid);
+                        }}
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-center py-2 rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 text-sm border-2 border-emerald-400"
+                      >
+                        🔍 Discover More
+                      </button>
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="space-y-2">

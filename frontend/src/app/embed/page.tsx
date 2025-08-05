@@ -5,18 +5,20 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata: Metadata = {
-  title: 'QuickTop8 - Your Top 8 Friends',
-  description: 'Discover your closest friends based on mutual affinity scores',
+  title: 'QuickTop8 - Your Digital Squad',
+  description: 'Discover your closest friends based on mutual affinity scores. Relive the MySpace era with your most interactive Farcaster friends! 🔥',
   openGraph: {
-    title: 'QuickTop8 - Your Top 8 Friends',
-    description: 'Discover your closest friends based on mutual affinity scores',
-    images: ['https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/og-image.png'],
+    title: 'QuickTop8 - Your Digital Squad',
+    description: 'Discover your closest friends based on mutual affinity scores. Relive the MySpace era with your most interactive Farcaster friends! 🔥',
+    images: ['https://quicktop8-ogv23oich-chipagosfinests-projects.vercel.app/og-image.png'],
+    type: 'website',
+    url: 'https://quicktop8-ogv23oich-chipagosfinests-projects.vercel.app/embed',
   },
   other: {
     'fc:miniapp': 'QuickTop8',
-    'fc:miniapp:domain': 'quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-ogv23oich-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-ogv23oich-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-ogv23oich-chipagosfinests-projects.vercel.app'
   }
 };
 
