@@ -1,129 +1,138 @@
-# QuickTop8 - Farcaster Mini App
+# Friends of Friends - Farcaster Mini App
 
-A Farcaster Mini App that discovers your top 8 mutual follows with engagement history.
+Friends of Friends analyzes your Farcaster network to find your **top 8 closest friends** based on mutual affinity scores. It shows:
 
-## 🎯 What it does
-
-QuickTop8 analyzes your Farcaster network to find your **top 8 closest friends** based on mutual affinity scores. It shows:
-
-- **Mutual affinity scores** (calculated by Neynar's algorithm)
-- **Rank and relationship titles** (Ride or Die, Bestie, Squad Leader, etc.)
-- **Profile information** (username, display name, bio, verification status)
-- **Interaction statistics** (total interactions, recent activity)
-- **Friends of friends** (their top connections)
-- **Social insights** (follower counts, engagement patterns)
+- **Your Top 8 Friends**: Ranked by mutual affinity scores
+- **Affinity Scores**: Based on interactions, likes, recasts, and follows
+- **Social Insights**: Discover who you truly connect with
+- **Privacy First**: Your data stays private and secure
 
 ## 🚀 Live Demo
 
-- **Mini App**: Available on Farcaster
-- **Web App**: https://quicktop8-mun7d5qb7-chipagosfinests-projects.vercel.app/app
-- **Embed Page**: https://quicktop8-mun7d5qb7-chipagosfinests-projects.vercel.app/embed
-- **Health Check**: https://quicktop8-mun7d5qb7-chipagosfinests-projects.vercel.app/api/health
+- **Web App**: https://friends-of-friends.vercel.app/app
+- **Embed Page**: https://friends-of-friends.vercel.app/embed
+- **Health Check**: https://friends-of-friends.vercel.app/api/health
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
-- **Backend**: Vercel Serverless Functions
-- **API**: Neynar API for Farcaster data
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS with custom gradients
+- **APIs**: Neynar API for Farcaster data
 - **Deployment**: Vercel
 - **Mini App SDK**: @farcaster/miniapp-sdk
 
-## 📁 Project Structure
+## 🏗️ Project Structure
 
 ```
-quicktop8/
-├── frontend/                 # Next.js app
+friends-of-friends/
+├── frontend/                 # Next.js application
 │   ├── src/
-│   │   ├── app/             # App router pages
-│   │   │   ├── api/         # API routes
-│   │   │   │   ├── top8-simple/    # Main algorithm
-│   │   │   │   ├── health/  # Health checks
-│   │   │   │   ├── test/    # API testing
-│   │   │   │   └── user/    # User data endpoints
-│   │   │   ├── app/         # Main app page
-│   │   │   └── embed/       # Embed page
+│   │   ├── app/             # App Router pages
 │   │   ├── components/      # React components
-│   │   │   ├── UserCard.tsx # User card component
-│   │   │   └── StatsSection.tsx # Stats display
-│   │   └── lib/            # Utilities
-│   │       ├── types.ts     # TypeScript types
-│   │       ├── utils.ts     # Utility functions
-│   │       └── hooks/       # Custom hooks
-│   │           └── useTop8.ts # Top 8 state management
-│   └── public/
-└── scripts/                # Utility scripts
+│   │   └── lib/            # Utilities and hooks
+│   ├── public/             # Static assets
+│   └── package.json
+├── scripts/                # Build and deployment scripts
+└── package.json           # Root package.json
 ```
 
-## 🔧 Development
+## 🚀 Quick Start
 
-```bash
-# Install dependencies
-cd frontend && npm install
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd friends-of-friends
+   ```
 
-# Run development server
-npm run dev
+2. **Install dependencies**
+   ```bash
+   npm install
+   cd frontend && npm install
+   ```
 
-# Run linting
-npm run lint
+3. **Set up environment variables**
+   ```bash
+   cp env.example .env
+   cp frontend/env.example frontend/.env
+   ```
+   
+   Add your Neynar API key to `frontend/.env`:
+   ```
+   NEYNAR_API_KEY=your_api_key_here
+   ```
 
-# Build for production
-npm run build
+4. **Run development server**
+   ```bash
+   npm run dev
+   ```
 
-# Deploy to production
-npx vercel --prod
-```
+5. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-## 📊 Algorithm
+## 🔧 API Endpoints
 
-The app uses Neynar's sophisticated affinity scoring algorithm that:
+- `GET /api/health` - Health check endpoint
+- `GET /api/user/[fid]` - Get user profile data
+- `GET /api/user/[fid]/top-interactions` - Get user's top interactions
+- `GET /api/top8-simple` - Get top 8 friends for a user
+- `GET /api/proxy-image` - Proxy image requests
 
-1. **Analyzes mutual interactions** - Likes, recasts, replies between users
-2. **Calculates affinity scores** - Based on interaction frequency and recency
-3. **Ranks by mutual affinity** - Highest scoring relationships first
-4. **Provides social insights** - Friends of friends and engagement patterns
-5. **Generates relationship titles** - Ride or Die, Bestie, Squad Leader, etc.
+## 🎨 Features
 
-## 🎨 Design
+### Core Features
+- **Smart Affinity Scoring**: Advanced algorithm based on mutual interactions
+- **Real-time Data**: Live Farcaster data via Neynar API
+- **Responsive Design**: Works on all devices
+- **Mini App Integration**: Seamless Farcaster Mini App experience
 
-- Clean, modern UI with Tailwind CSS
-- Responsive design for mobile and desktop
-- Farcaster Mini App integration
-- Professional card-based layout with rank badges
-- Improved UX with scores below tip buttons
-- Visual hierarchy with ranks above profile pictures
-- Optimized images with Next.js Image component
+### User Experience
+- **Beautiful UI**: Modern gradient design with smooth animations
+- **Loading States**: Engaging loading animations
+- **Error Handling**: Graceful error handling with retry options
+- **Share Functionality**: Easy sharing of results
 
-## 📈 Performance
+### Technical Features
+- **TypeScript**: Full type safety
+- **Error Boundaries**: Robust error handling
+- **Performance Optimized**: Fast loading and smooth interactions
+- **SEO Optimized**: Proper meta tags and Open Graph
 
-- Optimized API calls with rate limiting
-- Efficient data processing with modular architecture
-- Fast response times (99.6 kB shared bundle)
-- Scalable serverless architecture
-- Clean, maintainable codebase with no unused endpoints
-- TypeScript coverage with centralized types
-- Zero linting warnings or errors
+## 🔒 Privacy & Security
 
-## 🔐 Environment Variables
+- **No Data Storage**: We don't store any user data
+- **API Rate Limiting**: Respectful API usage
+- **Secure Headers**: Proper security headers
+- **Privacy First**: Your social data stays private
 
-```env
-NEYNAR_API_KEY=your_neynar_api_key
-```
+## 🚀 Deployment
 
-## 🚀 Features
+The app is automatically deployed to Vercel:
 
-- **Real-time Top 8 Discovery**: Find your closest friends based on mutual interactions
-- **Social Network Analysis**: See friends of friends and connection strength
-- **Interactive UI**: Click to view profiles, tip users, and share results
-- **Pagination Support**: Load more connections beyond the initial Top 8
-- **Mini App Integration**: Seamless Farcaster wallet integration for tipping
-- **Health Monitoring**: Built-in health checks and API status monitoring
-- **Rate Limiting**: Intelligent rate limiting to respect API limits
-- **Error Handling**: Comprehensive error handling and user feedback
+1. **Production**: https://friends-of-friends.vercel.app
+2. **Health Check**: https://friends-of-friends.vercel.app/api/health
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License
+MIT License - see LICENSE file for details
 
-## 🎉 Status
+## 🆘 Support
 
-✅ **Project Complete** - All features implemented and deployed successfully!
+If you encounter any issues:
+
+1. Check the health endpoint: https://friends-of-friends.vercel.app/api/health
+2. Review the troubleshooting guide in `TROUBLESHOOTING.md`
+3. Open an issue on GitHub
+
+---
+
+**Friends of Friends** - Discover your true connections on Farcaster! 🤠

@@ -31,13 +31,13 @@ export default function App() {
       const top3Usernames = top3.map(user => `@${user.username}`).join(' ')
       
       // Create viral embedded cast with dynamic content
-      const shareText = `🤠 Just discovered my Top 8 on QuickTop8!\n\n${top3.map((user, i) => 
+      const shareText = `🤠 Just discovered my Top 8 on Friends of Friends!\n\n${top3.map((user, i) => 
         `${i + 1}. ${user.display_name || user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
-      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app`
+      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at friends-of-friends.vercel.app`
 
       // Use the compose API to create an embedded cast
       await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://quicktop8-9dhvqj6h5-chipagosfinests-projects.vercel.app/embed')}`
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/embed')}`
       })
 
       console.log('Shared results with embedded cast successfully')
@@ -96,7 +96,7 @@ export default function App() {
       {/* Header */}
       <div className="absolute top-4 right-4 z-10">
         <div className="bg-purple-600 bg-opacity-90 text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider border border-purple-500">
-          QUICKTOP8
+          FRIENDS OF FRIENDS
         </div>
       </div>
 

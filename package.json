@@ -1,7 +1,7 @@
 {
-  "name": "quicktop8",
+  "name": "friends-of-friends",
   "version": "1.0.0",
-  "description": "Farcaster Mini App that discovers your top 8 mutual follows",
+  "description": "Farcaster Mini App that discovers your top 8 mutual friends",
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
@@ -9,7 +9,7 @@
     "lint": "cd frontend && npm run lint",
     "test:backend": "echo 'Backend tests passed'"
   },
-  "keywords": ["farcaster", "mini-app", "neynar", "social"],
+  "keywords": ["farcaster", "mini-app", "neynar", "social", "friends"],
   "author": "",
   "license": "MIT"
 } 

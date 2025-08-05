@@ -34,7 +34,7 @@ async function makeNeynarRequest(url: string, options: RequestInit = {}): Promis
     headers: { 
       'x-api-key': NEYNAR_API_KEY, 
       'accept': 'application/json',
-      'user-agent': 'QuickTop8/1.0'
+      'user-agent': 'Friends of Friends/1.0'
     },
     signal: AbortSignal.timeout(10000) // 10 second timeout
   }

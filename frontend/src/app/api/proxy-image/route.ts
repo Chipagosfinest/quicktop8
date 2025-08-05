@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Fetch the image
     const response = await fetch(imageUrl, {
       headers: {
-        'User-Agent': 'QuickTop8/1.0',
+        'User-Agent': 'Friends of Friends/1.0',
         'Accept': 'image/*'
       }
     })
