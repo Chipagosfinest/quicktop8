@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'QuickTop8 - Your Top 8 Mutual Friends',
-  description: 'Discover your top 8 mutual friends on Farcaster - the ones you engage with most!',
+  title: 'QuickTop8 - Wanted: More Friends Like These',
+  description: 'Discover your top mutual friends from the last 30 days - the ones you want more of!',
   openGraph: {
-    title: 'QuickTop8 - Your Top 8 Mutual Friends',
-    description: 'Discover your top 8 mutual friends on Farcaster - the ones you engage with most!',
+    title: 'QuickTop8 - Wanted: More Friends Like These',
+    description: 'Discover your top mutual friends from the last 30 days - the ones you want more of!',
     images: ['https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/og-image.png'],
   },
   other: {
@@ -44,11 +44,11 @@ export default function EmbedPage() {
                 🤠
               </div>
               <h1 className="text-3xl font-bold text-amber-900 ml-4">
-                Wanted: Top 8 Friends
+                Wanted: More Friends Like These
               </h1>
             </div>
             <p className="text-amber-800 text-lg">
-              Your most engaged mutual friends on Farcaster! 🤠
+              Your top mutual friends from the last 30 days - the ones you want more of! 🤠
             </p>
           </div>
 
@@ -56,21 +56,21 @@ export default function EmbedPage() {
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-300">
               <h3 className="font-semibold text-amber-900 mb-2">🤠 Wanted Posters</h3>
               <p className="text-sm text-amber-700">
-                Discover your top 8 mutual friends based on your interactions!
+                Discover your top mutual friends from the last 30 days!
               </p>
             </div>
 
             <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4 border-2 border-orange-300">
-              <h3 className="font-semibold text-orange-900 mb-2">💫 Ride or Die Friends</h3>
+              <h3 className="font-semibold text-orange-900 mb-2">💫 Top Mutuals</h3>
               <p className="text-sm text-orange-700">
-                Find the friends you engage with most and want more like them!
+                Find the friends you want more of - your best mutual connections!
               </p>
             </div>
 
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border-2 border-yellow-300">
-              <h3 className="font-semibold text-yellow-900 mb-2">🌟 Friendship Goals</h3>
+              <h3 className="font-semibold text-yellow-900 mb-2">🌟 More Like These</h3>
               <p className="text-sm text-yellow-700">
-                Celebrate your strongest connections and find more like them!
+                Discover friends you want more of and celebrate your connections!
               </p>
             </div>
           </div>
@@ -89,15 +89,15 @@ export default function EmbedPage() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-amber-600">🤠</div>
-                <div className="text-xs text-amber-700">Wanted Friends</div>
+                <div className="text-xs text-amber-700">Wanted Posters</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-orange-600">💫</div>
-                <div className="text-xs text-orange-700">Ride or Die</div>
+                <div className="text-xs text-orange-700">Top Mutuals</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-yellow-600">🌟</div>
-                <div className="text-xs text-yellow-700">Friendship Goals</div>
+                <div className="text-xs text-yellow-700">More Like These</div>
               </div>
             </div>
           </div>

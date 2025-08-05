@@ -174,8 +174,8 @@ export default function App() {
       // Create more engaging share content
       const topFriend = friends[0];
       const shareText = topFriend 
-        ? `🤠 Just discovered my top mutual friend on Farcaster: @${topFriend.username}! Check out my full "Wanted Friends" list with QuickTop8! 💫`
-        : "🤠 Check out my top 8 mutual friends on Farcaster with QuickTop8! Discover your most engaged connections! 💫";
+        ? `🤠 Just discovered my top mutual friend on Farcaster: @${topFriend.username}! Check out my "Wanted: More Friends Like These" list with QuickTop8! 💫`
+        : "🤠 Check out my top mutual friends from the last 30 days with QuickTop8! Discover friends you want more of! 💫";
       
       const shareUrl = window.location.href
       
@@ -271,16 +271,16 @@ export default function App() {
               🤠
             </div>
             <h1 className="text-4xl font-bold text-amber-900 ml-4 drop-shadow-lg">
-              Wanted: Top 8 Friends
+              Wanted: More Friends Like These
             </h1>
           </div>
           <p className="text-amber-800 text-lg mb-2 drop-shadow-md">
-            Your most engaged mutual friends on Farcaster! 🤠
+            Your top mutual friends from the last 30 days - the ones you want more of! 🤠
           </p>
           <div className="flex justify-center space-x-2 mb-4">
             <span className="bg-amber-800 bg-opacity-20 text-amber-800 px-3 py-1 rounded-full text-sm border border-amber-600">🤠 Wanted Posters</span>
-            <span className="bg-orange-800 bg-opacity-20 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-600">💫 Ride or Die</span>
-            <span className="bg-yellow-800 bg-opacity-20 text-yellow-800 px-3 py-1 rounded-full text-sm border border-yellow-600">🌟 Friendship Goals</span>
+            <span className="bg-orange-800 bg-opacity-20 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-600">💫 Top Mutuals</span>
+            <span className="bg-yellow-800 bg-opacity-20 text-yellow-800 px-3 py-1 rounded-full text-sm border border-yellow-600">🌟 More Like These</span>
           </div>
           
           {/* Mini App Actions */}
@@ -354,10 +354,10 @@ export default function App() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-amber-900 mb-2">
-                Wanted Friends 🤠
+                Wanted: More Friends Like These 🤠
               </h2>
               <p className="text-amber-800 opacity-90">
-                Your top 8 mutual friends based on engagement!
+                Your top mutual friends from the last 30 days - the ones you want more of!
               </p>
             </div>
 
@@ -375,7 +375,7 @@ export default function App() {
                   <div className="text-center mb-4">
                     <div className="text-4xl mb-2">🤠</div>
                     <div className="text-2xl font-bold text-amber-900 mb-1">WANTED</div>
-                    <div className="text-sm text-amber-700">Dead or Alive</div>
+                    <div className="text-sm text-amber-700">More Friends Like This</div>
                   </div>
 
                   {/* Friend Avatar and Info */}
@@ -446,15 +446,15 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="bg-amber-100 rounded p-2 text-center">
                         <div className="font-bold text-amber-800">{friend.totalInteractions}</div>
-                        <div className="text-amber-600">Interactions</div>
+                        <div className="text-amber-600">Mutual Interactions</div>
                       </div>
                       <div className="bg-orange-100 rounded p-2 text-center">
                         <div className="font-bold text-orange-800">{friend.daysSinceFirstEngagement}</div>
-                        <div className="text-orange-600">Days Known</div>
+                        <div className="text-orange-600">Days Connected</div>
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm text-amber-700 mb-1">Friendship Score</div>
+                      <div className="text-sm text-amber-700 mb-1">Mutual Friend Score</div>
                       <div className="text-2xl font-bold text-amber-800">
                         {friend.rideOrDieScore}
                       </div>
@@ -495,10 +495,10 @@ export default function App() {
               🤠
             </div>
             <h3 className="text-2xl font-bold text-amber-900 mb-2">
-              No Wanted Friends Found
+              No Top Mutual Friends Found
             </h3>
             <p className="text-amber-800 opacity-90 mb-4">
-              Start engaging with your mutual follows to discover your top friends!
+              Start engaging with your mutual follows to discover friends you want more of!
             </p>
             <button
               onClick={() => userFid && handleGetTop8(userFid)}
