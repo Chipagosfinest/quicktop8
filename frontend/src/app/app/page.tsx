@@ -58,7 +58,6 @@ export default function App() {
   const [isInMiniApp, setIsInMiniApp] = useState(false)
   const [userFid, setUserFid] = useState<number | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
-  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
   
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
@@ -306,12 +305,12 @@ export default function App() {
                 return (
                   <div
                     key={friend.fid}
-                    className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer group ${
+                    className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer group relative ${
                       index % 2 === 0 
                         ? 'border-amber-400 hover:border-amber-500 hover:bg-amber-50' 
                         : 'border-orange-400 hover:border-orange-500 hover:bg-orange-50'
                     }`}
-                    onClick={() => setSelectedFriend(friend)}
+                    onClick={() => window.open(`https://warpcast.com/${friend.username}`, '_blank')}
                   >
                     {/* Rank Badge */}
                     <div className="absolute -top-3 -right-3 bg-gradient-to-r ${friendType.color} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
