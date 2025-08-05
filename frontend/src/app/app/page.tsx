@@ -154,7 +154,7 @@ export default function App() {
 
     try {
       const top3 = top8.slice(0, 3)
-      const shareText = `👑 My Top 8 on QuickTop8:\n\n${top3.map((user, i) => 
+      const shareText = `🤠 My Top 8 on QuickTop8:\n\n${top3.map((user, i) => 
         `${i + 1}. @${user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
       ).join('\n')}\n\nDiscover your Top 8 at quicktop8.vercel.app`
 
@@ -253,8 +253,8 @@ export default function App() {
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-purple-500 animate-bounce">
-              👑
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg border-4 border-purple-500 animate-bounce">
+              🤠
             </div>
             <h1 className="text-4xl font-bold text-purple-900 ml-4 drop-shadow-lg">
               Your Top 8
@@ -276,8 +276,8 @@ export default function App() {
 
         {loading && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-purple-500 animate-spin mx-auto mb-4">
-              👑
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg border-4 border-purple-500 animate-spin mx-auto mb-4">
+              🤠
             </div>
             <p className="text-purple-800 text-lg">Finding your Top 8 and analyzing social networks...</p>
           </div>
@@ -310,7 +310,7 @@ export default function App() {
                 onClick={handleShareResults}
                 className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-green-400"
               >
-                📤 Share My Top 8
+                🤠 Share My Top 8
               </button>
             </div>
 
@@ -620,7 +620,7 @@ export default function App() {
         {!loading && !error && top8.length === 0 && (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg border-4 border-purple-500 mx-auto mb-6 animate-bounce">
-              👑
+              🤠
             </div>
             <h2 className="text-2xl font-bold text-purple-900 mb-4">
               No Top 8 Found Yet!

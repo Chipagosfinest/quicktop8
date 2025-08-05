@@ -42,15 +42,15 @@ export default function EmbedPage() {
           <div className="mb-6">
             {/* Header */}
             <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-purple-500 animate-bounce">
-                👑
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg border-4 border-purple-500 animate-bounce">
+                🤠
               </div>
               <h1 className="text-3xl font-bold text-purple-900 ml-4">
                 Your Top 8 Friends
               </h1>
             </div>
             <p className="text-purple-800 text-lg">
-              Discover your closest friends based on mutual affinity scores 👑
+              Discover your closest friends based on mutual affinity scores 🤠
             </p>
           </div>
 
@@ -82,7 +82,7 @@ export default function EmbedPage() {
               href="/app" 
               className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-block border-2 border-purple-400"
             >
-              👑 Open Mini App
+              🤠 Open Mini App
             </a>
           </div>
 
