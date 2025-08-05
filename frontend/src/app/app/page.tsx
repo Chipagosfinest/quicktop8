@@ -33,6 +33,8 @@ export default function App() {
   const [isInMiniApp, setIsInMiniApp] = useState(false)
   const [userFid, setUserFid] = useState<number | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [isAddingToFarcaster, setIsAddingToFarcaster] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
   
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
@@ -132,6 +134,59 @@ export default function App() {
     return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">🤠 Wanted</span>
   }
 
+  const handleAddToFarcaster = async () => {
+    if (!isSDKLoaded) {
+      console.log('SDK not loaded yet')
+      return
+    }
+
+    setIsAddingToFarcaster(true)
+    try {
+      console.log('Attempting to add Mini App to Farcaster...')
+      
+      // Use the addMiniApp action from the SDK
+      const result = await sdk.actions.addMiniApp()
+      console.log('Add Mini App result:', result)
+      
+      if (result) {
+        console.log('Mini App added successfully!')
+        // You could show a success message here
+      } else {
+        console.log('Add Mini App failed or was cancelled')
+      }
+    } catch (error) {
+      console.error('Error adding Mini App:', error)
+    } finally {
+      setIsAddingToFarcaster(false)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!isSDKLoaded) {
+      console.log('SDK not loaded yet')
+      return
+    }
+
+    setIsSharing(true)
+    try {
+      console.log('Attempting to share...')
+      
+      // Create share content
+      const shareText = "🤠 Check out my top 8 mutual friends on Farcaster with QuickTop8!"
+      const shareUrl = window.location.href
+      
+      // Use the openUrl action to share via Farcaster
+      await sdk.actions.openUrl({
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`
+      })
+      console.log('Share successful!')
+    } catch (error) {
+      console.error('Error sharing:', error)
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
   if (!isSDKLoaded && isInMiniApp) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -154,10 +209,28 @@ export default function App() {
         <div className="absolute bottom-40 right-1/3 w-18 h-18 bg-brown-400 rounded-full transform rotate-60 animate-pulse"></div>
       </div>
 
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-4 right-4 z-10 flex space-x-2">
         <div className="bg-amber-800 bg-opacity-90 text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider border border-amber-600">
           QUICKTOP8
         </div>
+        {isSDKLoaded && isInMiniApp && (
+          <>
+            <button
+              onClick={handleAddToFarcaster}
+              disabled={isAddingToFarcaster}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-3 py-1 rounded-lg font-semibold text-sm transition-colors border border-green-500"
+            >
+              {isAddingToFarcaster ? 'Adding...' : '📱 Add App'}
+            </button>
+            <button
+              onClick={handleShare}
+              disabled={isSharing}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-3 py-1 rounded-lg font-semibold text-sm transition-colors border border-blue-500"
+            >
+              {isSharing ? 'Sharing...' : '📤 Share'}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
@@ -178,6 +251,44 @@ export default function App() {
             <span className="bg-orange-800 bg-opacity-20 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-600">💫 Ride or Die</span>
             <span className="bg-yellow-800 bg-opacity-20 text-yellow-800 px-3 py-1 rounded-full text-sm border border-yellow-600">🌟 Friendship Goals</span>
           </div>
+          
+          {/* Mini App Actions */}
+          {isSDKLoaded && isInMiniApp && (
+            <div className="flex justify-center space-x-4 mb-6">
+              <button
+                onClick={handleAddToFarcaster}
+                disabled={isAddingToFarcaster}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-green-400 disabled:to-green-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 border-2 border-green-400 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+              >
+                {isAddingToFarcaster ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Adding to Farcaster...
+                  </>
+                ) : (
+                  <>
+                    📱 Add to Farcaster
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleShare}
+                disabled={isSharing}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-400 disabled:to-blue-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 border-2 border-blue-400 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+              >
+                {isSharing ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Sharing...
+                  </>
+                ) : (
+                  <>
+                    📤 Share Results
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {loading && (

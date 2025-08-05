@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'QuickTop8 - Your Top 8 Mutual Friends',
     description: 'Discover your top 8 mutual friends on Farcaster - the ones you engage with most!',
-    images: ['https://quicktop8-8c7fhqyk6-chipagosfinests-projects.vercel.app/og-image.png'],
+    images: ['https://quicktop8-ab64635us-chipagosfinests-projects.vercel.app/og-image.png'],
   },
   other: {
     'fc:miniapp': 'QuickTop8',
-    'fc:miniapp:domain': 'quicktop8-8c7fhqyk6-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-8c7fhqyk6-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-8c7fhqyk6-chipagosfinests-projects.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-ab64635us-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-ab64635us-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-ab64635us-chipagosfinests-projects.vercel.app'
   }
 };
 
