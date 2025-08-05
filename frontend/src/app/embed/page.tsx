@@ -1,5 +1,9 @@
 import { Metadata } from 'next';
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata: Metadata = {
   title: 'QuickTop8 - Wanted: More Friends Like These',
   description: 'Discover your top mutual friends from the last 30 days - the ones you want more of!',

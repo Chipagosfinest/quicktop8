@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Disable static generation to ensure fresh deployments
+  output: 'standalone',
+  experimental: {
+    // Disable static optimization
+    staticPageGenerationTimeout: 0,
+  },
   async headers() {
     return [
       {
@@ -26,6 +32,18 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache'
+          },
+          {
+            key: 'Expires',
+            value: '0'
+          },
           {
             key: 'Content-Security-Policy',
             value: [
