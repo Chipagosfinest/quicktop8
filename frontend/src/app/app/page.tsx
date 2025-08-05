@@ -369,11 +369,12 @@ export default function App() {
               {friends.map((friend, index) => (
                 <div
                   key={friend.fid}
-                  className={`bg-amber-50 bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 ${
+                  className={`bg-amber-50 bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer group ${
                     index % 2 === 0 
-                      ? 'border-amber-400 hover:border-amber-500' 
-                      : 'border-orange-400 hover:border-orange-500'
+                      ? 'border-amber-400 hover:border-amber-500 hover:bg-amber-100' 
+                      : 'border-orange-400 hover:border-orange-500 hover:bg-orange-100'
                   }`}
+                  onClick={() => window.open(`https://warpcast.com/${friend.username}`, '_blank')}
                 >
                   {/* Rich Header with Rank */}
                   <div className="text-center mb-4">
@@ -386,6 +387,9 @@ export default function App() {
                     </div>
                     <div className="text-sm text-amber-700 bg-amber-100 px-3 py-1 rounded-full inline-block">
                       Score: {friend.rideOrDieScore}
+                    </div>
+                    <div className="text-xs text-amber-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Click to view profile →
                     </div>
                   </div>
 
@@ -489,20 +493,33 @@ export default function App() {
 
                   {/* Action Buttons */}
                   <div className="space-y-2">
-                    {friend.originalEngagementCastUrl && (
-                      <a
-                        href={friend.originalEngagementCastUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white text-center py-2 rounded-lg font-semibold hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-sm border-2 border-amber-400"
+                    {/* Clickable Card Actions */}
+                    <div className="grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => window.open(`https://warpcast.com/${friend.username}`, '_blank')}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-xs border-2 border-blue-400"
                       >
-                        🤠 View First Engagement
-                      </a>
-                    )}
+                        👤 View Profile
+                      </button>
+                      
+                      {friend.originalEngagementCastUrl && (
+                        <a
+                          href={friend.originalEngagementCastUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-gradient-to-r from-amber-500 to-orange-600 text-white text-center py-2 rounded-lg font-semibold hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-xs border-2 border-amber-400"
+                        >
+                          🤠 First Cast
+                        </a>
+                      )}
+                    </div>
                     
                     {isSDKLoaded && isInMiniApp && (
                       <button
-                        onClick={() => handleTipFriend(friend)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTipFriend(friend);
+                        }}
                         className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 text-sm border-2 border-green-400"
                       >
                         💰 Tip 1 USDC
