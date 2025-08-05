@@ -73,6 +73,11 @@ async function fetchBestFriends(fid: number, limit: number = 8): Promise<any[]> 
     return []
   }
   
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY is not configured')
+    return []
+  }
+  
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/user/best_friends?fid=${fid}&limit=${limit}`, {
       headers: { 
@@ -97,6 +102,11 @@ async function fetchBestFriends(fid: number, limit: number = 8): Promise<any[]> 
 async function fetchUserData(fid: number): Promise<any> {
   if (!checkRateLimit('user-data')) {
     console.warn('Rate limit exceeded for user data')
+    return null
+  }
+  
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY is not configured')
     return null
   }
   
@@ -128,6 +138,11 @@ async function fetchUserFollowing(fid: number): Promise<number[]> {
     return []
   }
   
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY is not configured')
+    return []
+  }
+  
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/following?fid=${fid}&limit=100`, {
       headers: { 
@@ -152,6 +167,11 @@ async function fetchUserFollowing(fid: number): Promise<number[]> {
 async function fetchUserFollowers(fid: number): Promise<number[]> {
   if (!checkRateLimit('followers')) {
     console.warn('Rate limit exceeded for followers')
+    return []
+  }
+  
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY is not configured')
     return []
   }
   
