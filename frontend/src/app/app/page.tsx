@@ -1,27 +1,18 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-
+import { useState, useEffect } from 'react'
 import { useMiniApp } from '@/components/MiniAppProvider'
-import { sdk } from '@farcaster/miniapp-sdk'
 
-interface Friend {
+interface ReplyGuy {
   fid: number
   username: string
   display_name: string
   pfp_url: string
   bio: string
   ens_name?: string
-  followDate: string
-  firstEngagement: string
-  engagementType: string
-  totalInteractions: number
-  relationshipScore: number
-  originalEngagementCastHash: string
-  originalEngagementCastUrl: string
-  rideOrDieScore: number
-  daysSinceFirstEngagement: number
-  engagementFrequency: number
+  replyCount: number
+  firstReplyDate: string
+  lastReplyDate: string
   // Rich Neynar data
   follower_count?: number
   following_count?: number
@@ -29,77 +20,58 @@ interface Friend {
   verified_addresses?: string[]
   active_status?: string
   last_active?: string
-  mutual_friends_count?: number
-  engagement_breakdown?: {
-    uniqueLikes: number
-    uniqueRecasts: number
-    uniqueReplies: number
-    totalLikes: number
-    totalRecasts: number
-    totalReplies: number
-    engagedCasts: number
-    uniqueInteractions: number
-    totalInteractions: number
-  }
-  recent_casts?: Array<{
-    hash: string
-    text: string
+  // Their recent interactions with others
+  recent_interactions?: Array<{
+    target_username: string
+    target_fid: number
+    interaction_type: 'reply' | 'like' | 'recast'
+    cast_text: string
     timestamp: string
-    reactions_count: number
-    recasts_count: number
-    replies_count: number
+  }>
+  // Potential new connections
+  potential_connections?: Array<{
+    fid: number
+    username: string
+    display_name: string
+    pfp_url: string
+    bio: string
+    ens_name?: string
+    interaction_count: number
+    last_interaction: string
   }>
 }
 
 export default function App() {
-  const [friends, setFriends] = useState<Friend[]>([])
+  const [replyGuys, setReplyGuys] = useState<ReplyGuy[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [isInMiniApp, setIsInMiniApp] = useState(false)
   const [userFid, setUserFid] = useState<number | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
-  
+
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
-  // Mini App detection pattern from Farcaster docs
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href)
-      const isMini = url.pathname.startsWith('/app') || url.searchParams.get('miniApp') === 'true'
-      setIsInMiniApp(isMini)
-      
-      if (isMini) {
-        console.log('Detected Mini App environment')
-        // Lazy load the SDK for Mini App specific functionality
-        import('@farcaster/miniapp-sdk').then(({ sdk }) => {
-          console.log('Mini App SDK loaded')
-          // Mini App specific bootstrap here
-          sdk.actions.ready().then(() => {
-            console.log('Mini App ready - splash screen hidden')
-          }).catch((err) => {
-            console.log('Ready() call failed (may be running outside Mini App):', err)
-          })
-        })
-      }
-    }
-  }, [])
+  const isInMiniApp = typeof window !== 'undefined' && window.location.href.includes('warpcast.com')
 
   useEffect(() => {
-    if (isSDKLoaded && isConnected && contextUserFid) {
-      const fid = parseInt(contextUserFid)
+    if (isSDKLoaded && isConnected && contextUserFid && context) {
+      console.log('Farcaster context received:', context)
+      console.log('User FID detected:', contextUserFid)
+      
+      const fid = parseInt(contextUserFid.toString())
       setUserFid(fid)
+      
+      // Get user profile
       const profile = {
         fid: fid,
-        username: (context as any)?.user?.username || `user_${fid}`,
-        displayName: (context as any)?.user?.displayName || `User ${fid}`,
-        pfpUrl: (context as any)?.user?.pfpUrl || ''
+        username: (context as any)?.user?.username || 'unknown',
+        displayName: (context as any)?.user?.displayName || 'Unknown User'
       }
       setUserProfile(profile)
-      handleGetTop8(fid)
+      handleGetReplyGuys(fid)
     }
   }, [isSDKLoaded, isConnected, contextUserFid, context])
 
-  const handleGetTop8 = async (fid: number) => {
+  const handleGetReplyGuys = async (fid: number) => {
     if (!fid) {
       setError("No FID detected. Please try again.")
       return
@@ -109,7 +81,7 @@ export default function App() {
     setError("")
 
     try {
-      const response = await fetch(`/api/top8?fid=${fid}`, {
+      const response = await fetch(`/api/replyguys?fid=${fid}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -126,40 +98,25 @@ export default function App() {
         throw new Error(data.error)
       }
 
-      setFriends(data.friends || [])
+      setReplyGuys(data.replyGuys || [])
     } catch (error) {
-      console.error('Error fetching top 8:', error)
-      setError(error instanceof Error ? error.message : "Failed to fetch your top 8 friends")
+      console.error('Error fetching reply guys:', error)
+      setError(error instanceof Error ? error.message : "Failed to fetch your reply guys")
     } finally {
       setLoading(false)
     }
   }
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Unknown"
-    const date = new Date(dateString)
-    return date.toLocaleDateString()
+  const getReplyGuyType = (replyGuy: ReplyGuy) => {
+    if (replyGuy.replyCount >= 10) return { type: "Super Fan", icon: "🔥", color: "from-red-500 to-pink-500" }
+    if (replyGuy.replyCount >= 5) return { type: "Regular", icon: "💬", color: "from-blue-500 to-purple-500" }
+    if (replyGuy.replyCount >= 2) return { type: "Occasional", icon: "👋", color: "from-green-500 to-blue-500" }
+    return { type: "New", icon: "🆕", color: "from-gray-500 to-gray-600" }
   }
 
-  const getEngagementIcon = (type: string) => {
-    switch (type) {
-      case 'like': return '❤️'
-      case 'recast': return '🔄'
-      case 'reply': return '💬'
-      default: return '🤝'
-    }
-  }
-
-  const getFriendType = (friend: Friend) => {
-    if (friend.rideOrDieScore >= 500) return { type: "Legend", icon: "👑", color: "from-purple-500 to-pink-500" }
-    if (friend.rideOrDieScore >= 200) return { type: "All-Star", icon: "⭐", color: "from-yellow-500 to-orange-500" }
-    if (friend.rideOrDieScore >= 50) return { type: "Hall of Famer", icon: "🏆", color: "from-amber-500 to-yellow-500" }
-    return { type: "Wanted", icon: "🤠", color: "from-amber-600 to-orange-600" }
-  }
-
-  const getActivityStatus = (friend: Friend) => {
-    if (!friend.last_active) return "Unknown"
-    const lastActive = new Date(friend.last_active)
+  const getActivityStatus = (replyGuy: ReplyGuy) => {
+    if (!replyGuy.last_active) return "Unknown"
+    const lastActive = new Date(replyGuy.last_active)
     const now = new Date()
     const diffHours = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60)
     
@@ -167,52 +124,6 @@ export default function App() {
     if (diffHours < 24) return "🟡 Active today"
     if (diffHours < 168) return "🟠 Active this week"
     return "🔴 Inactive"
-  }
-
-  const getTopTopics = (friend: Friend) => {
-    if (!friend.recent_casts || friend.recent_casts.length === 0) return []
-    
-    const words = friend.recent_casts
-      .map(cast => cast.text.toLowerCase())
-      .join(' ')
-      .split(/\s+/)
-      .filter(word => word.length > 3)
-      .filter(word => !['this', 'that', 'with', 'have', 'will', 'been', 'they', 'from', 'your', 'know', 'just', 'like', 'what', 'when', 'where', 'here', 'there', 'their', 'about', 'would', 'could', 'should'].includes(word))
-    
-    const wordCount = words.reduce((acc, word) => {
-      acc[word] = (acc[word] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    return Object.entries(wordCount)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 3)
-      .map(([word]) => word)
-  }
-
-  const handleTipFriend = async (friend: Friend) => {
-    if (!isSDKLoaded) {
-      console.log('SDK not loaded yet')
-      return
-    }
-
-    try {
-      console.log('Attempting to tip friend:', friend.username)
-      
-      const result = await sdk.actions.sendToken({
-        recipientFid: friend.fid,
-        amount: "1000000", // 1 USDC (6 decimals)
-        token: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" // Base USDC
-      })
-      
-      if (result.success) {
-        console.log('Tip successful!', result.send.transaction)
-      } else {
-        console.log('Tip failed or was cancelled:', result.reason)
-      }
-    } catch (error) {
-      console.error('Error tipping friend:', error)
-    }
   }
 
   if (!isSDKLoaded && isInMiniApp) {
@@ -249,11 +160,11 @@ export default function App() {
               🤠
             </div>
             <h1 className="text-4xl font-bold text-amber-900 ml-4 drop-shadow-lg">
-              Your Most Wanted Friends
+              Wanted: Reply Guys & Their Friends
             </h1>
           </div>
           <p className="text-amber-800 text-lg mb-2 drop-shadow-md">
-            Discover your top mutual friends with rich engagement data from Neynar
+            Discover who replies to you most and find new connections through them
           </p>
         </div>
 
@@ -262,7 +173,7 @@ export default function App() {
             <div className="w-16 h-16 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-amber-500 animate-spin mx-auto mb-4">
               🤠
             </div>
-            <p className="text-amber-800 text-lg">Analyzing your network...</p>
+            <p className="text-amber-800 text-lg">Finding your reply guys...</p>
           </div>
         )}
 
@@ -275,7 +186,7 @@ export default function App() {
             <button
               onClick={() => {
                 if (userFid) {
-                  handleGetTop8(userFid);
+                  handleGetReplyGuys(userFid);
                 }
               }}
               className="bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors border-2 border-amber-500"
@@ -285,45 +196,44 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !error && friends.length > 0 && (
+        {!loading && !error && replyGuys.length > 0 && (
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-amber-900 mb-2">
-                Your Network Analysis 🤠
+                Your Reply Guys & Their Friends 🤠
               </h2>
               <p className="text-amber-800 opacity-90 mb-3">
-                Powered by Neynar's rich social data
+                Discover who replies to you most and find new connections through them
               </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {friends.map((friend, index) => {
-                const friendType = getFriendType(friend)
-                const activityStatus = getActivityStatus(friend)
-                const topTopics = getTopTopics(friend)
+              {replyGuys.map((replyGuy, index) => {
+                const replyGuyType = getReplyGuyType(replyGuy)
+                const activityStatus = getActivityStatus(replyGuy)
                 
                 return (
                   <div
-                    key={friend.fid}
+                    key={replyGuy.fid}
                     className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer group relative ${
                       index % 2 === 0 
                         ? 'border-amber-400 hover:border-amber-500 hover:bg-amber-50' 
                         : 'border-orange-400 hover:border-orange-500 hover:bg-orange-50'
                     }`}
-                    onClick={() => window.open(`https://warpcast.com/${friend.username}`, '_blank')}
+                    onClick={() => window.open(`https://warpcast.com/${replyGuy.username}`, '_blank')}
                   >
                     {/* Rank Badge */}
-                    <div className="absolute -top-3 -right-3 bg-gradient-to-r ${friendType.color} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    <div className="absolute -top-3 -right-3 bg-gradient-to-r ${replyGuyType.color} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                       #{index + 1}
                     </div>
 
                     {/* Profile Section */}
                     <div className="text-center mb-4">
                       <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-amber-500 overflow-hidden bg-gradient-to-br from-amber-600 to-orange-700">
-                        {friend.pfp_url ? (
+                        {replyGuy.pfp_url ? (
                           <img 
-                            src={friend.pfp_url} 
-                            alt={`${friend.username}'s profile`}
+                            src={replyGuy.pfp_url} 
+                            alt={`${replyGuy.username}'s profile`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -332,29 +242,29 @@ export default function App() {
                             }}
                           />
                         ) : null}
-                        <div className={`w-full h-full flex items-center justify-center text-white font-bold text-xl ${friend.pfp_url ? 'hidden' : ''}`}>
-                          {friend.username?.charAt(0).toUpperCase() || '?'}
+                        <div className={`w-full h-full flex items-center justify-center text-white font-bold text-xl ${replyGuy.pfp_url ? 'hidden' : ''}`}>
+                          {replyGuy.username?.charAt(0).toUpperCase() || '?'}
                         </div>
                       </div>
                       
                       <h3 className="font-bold text-amber-900 text-lg mb-1">
-                        {friend.ens_name ? (
+                        {replyGuy.ens_name ? (
                           <span>
-                            <span className="text-purple-600">{friend.ens_name}</span>
-                            <span className="text-amber-600 text-sm ml-2">@{friend.username}</span>
+                            <span className="text-purple-600">{replyGuy.ens_name}</span>
+                            <span className="text-amber-600 text-sm ml-2">@{replyGuy.username}</span>
                           </span>
                         ) : (
-                          `@${friend.username || `Friend ${friend.fid}`}`
+                          `@${replyGuy.username || `ReplyGuy ${replyGuy.fid}`}`
                         )}
                       </h3>
                       
                       <p className="text-amber-700 text-sm mb-2">
-                        {friend.display_name || 'Mutual Friend'}
+                        {replyGuy.display_name || 'Reply Guy'}
                       </p>
 
-                      {/* Friend Type Badge */}
-                      <div className={`inline-block bg-gradient-to-r ${friendType.color} text-white px-3 py-1 rounded-full text-xs font-bold mb-2`}>
-                        {friendType.icon} {friendType.type}
+                      {/* Reply Guy Type Badge */}
+                      <div className={`inline-block bg-gradient-to-r ${replyGuyType.color} text-white px-3 py-1 rounded-full text-xs font-bold mb-2`}>
+                        {replyGuyType.icon} {replyGuyType.type}
                       </div>
 
                       {/* Activity Status */}
@@ -364,161 +274,55 @@ export default function App() {
                     </div>
 
                     {/* Bio */}
-                    {friend.bio && (
+                    {replyGuy.bio && (
                       <div className="mb-4">
                         <p className="text-amber-600 text-xs italic bg-amber-50 p-3 rounded-lg border-l-4 border-amber-400">
-                          "{friend.bio}"
+                          "{replyGuy.bio}"
                         </p>
                       </div>
                     )}
 
-                    {/* Rich Social Stats */}
-                    {friend.follower_count && (
-                      <div className="mb-4">
-                        <div className="text-sm font-semibold text-amber-800 mb-2">📊 Social Stats</div>
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="bg-blue-50 rounded p-2 text-center">
-                            <div className="font-bold text-blue-800">{friend.follower_count.toLocaleString()}</div>
-                            <div className="text-blue-600">Followers</div>
-                          </div>
-                          <div className="bg-green-50 rounded p-2 text-center">
-                            <div className="font-bold text-green-800">{friend.following_count?.toLocaleString() || 'N/A'}</div>
-                            <div className="text-green-600">Following</div>
-                          </div>
-                          <div className="bg-purple-50 rounded p-2 text-center">
-                            <div className="font-bold text-purple-800">{friend.cast_count?.toLocaleString() || 'N/A'}</div>
-                            <div className="text-purple-600">Casts</div>
-                          </div>
+                    {/* Reply Stats */}
+                    <div className="mb-4">
+                      <div className="text-sm font-semibold text-amber-800 mb-2">💬 Reply Stats</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-blue-50 rounded p-2 text-center">
+                          <div className="font-bold text-blue-800">{replyGuy.replyCount}</div>
+                          <div className="text-blue-600">Replies to You</div>
                         </div>
-                        {friend.mutual_friends_count && (
-                          <div className="text-center mt-2">
-                            <div className="text-xs text-amber-600">
-                              🤝 {friend.mutual_friends_count} mutual friends
-                            </div>
-                          </div>
-                        )}
+                        <div className="bg-green-50 rounded p-2 text-center">
+                          <div className="font-bold text-green-800">{replyGuy.follower_count?.toLocaleString() || 'N/A'}</div>
+                          <div className="text-green-600">Followers</div>
+                        </div>
                       </div>
-                    )}
+                    </div>
 
-                                         {/* Engagement Breakdown */}
-                     {friend.engagement_breakdown && (
-                       <div className="mb-4">
-                         <div className="text-sm font-semibold text-amber-800 mb-2">🎯 Your Engagement</div>
-                         <div className="space-y-3">
-                           {/* Unique Interactions */}
-                           <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
-                             <div className="text-center mb-2">
-                               <div className="text-lg font-bold text-green-800">{friend.engagement_breakdown.uniqueInteractions}</div>
-                               <div className="text-xs text-green-600">Unique Casts Engaged</div>
-                             </div>
-                             <div className="grid grid-cols-3 gap-2 text-xs">
-                               <div className="bg-red-50 rounded p-1 text-center">
-                                 <div className="font-bold text-red-800">{friend.engagement_breakdown.uniqueLikes}</div>
-                                 <div className="text-red-600">Likes</div>
-                               </div>
-                               <div className="bg-orange-50 rounded p-1 text-center">
-                                 <div className="font-bold text-orange-800">{friend.engagement_breakdown.uniqueRecasts}</div>
-                                 <div className="text-orange-600">Recasts</div>
-                               </div>
-                               <div className="bg-yellow-50 rounded p-1 text-center">
-                                 <div className="font-bold text-yellow-800">{friend.engagement_breakdown.uniqueReplies}</div>
-                                 <div className="text-yellow-600">Replies</div>
-                               </div>
-                             </div>
-                           </div>
-                           
-                           {/* Total Interactions */}
-                           {friend.engagement_breakdown.totalInteractions > friend.engagement_breakdown.uniqueInteractions && (
-                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
-                               <div className="text-center mb-2">
-                                 <div className="text-lg font-bold text-blue-800">{friend.engagement_breakdown.totalInteractions}</div>
-                                 <div className="text-xs text-blue-600">Total Interactions</div>
-                               </div>
-                               <div className="grid grid-cols-3 gap-2 text-xs">
-                                 <div className="bg-red-50 rounded p-1 text-center">
-                                   <div className="font-bold text-red-800">{friend.engagement_breakdown.totalLikes}</div>
-                                   <div className="text-red-600">Likes</div>
-                                 </div>
-                                 <div className="bg-orange-50 rounded p-1 text-center">
-                                   <div className="font-bold text-orange-800">{friend.engagement_breakdown.totalRecasts}</div>
-                                   <div className="text-orange-600">Recasts</div>
-                                 </div>
-                                 <div className="bg-yellow-50 rounded p-1 text-center">
-                                   <div className="font-bold text-yellow-800">{friend.engagement_breakdown.totalReplies}</div>
-                                   <div className="text-yellow-600">Replies</div>
-                                 </div>
-                               </div>
-                             </div>
-                           )}
-                           
-                           {/* Engagement Rate */}
-                           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200">
-                             <div className="text-center">
-                               <div className="text-lg font-bold text-purple-800">{friend.engagement_breakdown.engagedCasts}</div>
-                               <div className="text-xs text-purple-600">Casts They Engaged With</div>
-                               <div className="text-xs text-purple-500 mt-1">
-                                 {friend.engagement_breakdown.uniqueInteractions > 0 ? 
-                                   `${Math.round((friend.engagement_breakdown.uniqueInteractions / friend.engagement_breakdown.engagedCasts) * 100)}% engagement rate` : 
-                                   'No engagement yet'}
-                               </div>
-                             </div>
-                           </div>
-                         </div>
-                       </div>
-                     )}
-
-                    {/* Recent Topics */}
-                    {topTopics.length > 0 && (
+                    {/* Potential Connections */}
+                    {replyGuy.potential_connections && replyGuy.potential_connections.length > 0 && (
                       <div className="mb-4">
-                        <div className="text-sm font-semibold text-amber-800 mb-2">💬 Recent Topics</div>
-                        <div className="flex flex-wrap gap-1">
-                          {topTopics.map((topic, idx) => (
-                            <span key={idx} className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs">
-                              #{topic}
-                            </span>
+                        <div className="text-sm font-semibold text-amber-800 mb-2">🔗 Potential Connections</div>
+                        <div className="space-y-2">
+                          {replyGuy.potential_connections.slice(0, 3).map((connection, idx) => (
+                            <div key={connection.fid} className="bg-purple-50 rounded p-2 text-xs">
+                              <div className="font-semibold text-purple-800">@{connection.username}</div>
+                              <div className="text-purple-600">{connection.interaction_count} interactions</div>
+                            </div>
                           ))}
                         </div>
                       </div>
                     )}
-
-                    {/* Connection Stats */}
-                    <div className="mb-4">
-                      <div className="text-sm font-semibold text-amber-800 mb-2">📈 Connection Stats</div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-amber-50 rounded p-2 text-center">
-                          <div className="font-bold text-amber-800">{friend.totalInteractions}</div>
-                          <div className="text-amber-600">Total Interactions</div>
-                        </div>
-                        <div className="bg-orange-50 rounded p-2 text-center">
-                          <div className="font-bold text-orange-800">{friend.daysSinceFirstEngagement}</div>
-                          <div className="text-orange-600">Days Connected</div>
-                        </div>
-                      </div>
-                    </div>
 
                     {/* Action Buttons */}
                     <div className="space-y-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`https://warpcast.com/${friend.username}`, '_blank');
+                          window.open(`https://warpcast.com/${replyGuy.username}`, '_blank');
                         }}
                         className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm border-2 border-blue-400"
                       >
                         👤 View Profile
                       </button>
-                      
-                      {isSDKLoaded && isInMiniApp && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleTipFriend(friend);
-                          }}
-                          className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 text-sm border-2 border-green-400"
-                        >
-                          💰 Tip 1 USDC
-                        </button>
-                      )}
                     </div>
                   </div>
                 )
@@ -527,19 +331,19 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !error && friends.length === 0 && (
+        {!loading && !error && replyGuys.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-amber-400 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg mx-auto mb-4">
               🤠
             </div>
             <h3 className="text-2xl font-bold text-amber-900 mb-2">
-              No Top Mutual Friends Found
+              No Reply Guys Found
             </h3>
             <p className="text-amber-800 opacity-90 mb-4">
-              Start engaging with your mutual follows to discover friends you want more of!
+              Start posting more content to discover who replies to you most!
             </p>
             <button
-              onClick={() => userFid && handleGetTop8(userFid)}
+              onClick={() => userFid && handleGetReplyGuys(userFid)}
               className="bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors border-2 border-amber-500"
             >
               Refresh
