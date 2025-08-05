@@ -161,9 +161,49 @@ export async function GET(request: NextRequest) {
         rank: globalRank, // Global rank across all pages
         verified: (userDetail as any).verified || false,
         follower_count: (userDetail as any).follower_count || 0,
-        following_count: (userDetail as any).following_count || 0
+        following_count: (userDetail as any).following_count || 0,
+        // Add social scope data for connections of connections
+        social_scope: {
+          friends_of_friends: [], // Will be populated if available
+          network_stats: {
+            total_mutual_friends: 0,
+            total_friends_of_friends: 0,
+            network_density: 0
+          }
+        }
       }
     })
+
+    // Fetch friends of friends for each user (limited to avoid rate limits)
+    for (let i = 0; i < Math.min(top8.length, 3); i++) { // Only fetch for first 3 users to avoid rate limits
+      const user = top8[i]
+      try {
+        const friendFriendsResponse = await makeNeynarRequest(
+          `https://api.neynar.com/v2/farcaster/user/best_friends?fid=${user.fid}&limit=5`
+        )
+        
+        if (friendFriendsResponse.ok) {
+          const friendFriendsData = await friendFriendsResponse.json()
+          const friendFriends = friendFriendsData.users || []
+          
+          user.social_scope.friends_of_friends = friendFriends.slice(0, 4).map((friend: any) => ({
+            fid: friend.fid,
+            username: friend.username,
+            display_name: friend.display_name || '',
+            pfp_url: friend.pfp_url || '',
+            mutual_affinity_score: friend.mutual_affinity_score || 0,
+            connected_via: user.username
+          }))
+          
+          user.social_scope.network_stats.total_friends_of_friends = friendFriends.length
+        }
+        
+        // Add delay to respect rate limits
+        await new Promise(resolve => setTimeout(resolve, 200))
+      } catch (error) {
+        console.error(`❌ [${requestId}] Error fetching friends of friends for ${user.username}:`, error)
+      }
+    }
 
     // Calculate stats for all users (not just current page)
     const totalUsers = allBestFriends.length

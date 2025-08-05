@@ -175,6 +175,15 @@ export default function App() {
     const nextPage = currentPage + 1
     setCurrentPage(nextPage)
     await handleGetTop8(userFid, nextPage)
+    
+    // Scroll to the new content smoothly
+    setTimeout(() => {
+      const newCards = document.querySelectorAll('[data-rank]')
+      if (newCards.length > 0) {
+        const firstNewCard = newCards[newCards.length - 8] // First card of new batch
+        firstNewCard?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 100)
   }
 
   const handleCardClick = async (user: Top8User) => {
@@ -466,6 +475,7 @@ export default function App() {
                 return (
                   <div
                     key={user.fid}
+                    data-rank={user.rank}
                     className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer group relative ${
                       index === 0 ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50' :
                       index === 1 ? 'border-gray-400 bg-gradient-to-r from-gray-50 to-slate-50' :
@@ -479,9 +489,10 @@ export default function App() {
                       #{user.rank}
                     </div>
 
-                    {/* Affinity Score Badge */}
+                    {/* Affinity Score Badge with Label */}
                     <div className="absolute -top-3 -left-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                      {user.mutual_affinity_score.toFixed(0)}
+                      <div className="text-xs">Score</div>
+                      <div>{user.mutual_affinity_score.toFixed(0)}</div>
                     </div>
 
                     {/* Profile Section */}
