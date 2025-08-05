@@ -107,18 +107,26 @@ export default function App() {
     setError("")
 
     try {
-      const response = await fetch(`/api/top8?fid=${fid}`, {
+      console.log('🔍 Frontend: Fetching Top 8 for FID:', fid)
+      
+      // Try the simplified API first
+      const response = await fetch(`/api/top8-simple?fid=${fid}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       })
 
+      console.log('🔍 Frontend: Response status:', response.status)
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json()
+        console.error('❌ Frontend: API error:', errorData)
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
+      console.log('✅ Frontend: API response:', data)
       
       if (data.error) {
         throw new Error(data.error)
@@ -126,8 +134,14 @@ export default function App() {
 
       setTop8(data.top8 || [])
       setStats(data.stats || null)
+      
+      // Log debug info if available
+      if (data.debug) {
+        console.log('🔍 Frontend: Debug info:', data.debug)
+      }
+      
     } catch (error) {
-      console.error('Error fetching Top 8:', error)
+      console.error('❌ Frontend: Error fetching Top 8:', error)
       setError(error instanceof Error ? error.message : "Failed to fetch your Top 8")
     } finally {
       setLoading(false)
