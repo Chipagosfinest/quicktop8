@@ -15,7 +15,7 @@ QuickTop8 analyzes your Farcaster network to find your **longest-standing mutual
 ## 🚀 Live Demo
 
 - **Mini App**: Available on Farcaster
-- **Web App**: https://quicktop8-kzkbbps44-chipagosfinests-projects.vercel.app
+- **Web App**: https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app
 
 ## 🛠 Tech Stack
 
