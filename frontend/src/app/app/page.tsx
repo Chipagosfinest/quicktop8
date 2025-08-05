@@ -35,9 +35,9 @@ export default function App() {
         `${i + 1}. ${user.display_name || user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
       ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at friends-of-friends.vercel.app`
 
-      // Use the compose API to create an embedded cast
+      // Use the compose API to create an embedded cast with mini-app in embeds array
       await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/embed')}`
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/app')}`
       })
 
       console.log('Shared results with embedded cast successfully')
