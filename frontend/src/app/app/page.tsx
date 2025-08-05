@@ -1,10 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
-// Force dynamic rendering to prevent caching
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,6 +25,27 @@ interface Friend {
   rideOrDieScore: number
   daysSinceFirstEngagement: number
   engagementFrequency: number
+  // Rich Neynar data
+  follower_count?: number
+  following_count?: number
+  cast_count?: number
+  verified_addresses?: string[]
+  active_status?: string
+  last_active?: string
+  mutual_friends_count?: number
+  engagement_breakdown?: {
+    likes: number
+    recasts: number
+    replies: number
+  }
+  recent_casts?: Array<{
+    hash: string
+    text: string
+    timestamp: string
+    reactions_count: number
+    recasts_count: number
+    replies_count: number
+  }>
 }
 
 export default function App() {
@@ -490,6 +507,55 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Rich Social Data */}
+                  {friend.follower_count && (
+                    <div className="mb-4">
+                      <div className="text-sm font-semibold text-amber-800 mb-2">📈 Social Stats</div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-blue-100 rounded p-2 text-center">
+                          <div className="font-bold text-blue-800">{friend.follower_count}</div>
+                          <div className="text-blue-600">Followers</div>
+                        </div>
+                        <div className="bg-green-100 rounded p-2 text-center">
+                          <div className="font-bold text-green-800">{friend.following_count}</div>
+                          <div className="text-green-600">Following</div>
+                        </div>
+                        <div className="bg-purple-100 rounded p-2 text-center">
+                          <div className="font-bold text-purple-800">{friend.cast_count}</div>
+                          <div className="text-purple-600">Casts</div>
+                        </div>
+                      </div>
+                      {friend.mutual_friends_count && (
+                        <div className="text-center mt-2">
+                          <div className="text-xs text-amber-600">
+                            🤝 {friend.mutual_friends_count} mutual friends
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Engagement Breakdown */}
+                  {friend.engagement_breakdown && (
+                    <div className="mb-4">
+                      <div className="text-sm font-semibold text-amber-800 mb-2">🎯 Your Engagement</div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-red-100 rounded p-2 text-center">
+                          <div className="font-bold text-red-800">{friend.engagement_breakdown.likes}</div>
+                          <div className="text-red-600">Likes</div>
+                        </div>
+                        <div className="bg-orange-100 rounded p-2 text-center">
+                          <div className="font-bold text-orange-800">{friend.engagement_breakdown.recasts}</div>
+                          <div className="text-orange-600">Recasts</div>
+                        </div>
+                        <div className="bg-yellow-100 rounded p-2 text-center">
+                          <div className="font-bold text-yellow-800">{friend.engagement_breakdown.replies}</div>
+                          <div className="text-yellow-600">Replies</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Engagement Analysis */}
                   <div className="mb-4">
                     <div className="text-sm font-semibold text-amber-800 mb-2 flex items-center justify-between">
@@ -503,7 +569,13 @@ export default function App() {
                           const followDuration = (Date.now() - new Date(friend.followDate).getTime()) / (1000 * 60 * 60 * 24) * 0.5;
                           const displayName = friend.ens_name ? `${friend.ens_name} (@${friend.username})` : `@${friend.username}`;
                           
-                          alert(`Friendship Score Breakdown for ${displayName}:\n\n📊 Score Components:\n• Longevity (${friend.daysSinceFirstEngagement} days × 2): ${longevity.toFixed(1)}\n• Frequency (${friend.engagementFrequency.toFixed(2)}/day × 50): ${frequency.toFixed(1)}\n• Interactions (${friend.totalInteractions} × 5): ${interactions}\n• Follow Duration (${(followDuration/0.5).toFixed(0)} days × 0.5): ${followDuration.toFixed(1)}\n\n🎯 Total Score: ${friend.rideOrDieScore}\n\n💡 What this means:\n${friend.rideOrDieScore > 100 ? '🌟 Elite Connection - You engage frequently and have a long history' : 
+                          const richInfo = friend.follower_count ? 
+                            `\n📈 Social Stats:\n• Followers: ${friend.follower_count}\n• Following: ${friend.following_count}\n• Casts: ${friend.cast_count}\n• Mutual Friends: ${friend.mutual_friends_count || 0}` : '';
+                          
+                          const engagementInfo = friend.engagement_breakdown ?
+                            `\n🎯 Your Engagement:\n• Likes: ${friend.engagement_breakdown.likes}\n• Recasts: ${friend.engagement_breakdown.recasts}\n• Replies: ${friend.engagement_breakdown.replies}` : '';
+                          
+                          alert(`Friendship Score Breakdown for ${displayName}:${richInfo}${engagementInfo}\n\n📊 Score Components:\n• Longevity (${friend.daysSinceFirstEngagement} days × 2): ${longevity.toFixed(1)}\n• Frequency (${friend.engagementFrequency.toFixed(2)}/day × 50): ${frequency.toFixed(1)}\n• Interactions (${friend.totalInteractions} × 5): ${interactions}\n• Follow Duration (${(followDuration/0.5).toFixed(0)} days × 0.5): ${followDuration.toFixed(1)}\n\n🎯 Total Score: ${friend.rideOrDieScore}\n\n💡 What this means:\n${friend.rideOrDieScore > 100 ? '🌟 Elite Connection - You engage frequently and have a long history' : 
                             friend.rideOrDieScore > 50 ? '💫 Strong Bond - Regular engagement with good history' : 
                             friend.rideOrDieScore > 20 ? '🤝 Good Friend - Some engagement, growing connection' : '👋 New Connection - Early stages of friendship'}`);
                         }}

@@ -20,6 +20,27 @@ interface MutualFollowData {
   rideOrDieScore: number
   daysSinceFirstEngagement: number
   engagementFrequency: number
+  // Rich Neynar data
+  follower_count?: number
+  following_count?: number
+  cast_count?: number
+  verified_addresses?: string[]
+  active_status?: string
+  last_active?: string
+  mutual_friends_count?: number
+  engagement_breakdown?: {
+    likes: number
+    recasts: number
+    replies: number
+  }
+  recent_casts?: Array<{
+    hash: string
+    text: string
+    timestamp: string
+    reactions_count: number
+    recasts_count: number
+    replies_count: number
+  }>
 }
 
 interface UserData {
@@ -32,26 +53,98 @@ interface UserData {
   timestamp: string
 }
 
-// Function to fetch ENS name for a user
-async function fetchENSName(fid: number): Promise<string | undefined> {
+// Function to fetch comprehensive user data from Neynar
+async function fetchRichUserData(fid: number): Promise<any> {
   try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/user/verifications?fid=${fid}`, {
-      headers: {
-        'x-api-key': NEYNAR_API_KEY,
-        'accept': 'application/json'
-      },
-      signal: AbortSignal.timeout(3000)
+    const [userResponse, verificationsResponse, castsResponse] = await Promise.all([
+      fetch(`https://api.neynar.com/v2/farcaster/user?fid=${fid}`, {
+        headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      }),
+      fetch(`https://api.neynar.com/v2/farcaster/user/verifications?fid=${fid}`, {
+        headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+        signal: AbortSignal.timeout(3000)
+      }),
+      fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=5`, {
+        headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      })
+    ])
+
+    const userData = userResponse.ok ? await userResponse.json() : {}
+    const verificationsData = verificationsResponse.ok ? await verificationsResponse.json() : {}
+    const castsData = castsResponse.ok ? await castsResponse.json() : {}
+
+    return {
+      user: userData.user || {},
+      verifications: verificationsData.verifications || [],
+      recent_casts: castsData.casts || []
+    }
+  } catch (error) {
+    console.error(`Error fetching rich data for FID ${fid}:`, error)
+    return { user: {}, verifications: [], recent_casts: [] }
+  }
+}
+
+// Function to fetch mutual friends count
+async function fetchMutualFriendsCount(userFid: number, friendFid: number): Promise<number> {
+  try {
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/followers/reciprocal?fid=${friendFid}&limit=100`, {
+      headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+      signal: AbortSignal.timeout(5000)
     })
     
     if (response.ok) {
       const data = await response.json()
-      const ensVerification = data.verifications?.find((v: any) => v.protocol === 'ens')
-      return ensVerification?.username || undefined
+      const mutualFriends = data.users || []
+      return mutualFriends.length
     }
   } catch (error) {
-    console.error(`Error fetching ENS for FID ${fid}:`, error)
+    console.error(`Error fetching mutual friends for FID ${friendFid}:`, error)
   }
-  return undefined
+  return 0
+}
+
+// Function to fetch engagement breakdown
+async function fetchEngagementBreakdown(userFid: number, friendFid: number): Promise<any> {
+  try {
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${userFid}&limit=20`, {
+      headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+      signal: AbortSignal.timeout(5000)
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      const casts = data.casts || []
+      
+      let likes = 0, recasts = 0, replies = 0
+      
+      // Get reactions for each cast
+      for (const cast of casts.slice(0, 10)) {
+        const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash&limit=100`, {
+          headers: { 'x-api-key': NEYNAR_API_KEY, 'accept': 'application/json' },
+          signal: AbortSignal.timeout(3000)
+        })
+        
+        if (reactionsResponse.ok) {
+          const reactionsData = await reactionsResponse.json()
+          const reactions = reactionsData.reactions || []
+          
+          for (const reaction of reactions) {
+            if (reaction.reactor_user?.fid === friendFid) {
+              if (reaction.reaction_type === 'like') likes++
+              else if (reaction.reaction_type === 'recast') recasts++
+            }
+          }
+        }
+      }
+      
+      return { likes, recasts, replies }
+    }
+  } catch (error) {
+    console.error(`Error fetching engagement breakdown:`, error)
+  }
+  return { likes: 0, recasts: 0, replies: 0 }
 }
 
 function updateMutualFollowData(
@@ -254,10 +347,19 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.rideOrDieScore - a.rideOrDieScore)
         .slice(0, 8)
       
-      // Fetch ENS names for top friends
-      const friendsWithENS = await Promise.all(
+      // Fetch rich data for top friends
+      const friendsWithRichData = await Promise.all(
         topFriends.map(async (friend) => {
-          const ensName = await fetchENSName(friend.fid)
+          const richData = await fetchRichUserData(friend.fid)
+          const ensVerification = richData.verifications?.find((v: any) => v.protocol === 'ens')
+          const ensName = ensVerification?.username || undefined
+          
+          // Get mutual friends count
+          const mutualFriendsCount = await fetchMutualFriendsCount(parseInt(fid), friend.fid)
+          
+          // Get engagement breakdown
+          const engagementBreakdown = await fetchEngagementBreakdown(parseInt(fid), friend.fid)
+          
           return {
             fid: friend.fid,
             username: friend.username,
@@ -275,12 +377,29 @@ export async function GET(request: NextRequest) {
             originalEngagementCastUrl: friend.originalEngagementCastUrl,
             rideOrDieScore: friend.rideOrDieScore,
             daysSinceFirstEngagement: Math.round(friend.daysSinceFirstEngagement),
-            engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100
+            engagementFrequency: Math.round(friend.engagementFrequency * 100) / 100,
+            // Rich Neynar data
+            follower_count: richData.user.follower_count,
+            following_count: richData.user.following_count,
+            cast_count: richData.user.cast_count,
+            verified_addresses: richData.verifications?.map((v: any) => v.username) || [],
+            active_status: richData.user.active_status,
+            last_active: richData.user.last_active,
+            mutual_friends_count: mutualFriendsCount,
+            engagement_breakdown: engagementBreakdown,
+            recent_casts: richData.recent_casts?.slice(0, 3).map((cast: any) => ({
+              hash: cast.hash,
+              text: cast.text,
+              timestamp: cast.timestamp,
+              reactions_count: cast.reactions_count,
+              recasts_count: cast.recasts_count,
+              replies_count: cast.replies_count
+            })) || []
           }
         })
       )
       
-      const friends = friendsWithENS
+      const friends = friendsWithRichData
       
       console.log(`Found ${friends.length} top mutual follows with engagement`)
       

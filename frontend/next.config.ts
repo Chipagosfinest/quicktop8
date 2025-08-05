@@ -6,10 +6,6 @@ const nextConfig: NextConfig = {
   },
   // Disable static generation to ensure fresh deployments
   output: 'standalone',
-  experimental: {
-    // Disable static optimization
-    staticPageGenerationTimeout: 0,
-  },
   async headers() {
     return [
       {
