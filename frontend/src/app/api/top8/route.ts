@@ -11,6 +11,18 @@ interface Top8User {
   ens_name?: string
   mutual_affinity_score: number
   rank: number
+  // Enhanced interaction data
+  interaction_stats?: {
+    total_interactions: number
+    recent_interactions: number // last 30 days
+    interaction_types: {
+      likes: number
+      recasts: number
+      replies: number
+    }
+    last_interaction_date?: string
+    engagement_score: number // calculated based on interaction frequency and recency
+  }
   // Their top 3 friends
   top_friends?: Array<{
     fid: number
@@ -132,6 +144,38 @@ async function fetchUserData(fid: number): Promise<any> {
   }
 }
 
+async function fetchUserInteractions(fid1: number, fid2: number): Promise<any[]> {
+  if (!checkRateLimit('user-interactions')) {
+    console.warn('Rate limit exceeded for user interactions')
+    return []
+  }
+  
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY is not configured')
+    return []
+  }
+  
+  try {
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/user/interactions?fid=${fid1}&interacted_with_fid=${fid2}&limit=50`, {
+      headers: { 
+        'x-api-key': NEYNAR_API_KEY, 
+        'accept': 'application/json' 
+      },
+      signal: AbortSignal.timeout(8000)
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data.interactions || []
+  } catch (error) {
+    console.error('Error fetching user interactions:', error)
+    return []
+  }
+}
+
 async function fetchUserFollowing(fid: number): Promise<number[]> {
   if (!checkRateLimit('following')) {
     console.warn('Rate limit exceeded for following')
@@ -196,6 +240,32 @@ async function fetchUserFollowers(fid: number): Promise<number[]> {
   }
 }
 
+function calculateEngagementScore(interactions: any[], recentDays: number = 30): number {
+  if (!interactions || interactions.length === 0) return 0
+  
+  const now = new Date()
+  const recentCutoff = new Date(now.getTime() - (recentDays * 24 * 60 * 60 * 1000))
+  
+  const recentInteractions = interactions.filter(interaction => {
+    const interactionDate = new Date(interaction.timestamp)
+    return interactionDate > recentCutoff
+  })
+  
+  // Calculate engagement score based on:
+  // 1. Total interactions (40% weight)
+  // 2. Recent interactions (40% weight) 
+  // 3. Interaction diversity (20% weight)
+  
+  const totalScore = Math.min(interactions.length / 10, 1) * 40 // Cap at 40 points
+  const recentScore = Math.min(recentInteractions.length / 5, 1) * 40 // Cap at 40 points
+  
+  // Interaction diversity (likes, recasts, replies)
+  const interactionTypes = new Set(interactions.map(i => i.type))
+  const diversityScore = (interactionTypes.size / 3) * 20 // Max 3 types
+  
+  return Math.min(totalScore + recentScore + diversityScore, 100)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -243,6 +313,27 @@ export async function GET(request: NextRequest) {
       if (affinityScore > topAffinityScore) {
         topAffinityScore = affinityScore
       }
+
+      // Get interaction data between user and this friend
+      const interactions = await fetchUserInteractions(userFid, friend.fid)
+      const friendInteractions = await fetchUserInteractions(friend.fid, userFid)
+      const allInteractions = [...interactions, ...friendInteractions]
+      
+      // Calculate interaction stats
+      const interactionTypes = {
+        likes: allInteractions.filter(i => i.type === 'like').length,
+        recasts: allInteractions.filter(i => i.type === 'recast').length,
+        replies: allInteractions.filter(i => i.type === 'reply').length
+      }
+      
+      const recentInteractions = allInteractions.filter(interaction => {
+        const interactionDate = new Date(interaction.timestamp)
+        const thirtyDaysAgo = new Date(Date.now() - (30 * 24 * 60 * 60 * 1000))
+        return interactionDate > thirtyDaysAgo
+      })
+      
+      const lastInteraction = allInteractions.length > 0 ? 
+        allInteractions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0] : null
 
       // Get this friend's top 3 friends (excluding the original user)
       const friendBestFriends = await fetchBestFriends(friend.fid, 4) // Get 4 to account for exclusion
@@ -314,6 +405,13 @@ export async function GET(request: NextRequest) {
         ens_name: userData.ens_name || '',
         mutual_affinity_score: affinityScore,
         rank: i + 1,
+        interaction_stats: {
+          total_interactions: allInteractions.length,
+          recent_interactions: recentInteractions.length,
+          interaction_types: interactionTypes,
+          last_interaction_date: lastInteraction?.timestamp,
+          engagement_score: calculateEngagementScore(allInteractions)
+        },
         top_friends: resolvedTopFriends,
         social_scope: {
           mutual_friends: mutualFriendsData,

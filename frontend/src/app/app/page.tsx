@@ -13,6 +13,18 @@ interface Top8User {
   ens_name?: string
   mutual_affinity_score: number
   rank: number
+  // Enhanced interaction data
+  interaction_stats?: {
+    total_interactions: number
+    recent_interactions: number // last 30 days
+    interaction_types: {
+      likes: number
+      recasts: number
+      replies: number
+    }
+    last_interaction_date?: string
+    engagement_score: number // calculated based on interaction frequency and recency
+  }
   // Their top 3 friends
   top_friends?: Array<{
     fid: number
@@ -173,6 +185,27 @@ export default function App() {
     if (density >= 50) return "text-green-600"
     if (density >= 25) return "text-yellow-600"
     return "text-red-600"
+  }
+
+  const getEngagementColor = (score: number) => {
+    if (score >= 80) return "text-green-600"
+    if (score >= 60) return "text-yellow-600"
+    if (score >= 40) return "text-orange-600"
+    return "text-red-600"
+  }
+
+  const formatLastInteraction = (timestamp?: string) => {
+    if (!timestamp) return "Never"
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) return "Today"
+    if (diffDays === 1) return "Yesterday"
+    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+    return `${Math.floor(diffDays / 30)} months ago`
   }
 
   // Call ready() even if no user context (for testing)
@@ -353,6 +386,50 @@ export default function App() {
                         <p className="text-purple-600 text-xs italic bg-purple-50 p-3 rounded-lg border-l-4 border-purple-400">
                           "{user.bio}"
                         </p>
+                      </div>
+                    )}
+
+                    {/* Interaction Stats */}
+                    {user.interaction_stats && (
+                      <div className="mb-4">
+                        <div className="text-sm font-semibold text-purple-800 mb-2">💬 Interaction Stats</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="bg-blue-50 rounded p-2 text-center">
+                            <div className="font-bold text-blue-800">{user.interaction_stats.total_interactions}</div>
+                            <div className="text-blue-600">Total</div>
+                          </div>
+                          <div className="bg-green-50 rounded p-2 text-center">
+                            <div className="font-bold text-green-800">{user.interaction_stats.recent_interactions}</div>
+                            <div className="text-green-600">Recent (30d)</div>
+                          </div>
+                        </div>
+                        
+                        {/* Engagement Score */}
+                        <div className="mt-2 text-center">
+                          <div className={`text-xs font-semibold ${getEngagementColor(user.interaction_stats.engagement_score)}`}>
+                            ⭐ {user.interaction_stats.engagement_score.toFixed(0)} Engagement Score
+                          </div>
+                        </div>
+
+                        {/* Interaction Types */}
+                        <div className="mt-2 grid grid-cols-3 gap-1 text-xs">
+                          <div className="bg-red-50 rounded p-1 text-center">
+                            <div className="font-bold text-red-800">❤️ {user.interaction_stats.interaction_types.likes}</div>
+                          </div>
+                          <div className="bg-blue-50 rounded p-1 text-center">
+                            <div className="font-bold text-blue-800">🔄 {user.interaction_stats.interaction_types.recasts}</div>
+                          </div>
+                          <div className="bg-green-50 rounded p-1 text-center">
+                            <div className="font-bold text-green-800">💬 {user.interaction_stats.interaction_types.replies}</div>
+                          </div>
+                        </div>
+
+                        {/* Last Interaction */}
+                        <div className="mt-2 text-center">
+                          <div className="text-xs text-gray-600">
+                            Last interaction: {formatLastInteraction(user.interaction_stats.last_interaction_date)}
+                          </div>
+                        </div>
                       </div>
                     )}
 
