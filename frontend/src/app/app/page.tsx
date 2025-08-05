@@ -353,20 +353,48 @@ export default function App() {
 
         {!loading && !error && replyGuys.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-amber-400 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg mx-auto mb-4">
+            <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg border-4 border-amber-500 mx-auto mb-6 animate-bounce">
               🤠
             </div>
-            <h3 className="text-2xl font-bold text-amber-900 mb-2">
-              No Reply Guys Found
-            </h3>
-            <p className="text-amber-800 opacity-90 mb-4">
-              Start posting more content to discover who replies to you most!
+            <h2 className="text-2xl font-bold text-amber-900 mb-4">
+              No Reply Guys Found Yet!
+            </h2>
+            <p className="text-amber-800 text-lg mb-6 max-w-md mx-auto">
+              Start posting more engaging content to discover who replies to you most! 
+              The more you interact, the more reply guys you'll find.
             </p>
+            
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-300 max-w-md mx-auto">
+              <h3 className="font-semibold text-amber-900 mb-3">💡 Tips to Find Reply Guys:</h3>
+              <ul className="text-left text-amber-700 space-y-2">
+                <li className="flex items-start">
+                  <span className="text-amber-600 mr-2">•</span>
+                  Post thought-provoking questions
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-600 mr-2">•</span>
+                  Share interesting takes on trending topics
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-600 mr-2">•</span>
+                  Engage with other people's content
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-600 mr-2">•</span>
+                  Be active in channels and communities
+                </li>
+              </ul>
+            </div>
+            
             <button
-              onClick={() => userFid && handleGetReplyGuys(userFid)}
-              className="bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors border-2 border-amber-500"
+              onClick={() => {
+                if (userFid) {
+                  handleGetReplyGuys(userFid);
+                }
+              }}
+              className="mt-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-amber-400"
             >
-              Refresh
+              🔄 Try Again
             </button>
           </div>
         )}
