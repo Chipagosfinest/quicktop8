@@ -280,6 +280,12 @@ export default function App() {
             >
               📈 Analytics
             </button>
+            <button
+              onClick={() => window.location.href = '/top8'}
+              className="px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-purple-700 hover:bg-purple-50"
+            >
+              👑 Top 8
+            </button>
           </div>
         </div>
 
