@@ -2,6 +2,7 @@ import { Top8User } from '@/lib/types'
 import { getAffinityTitle, formatLastInteraction } from '@/lib/utils'
 import { sdk } from '@farcaster/miniapp-sdk'
 import Image from 'next/image'
+import { useState } from 'react'
 
 interface UserCardProps {
   user: Top8User
@@ -11,6 +12,9 @@ interface UserCardProps {
 
 export function UserCard({ user, index, onTip }: UserCardProps) {
   const affinityTitle = getAffinityTitle(user.mutual_affinity_score, user.rank)
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [useProxy, setUseProxy] = useState(false)
 
   const handleCardClick = async () => {
     try {
@@ -29,6 +33,31 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
     e.stopPropagation()
     await onTip(user.fid, user.username)
   }
+
+  const handleImageError = () => {
+    console.log(`Image failed to load for ${user.username}: ${user.pfp_url}`)
+    if (!useProxy && user.pfp_url) {
+      // Try proxy as fallback
+      setUseProxy(true)
+    } else {
+      setImageError(true)
+    }
+  }
+
+  const handleImageLoad = () => {
+    setImageLoaded(true)
+  }
+
+  // Get the image source
+  const getImageSrc = () => {
+    if (!user.pfp_url) return null
+    if (useProxy) {
+      return `/api/proxy-image?url=${encodeURIComponent(user.pfp_url)}`
+    }
+    return user.pfp_url
+  }
+
+  const imageSrc = getImageSrc()
 
   return (
     <div
@@ -49,21 +78,27 @@ export function UserCard({ user, index, onTip }: UserCardProps) {
         </div>
         
         <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-purple-500 overflow-hidden bg-gradient-to-br from-purple-600 to-purple-700 relative">
-          {user.pfp_url ? (
-            <Image 
-              src={user.pfp_url} 
-              alt={`${user.username}'s profile`}
-              width={80}
-              height={80}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
+          {imageSrc ? (
+            <>
+              <Image 
+                src={imageSrc} 
+                alt={`${user.username}'s profile`}
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+                onLoad={handleImageLoad}
+                unoptimized={true}
+                priority={index < 4}
+              />
+              {!imageLoaded && (
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              )}
+            </>
           ) : null}
-          <div className={`w-full h-full flex items-center justify-center text-white font-bold text-xl ${user.pfp_url ? 'hidden' : ''}`}>
+          <div className={`w-full h-full flex items-center justify-center text-white font-bold text-xl ${imageSrc ? 'hidden' : ''}`}>
             {user.username?.charAt(0).toUpperCase() || '?'}
           </div>
           {user.verified && (
