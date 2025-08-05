@@ -24,6 +24,29 @@ interface Top8User {
     mutual_affinity_score: number
     neynar_user_score?: number
   }>
+  // Social scope - who they're connected to in your network
+  social_scope?: {
+    mutual_friends: Array<{
+      fid: number
+      username: string
+      display_name: string
+      pfp_url: string
+      mutual_affinity_score: number
+    }>
+    friends_of_friends: Array<{
+      fid: number
+      username: string
+      display_name: string
+      pfp_url: string
+      mutual_affinity_score: number
+      connected_via: string // who connects them
+    }>
+    network_stats: {
+      total_mutual_friends: number
+      total_friends_of_friends: number
+      network_density: number // percentage of your network they're connected to
+    }
+  }
 }
 
 export default function App() {
@@ -33,6 +56,7 @@ export default function App() {
   const [userFid, setUserFid] = useState<number | null>(null)
   const [stats, setStats] = useState<any>(null)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [expandedUser, setExpandedUser] = useState<number | null>(null)
 
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
@@ -145,6 +169,12 @@ export default function App() {
     return { title: "Connection", icon: "🔗", color: "from-gray-300 to-gray-400" }
   }
 
+  const getNetworkDensityColor = (density: number) => {
+    if (density >= 50) return "text-green-600"
+    if (density >= 25) return "text-yellow-600"
+    return "text-red-600"
+  }
+
   // Call ready() even if no user context (for testing)
   useEffect(() => {
     if (isSDKLoaded && isInMiniApp) {
@@ -198,7 +228,7 @@ export default function App() {
             </h1>
           </div>
           <p className="text-purple-800 text-lg mb-2 drop-shadow-md">
-            Discover your closest friends based on mutual affinity scores
+            Discover your closest friends and their social networks
           </p>
           {stats && (
             <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-4 border-2 border-purple-300 inline-block">
@@ -216,7 +246,7 @@ export default function App() {
             <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-purple-500 animate-spin mx-auto mb-4">
               👑
             </div>
-            <p className="text-purple-800 text-lg">Finding your Top 8...</p>
+            <p className="text-purple-800 text-lg">Finding your Top 8 and analyzing social networks...</p>
           </div>
         )}
 
@@ -254,6 +284,7 @@ export default function App() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {top8.map((user, index) => {
                 const affinityTitle = getAffinityTitle(user.mutual_affinity_score, user.rank)
+                const isExpanded = expandedUser === user.fid
                 
                 return (
                   <div
@@ -264,7 +295,6 @@ export default function App() {
                       index === 2 ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-red-50' :
                       'border-purple-400 hover:border-purple-500 hover:bg-purple-50'
                     }`}
-                    onClick={() => window.open(`https://warpcast.com/${user.username}`, '_blank')}
                   >
                     {/* Rank Badge */}
                     <div className={`absolute -top-3 -right-3 bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg`}>
@@ -326,38 +356,138 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Top Friends Section */}
-                    {user.top_friends && user.top_friends.length > 0 && (
+                    {/* Network Stats */}
+                    {user.social_scope && (
                       <div className="mb-4">
-                        <div className="text-sm font-semibold text-purple-800 mb-2">💫 Their Top Friends</div>
-                        <div className="space-y-2">
-                          {user.top_friends.map((friend, idx) => (
-                            <div key={friend.fid} className="bg-gradient-to-r from-pink-50 to-purple-50 rounded p-2 text-xs border border-pink-200">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-pink-500 to-purple-600">
-                                  {friend.pfp_url ? (
-                                    <img 
-                                      src={friend.pfp_url} 
-                                      alt={`${friend.username}'s profile`}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
-                                      {friend.username?.charAt(0).toUpperCase() || '?'}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-semibold text-purple-800">@{friend.username}</div>
-                                  <div className="text-purple-600">{friend.mutual_affinity_score.toFixed(0)} affinity</div>
-                                </div>
-                                {friend.neynar_user_score && (
-                                  <div className="text-purple-500 text-xs">⭐ {friend.neynar_user_score.toFixed(1)}</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                        <div className="text-sm font-semibold text-purple-800 mb-2">🌐 Network Scope</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="bg-blue-50 rounded p-2 text-center">
+                            <div className="font-bold text-blue-800">{user.social_scope.network_stats.total_mutual_friends}</div>
+                            <div className="text-blue-600">Mutual Friends</div>
+                          </div>
+                          <div className="bg-green-50 rounded p-2 text-center">
+                            <div className="font-bold text-green-800">{user.social_scope.network_stats.total_friends_of_friends}</div>
+                            <div className="text-green-600">Friends of Friends</div>
+                          </div>
                         </div>
+                        <div className="mt-2 text-center">
+                          <div className={`text-xs font-semibold ${getNetworkDensityColor(user.social_scope.network_stats.network_density)}`}>
+                            {user.social_scope.network_stats.network_density.toFixed(1)}% Network Density
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Expand/Collapse Button */}
+                    <button
+                      onClick={() => setExpandedUser(isExpanded ? null : user.fid)}
+                      className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-center py-2 rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 text-sm border-2 border-indigo-400 mb-2"
+                    >
+                      {isExpanded ? '📉 Collapse' : '📈 Expand Social Scope'}
+                    </button>
+
+                    {/* Expanded Social Scope */}
+                    {isExpanded && user.social_scope && (
+                      <div className="space-y-4 mt-4">
+                        {/* Mutual Friends */}
+                        {user.social_scope.mutual_friends.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-purple-800 mb-2">🤝 Mutual Friends</div>
+                            <div className="space-y-2">
+                              {user.social_scope.mutual_friends.map((friend) => (
+                                <div key={friend.fid} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded p-2 text-xs border border-blue-200">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600">
+                                      {friend.pfp_url ? (
+                                        <img 
+                                          src={friend.pfp_url} 
+                                          alt={`${friend.username}'s profile`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+                                          {friend.username?.charAt(0).toUpperCase() || '?'}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-blue-800">@{friend.username}</div>
+                                      <div className="text-blue-600">{friend.display_name}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Friends of Friends */}
+                        {user.social_scope.friends_of_friends.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-purple-800 mb-2">🌟 Friends of Friends</div>
+                            <div className="space-y-2">
+                              {user.social_scope.friends_of_friends.map((friend) => (
+                                <div key={friend.fid} className="bg-gradient-to-r from-green-50 to-emerald-50 rounded p-2 text-xs border border-green-200">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600">
+                                      {friend.pfp_url ? (
+                                        <img 
+                                          src={friend.pfp_url} 
+                                          alt={`${friend.username}'s profile`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+                                          {friend.username?.charAt(0).toUpperCase() || '?'}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-green-800">@{friend.username}</div>
+                                      <div className="text-green-600">{friend.display_name}</div>
+                                      <div className="text-green-500 text-xs">via @{friend.connected_via}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Top Friends Section */}
+                        {user.top_friends && user.top_friends.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-purple-800 mb-2">💫 Their Top Friends</div>
+                            <div className="space-y-2">
+                              {user.top_friends.map((friend, idx) => (
+                                <div key={friend.fid} className="bg-gradient-to-r from-pink-50 to-purple-50 rounded p-2 text-xs border border-pink-200">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-pink-500 to-purple-600">
+                                      {friend.pfp_url ? (
+                                        <img 
+                                          src={friend.pfp_url} 
+                                          alt={`${friend.username}'s profile`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+                                          {friend.username?.charAt(0).toUpperCase() || '?'}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-purple-800">@{friend.username}</div>
+                                      <div className="text-purple-600">{friend.mutual_affinity_score.toFixed(0)} affinity</div>
+                                    </div>
+                                    {friend.neynar_user_score && (
+                                      <div className="text-purple-500 text-xs">⭐ {friend.neynar_user_score.toFixed(1)}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
