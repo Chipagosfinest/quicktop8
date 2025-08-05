@@ -30,20 +30,17 @@ export default function App() {
       const top3 = top8.slice(0, 3)
       const top3Usernames = top3.map(user => `@${user.username}`).join(' ')
       
-      // Create personalized share URL with user's FID
-      const personalizedShareUrl = `https://friends-of-friends.vercel.app/share/${userFid}`
-      
       // Create viral embedded cast with dynamic content
       const shareText = `🤠 Just discovered my Top 8 on Friends of Friends!\n\n${top3.map((user, i) => 
         `${i + 1}. ${user.display_name || user.username} (${user.mutual_affinity_score.toFixed(0)} affinity)`
-      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at ${personalizedShareUrl}`
+      ).join('\n')}\n\n${top3Usernames} - you're my ride or dies! 💜\n\nDiscover your Top 8 at friends-of-friends.vercel.app`
 
-      // Use the compose API to create an embedded cast with personalized URL
+      // Use the compose API to create an embedded cast
       await sdk.actions.openUrl({
-        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent(personalizedShareUrl)}`
+        url: `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds=${encodeURIComponent('https://friends-of-friends.vercel.app/embed')}`
       })
 
-      console.log('Shared results with personalized embedded cast successfully')
+      console.log('Shared results with embedded cast successfully')
     } catch (error) {
       console.error('Error sharing results:', error)
     }
