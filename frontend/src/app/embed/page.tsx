@@ -5,18 +5,18 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata: Metadata = {
-  title: 'QuickTop8 - Your Most Wanted Friends',
-  description: 'Discover your top mutual friends with rich engagement data from Neynar',
+  title: 'QuickTop8 - Wanted: Reply Guys & Their Friends',
+  description: 'Discover who replies to you most and find new connections through them',
   openGraph: {
-    title: 'QuickTop8 - Your Most Wanted Friends',
-    description: 'Discover your top mutual friends with rich engagement data from Neynar',
-    images: ['https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/og-image.png'],
+    title: 'QuickTop8 - Wanted: Reply Guys & Their Friends',
+    description: 'Discover who replies to you most and find new connections through them',
+    images: ['https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/og-image.png'],
   },
   other: {
     'fc:miniapp': 'QuickTop8',
-    'fc:miniapp:domain': 'quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app'
   }
 };
 
@@ -46,33 +46,33 @@ export default function EmbedPage() {
                 🤠
               </div>
               <h1 className="text-3xl font-bold text-amber-900 ml-4">
-                Your Most Wanted Friends
+                Wanted: Reply Guys & Their Friends
               </h1>
             </div>
             <p className="text-amber-800 text-lg">
-              Discover your top mutual friends with rich engagement data from Neynar 🤠
+              Discover who replies to you most and find new connections through them 🤠
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-300">
-              <h3 className="font-semibold text-amber-900 mb-2">📊 Rich Social Data</h3>
+              <h3 className="font-semibold text-amber-900 mb-2">🔥 Reply Guys Discovery</h3>
               <p className="text-sm text-amber-700">
-                Powered by Neynar's comprehensive social analytics
+                Find who replies to your content most frequently
               </p>
             </div>
 
             <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4 border-2 border-orange-300">
-              <h3 className="font-semibold text-orange-900 mb-2">💬 Recent Topics</h3>
+              <h3 className="font-semibold text-orange-900 mb-2">🔗 Network Expansion</h3>
               <p className="text-sm text-orange-700">
-                See what your friends are talking about most
+                Discover new connections through your reply guys
               </p>
             </div>
 
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border-2 border-yellow-300">
-              <h3 className="font-semibold text-yellow-900 mb-2">🎯 Engagement Analysis</h3>
+              <h3 className="font-semibold text-yellow-900 mb-2">📊 Social Analytics</h3>
               <p className="text-sm text-yellow-700">
-                Detailed breakdown of likes, recasts, and replies
+                Rich data powered by Neynar's social insights
               </p>
             </div>
           </div>
@@ -90,16 +90,16 @@ export default function EmbedPage() {
           <div className="mt-6 pt-4 border-t-2 border-amber-300">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-amber-600">📊</div>
-                <div className="text-xs text-amber-700">Social Stats</div>
+                <div className="text-2xl font-bold text-amber-600">🔥</div>
+                <div className="text-xs text-amber-700">Reply Guys</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-orange-600">💬</div>
-                <div className="text-xs text-orange-700">Recent Topics</div>
+                <div className="text-2xl font-bold text-orange-600">🔗</div>
+                <div className="text-xs text-orange-700">New Connections</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-yellow-600">🎯</div>
-                <div className="text-xs text-yellow-700">Engagement</div>
+                <div className="text-2xl font-bold text-yellow-600">📊</div>
+                <div className="text-xs text-yellow-700">Analytics</div>
               </div>
             </div>
           </div>
