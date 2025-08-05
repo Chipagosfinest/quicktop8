@@ -2,18 +2,18 @@
   "miniapp": {
     "name": "QuickTop8 - Wanted Friends",
     "version": "1",
-    "iconUrl": "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/og-image.png",
+    "iconUrl": "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "🤠 Wanted Friends",
-    "splashImageUrl": "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/splash.png",
+    "splashImageUrl": "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/splash.png",
     "splashBackgroundColor": "#8B4513",
     "subtitle": "Your Most Wanted Farcaster Friends",
     "description": "Discover your top 8 mutual follows with engagement history! Find the friends you want to keep around - your most wanted Farcaster companions.",
     "screenshotUrls": [
-      "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/screenshot1.png",
-      "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/screenshot2.png",
-      "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/screenshot3.png"
+      "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/screenshot1.png",
+      "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/screenshot2.png",
+      "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/screenshot3.png"
     ],
     "primaryCategory": "social",
     "tags": [
@@ -25,11 +25,11 @@
       "top8",
       "engagement"
     ],
-    "heroImageUrl": "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/og-image.png",
+    "heroImageUrl": "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/og-image.png",
     "tagline": "Your Most Wanted Farcaster Friends",
     "ogTitle": "QuickTop8 - Your Most Wanted Farcaster Friends",
     "ogDescription": "Discover your top 8 mutual follows with engagement history! Find the friends you want to keep around - your most wanted Farcaster companions.",
-    "ogImageUrl": "https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/og-image.png"
+    "ogImageUrl": "https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/og-image.png"
   },
   "accountAssociation": {
     "header": "PLACEHOLDER_HEADER",

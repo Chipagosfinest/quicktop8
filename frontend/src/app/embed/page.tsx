@@ -10,13 +10,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'QuickTop8 - Wanted: More Friends Like These',
     description: 'Discover your top mutual friends from the last 30 days - the ones you want more of!',
-    images: ['https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/og-image.png'],
+    images: ['https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/og-image.png'],
   },
   other: {
     'fc:miniapp': 'QuickTop8',
-    'fc:miniapp:domain': 'quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app',
-    'fc:miniapp:icon': 'https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://quicktop8-q0xeuyjga-chipagosfinests-projects.vercel.app'
+    'fc:miniapp:domain': 'quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app',
+    'fc:miniapp:icon': 'https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app/icon.png',
+    'fc:miniapp:home': 'https://quicktop8-oxdl60v2f-chipagosfinests-projects.vercel.app'
   }
 };
 
