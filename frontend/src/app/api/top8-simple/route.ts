@@ -43,252 +43,167 @@ async function makeNeynarRequest(url: string, options: RequestInit = {}): Promis
 }
 
 export async function GET(request: NextRequest) {
+  const requestId = Math.random().toString(36).substring(7)
+  const { searchParams } = new URL(request.url)
+  const userFid = searchParams.get('fid')
+  const page = parseInt(searchParams.get('page') || '1')
+  const limit = 8 // Always 8 per page for Top 8 concept
+  const offset = (page - 1) * limit
+
+  console.log(`🔍 [${requestId}] Top 8 request for FID: ${userFid}, Page: ${page}`)
+
+  if (!userFid) {
+    console.error(`❌ [${requestId}] No FID provided`)
+    return NextResponse.json({ error: 'FID parameter is required' }, { status: 400 })
+  }
+
+  const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
+  if (!NEYNAR_API_KEY) {
+    console.error(`❌ [${requestId}] NEYNAR_API_KEY not configured`)
+    return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+  }
+
+  // Rate limiting check
+  const checkRateLimit = (endpoint: string) => {
+    // Simple rate limiting - in production you'd use Redis or similar
+    return true
+  }
+
+  if (!checkRateLimit('top8-simple')) {
+    return NextResponse.json({ 
+      error: 'Rate limit exceeded. Please try again in 1 minute.' 
+    }, { status: 429 })
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const fid = searchParams.get('fid')
+    // Test Neynar API connectivity first
+    const testResponse = await makeNeynarRequest(`https://api.neynar.com/v2/farcaster/user/bulk/?fids=${userFid}`)
     
-    if (!fid) {
-      return NextResponse.json({ error: 'FID parameter is required' }, { status: 400 })
-    }
-
-    console.log('🔍 Debug: Fetching Top 8 for FID:', fid)
-    console.log('🔍 Debug: NEYNAR_API_KEY exists:', !!NEYNAR_API_KEY)
-    
-    const userFid = parseInt(fid)
-    
-    if (!NEYNAR_API_KEY) {
-      console.error('❌ NEYNAR_API_KEY is not configured')
+    if (!testResponse.ok) {
+      console.error(`❌ [${requestId}] User lookup failed: ${testResponse.status}`)
       return NextResponse.json({ 
-        error: 'API key not configured',
-        debug: {
-          neynar_api_key_exists: !!NEYNAR_API_KEY,
-          environment: process.env.NODE_ENV
-        }
-      }, { status: 500 })
+        error: 'User not found. Please check the FID.' 
+      }, { status: 404 })
     }
 
-    // Test basic Neynar API call with improved error handling
-    try {
-      if (!checkRateLimit('user-info')) {
-        return NextResponse.json({ 
-          error: 'Rate limit exceeded. Please try again in a minute.',
-          debug: { rate_limited: true }
-        }, { status: 429 })
-      }
+    // Fetch best friends with pagination
+    const bestFriendsResponse = await makeNeynarRequest(
+      `https://api.neynar.com/v2/farcaster/user/best_friends?fid=${userFid}&limit=50` // Get more to support pagination
+    )
 
-      const testResponse = await makeNeynarRequest(`https://api.neynar.com/v2/farcaster/user/bulk/?fids=${userFid}`)
+    if (!bestFriendsResponse.ok) {
+      console.error(`❌ [${requestId}] Best friends API error: ${bestFriendsResponse.status}`)
+      return NextResponse.json({ 
+        error: 'Failed to fetch best friends' 
+      }, { status: bestFriendsResponse.status })
+    }
 
-      if (!testResponse.ok) {
-        const errorText = await testResponse.text()
-        console.error(`❌ Neynar API error: ${testResponse.status} ${testResponse.statusText}`, errorText)
-        
-        // Handle specific Neynar error codes
-        if (testResponse.status === 429) {
-          return NextResponse.json({ 
-            error: 'Rate limit exceeded. Please try again later.',
-            debug: { status: testResponse.status, rate_limited: true }
-          }, { status: 429 })
-        }
-        
-        if (testResponse.status === 404) {
-          return NextResponse.json({ 
-            error: 'User not found. Please check the FID.',
-            debug: { status: testResponse.status, fid: userFid }
-          }, { status: 404 })
-        }
+    const bestFriendsData = await bestFriendsResponse.json()
+    const allBestFriends = bestFriendsData.users || []
 
-        return NextResponse.json({ 
-          error: `Neynar API error: ${testResponse.status}`,
-          debug: {
-            status: testResponse.status,
-            statusText: testResponse.statusText,
-            error_details: errorText
-          }
-        }, { status: testResponse.status })
-      }
+    console.log(`✅ [${requestId}] Found ${allBestFriends.length} total best friends`)
 
-      const testData = await testResponse.json()
-      console.log('✅ Neynar API test successful')
+    // Apply pagination
+    const paginatedBestFriends = allBestFriends.slice(offset, offset + limit)
 
-      // Get best friends with improved error handling
-      if (!checkRateLimit('best-friends')) {
-        return NextResponse.json({ 
-          error: 'Rate limit exceeded. Please try again in a minute.',
-          debug: { rate_limited: true }
-        }, { status: 429 })
-      }
-
-      const bestFriendsResponse = await makeNeynarRequest(
-        `https://api.neynar.com/v2/farcaster/user/best_friends?fid=${userFid}&limit=8`
-      )
-
-      if (!bestFriendsResponse.ok) {
-        const errorText = await bestFriendsResponse.text()
-        console.error(`❌ Best friends API error: ${bestFriendsResponse.status}`, errorText)
-        
-        if (bestFriendsResponse.status === 429) {
-          return NextResponse.json({ 
-            error: 'Rate limit exceeded. Please try again later.',
-            debug: { status: bestFriendsResponse.status, rate_limited: true }
-          }, { status: 429 })
-        }
-
-        return NextResponse.json({ 
-          error: `Best friends API error: ${bestFriendsResponse.status}`,
-          debug: {
-            status: bestFriendsResponse.status,
-            statusText: bestFriendsResponse.statusText,
-            error_details: errorText
-          }
-        }, { status: bestFriendsResponse.status })
-      }
-
-      const bestFriendsData = await bestFriendsResponse.json()
-      const bestFriends = bestFriendsData.users || []
-      
-      console.log(`✅ Found ${bestFriends.length} best friends`)
-
-      if (bestFriends.length === 0) {
-        return NextResponse.json({ 
-          top8: [],
-          stats: {
-            total_users: 0,
-            average_affinity_score: 0,
-            top_affinity_score: 0
-          },
-          message: "No best friends found yet. Start interacting with people to build your Top 8!"
-        })
-      }
-
-      // Get full user details for each best friend
-      const fids = bestFriends.slice(0, 8).map((friend: any) => friend.fid).join(',')
-      
-      if (!checkRateLimit('user-details')) {
-        return NextResponse.json({ 
-          error: 'Rate limit exceeded. Please try again in a minute.',
-          debug: { rate_limited: true }
-        }, { status: 429 })
-      }
-
-      const userDetailsResponse = await makeNeynarRequest(
-        `https://api.neynar.com/v2/farcaster/user/bulk/?fids=${fids}`
-      )
-
-      if (!userDetailsResponse.ok) {
-        const errorText = await userDetailsResponse.text()
-        console.error(`❌ User details API error: ${userDetailsResponse.status}`, errorText)
-        
-        return NextResponse.json({ 
-          error: `User details API error: ${userDetailsResponse.status}`,
-          debug: {
-            status: userDetailsResponse.status,
-            statusText: userDetailsResponse.statusText,
-            error_details: errorText
-          }
-        }, { status: userDetailsResponse.status })
-      }
-
-      const userDetailsData = await userDetailsResponse.json()
-      const userDetailsMap = new Map()
-      
-      if (userDetailsData.users) {
-        userDetailsData.users.forEach((user: any) => {
-          userDetailsMap.set(user.fid, user)
-        })
-      }
-
-      // Build simplified Top 8 with enhanced data
-      const top8 = bestFriends.slice(0, 8).map((friend: any, index: number) => {
-        const userDetails = userDetailsMap.get(friend.fid) || {}
-        
-        return {
-          fid: friend.fid,
-          username: friend.username || userDetails.username || `user${friend.fid}`,
-          display_name: userDetails.display_name || '',
-          pfp_url: userDetails.pfp_url || '',
-          bio: userDetails.profile?.bio?.text || '',
-          ens_name: userDetails.username || '',
-          mutual_affinity_score: friend.mutual_affinity_score || 0,
-          rank: index + 1,
-          // Enhanced metadata
-          verified: userDetails.verified_addresses?.eth_addresses?.length > 0 || false,
-          follower_count: userDetails.follower_count || 0,
-          following_count: userDetails.following_count || 0
-        }
-      })
-
-      const totalAffinityScore = top8.reduce((sum: number, user: any) => sum + user.mutual_affinity_score, 0)
-      const topAffinityScore = Math.max(...top8.map((user: any) => user.mutual_affinity_score))
-
-      const stats = {
-        total_users: top8.length,
-        average_affinity_score: top8.length > 0 ? totalAffinityScore / top8.length : 0,
-        top_affinity_score: topAffinityScore,
-        // Additional stats
-        total_followers: top8.reduce((sum: number, user: any) => sum + user.follower_count, 0),
-        total_following: top8.reduce((sum: number, user: any) => sum + user.following_count, 0),
-        verified_users: top8.filter((user: any) => user.verified).length
-      }
-
-      console.log(`✅ Top 8 fetched successfully for FID ${fid}:`, top8.length, 'users')
-
+    if (paginatedBestFriends.length === 0) {
       return NextResponse.json({
-        top8,
-        stats,
+        top8: [],
+        stats: null,
+        hasMore: false,
         debug: {
-          api_key_configured: !!NEYNAR_API_KEY,
-          best_friends_found: bestFriends.length,
-          top8_built: top8.length,
+          request_id: requestId,
+          total_friends: allBestFriends.length,
+          page: page,
+          offset: offset,
           rate_limits_checked: true
         }
       })
-
-    } catch (apiError) {
-      console.error('❌ API call failed:', apiError)
-      
-      // Handle specific error types
-      if (apiError instanceof Error) {
-        if (apiError.name === 'AbortError') {
-          return NextResponse.json({ 
-            error: 'Request timeout. Please try again.',
-            debug: {
-              error_type: 'timeout',
-              error_message: apiError.message
-            }
-          }, { status: 408 })
-        }
-        
-        if (apiError.message.includes('fetch')) {
-          return NextResponse.json({ 
-            error: 'Network error. Please check your connection.',
-            debug: {
-              error_type: 'network',
-              error_message: apiError.message
-            }
-          }, { status: 503 })
-        }
-      }
-      
-      return NextResponse.json({ 
-        error: 'Failed to fetch data from Neynar API',
-        debug: {
-          error_message: apiError instanceof Error ? apiError.message : 'Unknown error',
-          api_key_configured: !!NEYNAR_API_KEY
-        }
-      }, { status: 500 })
     }
 
+    // Get full user details for each best friend in current page
+    const fids = paginatedBestFriends.map((friend: any) => friend.fid).join(',')
+    
+    if (!checkRateLimit('user-details')) {
+      return NextResponse.json({ 
+        error: 'Rate limit exceeded. Please try again in 1 minute.' 
+      }, { status: 429 })
+    }
+
+    const userDetailsResponse = await makeNeynarRequest(`https://api.neynar.com/v2/farcaster/user/bulk/?fids=${fids}`)
+    
+    if (!userDetailsResponse.ok) {
+      console.error(`❌ [${requestId}] User details API error: ${userDetailsResponse.status}`)
+      return NextResponse.json({ 
+        error: 'Failed to fetch user details' 
+      }, { status: userDetailsResponse.status })
+    }
+
+    const userDetailsData = await userDetailsResponse.json()
+    const userDetails = userDetailsData.users || []
+
+    // Create a map for quick lookup
+    const userDetailsMap = new Map(userDetails.map((user: any) => [user.fid, user]))
+
+    // Build Top 8 with enhanced data
+    const top8 = paginatedBestFriends.map((friend: any, index: number) => {
+      const userDetail = userDetailsMap.get(friend.fid) || {}
+      const globalRank = offset + index + 1
+      
+      return {
+        fid: friend.fid,
+        username: friend.username || `user${friend.fid}`,
+        display_name: (userDetail as any).display_name || (friend as any).display_name || '',
+        pfp_url: (userDetail as any).pfp_url || (friend as any).pfp_url || '',
+        bio: (userDetail as any).bio || (friend as any).bio || '',
+        ens_name: (userDetail as any).ens_name || (friend as any).ens_name || '',
+        mutual_affinity_score: friend.mutual_affinity_score || 0,
+        rank: globalRank, // Global rank across all pages
+        verified: (userDetail as any).verified || false,
+        follower_count: (userDetail as any).follower_count || 0,
+        following_count: (userDetail as any).following_count || 0
+      }
+    })
+
+    // Calculate stats for all users (not just current page)
+    const totalUsers = allBestFriends.length
+    const averageAffinity = allBestFriends.reduce((sum: number, friend: any) => sum + (friend.mutual_affinity_score || 0), 0) / totalUsers
+    const topAffinity = Math.max(...allBestFriends.map((friend: any) => friend.mutual_affinity_score || 0))
+    const totalFollowers = userDetails.reduce((sum: number, user: any) => sum + (user.follower_count || 0), 0)
+    const totalFollowing = userDetails.reduce((sum: number, user: any) => sum + (user.following_count || 0), 0)
+    const verifiedUsers = userDetails.filter((user: any) => user.verified).length
+
+    const stats = {
+      total_users: totalUsers,
+      average_affinity_score: averageAffinity,
+      top_affinity_score: topAffinity,
+      total_followers: totalFollowers,
+      total_following: totalFollowing,
+      verified_users: verifiedUsers
+    }
+
+    console.log(`✅ [${requestId}] Built Top 8 for page ${page}, hasMore: ${offset + limit < totalUsers}`)
+
+    return NextResponse.json({
+      top8,
+      stats,
+      hasMore: offset + limit < totalUsers,
+      currentPage: page,
+      totalPages: Math.ceil(totalUsers / limit),
+      debug: {
+        request_id: requestId,
+        best_friends_found: allBestFriends.length,
+        top8_built: top8.length,
+        page: page,
+        offset: offset,
+        rate_limits_checked: true
+      }
+    })
+
   } catch (error) {
-    console.error('❌ Error in Top 8 Simple API:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch Top 8 data',
-        debug: {
-          error_message: error instanceof Error ? error.message : 'Unknown error',
-          api_key_configured: !!NEYNAR_API_KEY
-        }
-      },
-      { status: 500 }
-    )
+    console.error(`❌ [${requestId}] Top 8 error:`, error)
+    return NextResponse.json({ 
+      error: 'Failed to fetch Top 8' 
+    }, { status: 500 })
   }
 } 

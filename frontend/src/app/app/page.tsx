@@ -72,6 +72,9 @@ export default function App() {
   const [stats, setStats] = useState<any>(null)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showScoringPrimer, setShowScoringPrimer] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [allUsers, setAllUsers] = useState<Top8User[]>([])
 
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
@@ -100,20 +103,22 @@ export default function App() {
     }
   }, [isSDKLoaded, isConnected, contextUserFid, context])
 
-  const handleGetTop8 = async (fid: number) => {
+  const handleGetTop8 = async (fid: number, page: number = 1) => {
     if (!fid) {
       setError("No FID detected. Please try again.")
       return
     }
 
-    setLoading(true)
-    setError("")
+    if (page === 1) {
+      setLoading(true)
+      setError("")
+    }
 
     try {
-      console.log('🔍 Frontend: Fetching Top 8 for FID:', fid)
+      console.log('🔍 Frontend: Fetching Top 8 for FID:', fid, 'Page:', page)
       
       // Try the simplified API first
-      const response = await fetch(`/api/top8-simple?fid=${fid}`, {
+      const response = await fetch(`/api/top8-simple?fid=${fid}&page=${page}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -135,8 +140,17 @@ export default function App() {
         throw new Error(data.error)
       }
 
-      setTop8(data.top8 || [])
+      const newUsers = data.top8 || []
+      
+      if (page === 1) {
+        setTop8(newUsers)
+        setAllUsers(newUsers)
+      } else {
+        setAllUsers(prev => [...prev, ...newUsers])
+      }
+      
       setStats(data.stats || null)
+      setHasMore(newUsers.length === 8) // If we got 8 users, there might be more
       
       // Log debug info if available
       if (data.debug) {
@@ -145,9 +159,34 @@ export default function App() {
       
     } catch (error) {
       console.error('❌ Frontend: Error fetching Top 8:', error)
-      setError(error instanceof Error ? error.message : "Failed to fetch your Top 8")
+      if (page === 1) {
+        setError(error instanceof Error ? error.message : "Failed to fetch your Top 8")
+      }
     } finally {
-      setLoading(false)
+      if (page === 1) {
+        setLoading(false)
+      }
+    }
+  }
+
+  const loadMore = async () => {
+    if (!userFid || !hasMore || loading) return
+    
+    const nextPage = currentPage + 1
+    setCurrentPage(nextPage)
+    await handleGetTop8(userFid, nextPage)
+  }
+
+  const handleCardClick = async (user: Top8User) => {
+    try {
+      // Open user profile in Warpcast
+      await sdk.actions.openUrl({
+        url: `https://warpcast.com/${user.username}`
+      })
+    } catch (error) {
+      console.error('Error opening profile:', error)
+      // Fallback to window.open
+      window.open(`https://warpcast.com/${user.username}`, '_blank')
     }
   }
 
@@ -380,6 +419,36 @@ export default function App() {
 
         {!loading && !error && top8.length > 0 && (
           <div className="space-y-8">
+            {/* Enhanced Stats Section - Moved Above List */}
+            {stats && (
+              <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-purple-400">
+                <h3 className="text-xl font-bold text-purple-900 mb-4 text-center">📊 Your Digital Squad Stats</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-300">
+                    <div className="text-2xl font-bold text-purple-600">{allUsers.length}</div>
+                    <div className="text-purple-700 text-sm">Total Connections</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border-2 border-pink-300">
+                    <div className="text-2xl font-bold text-pink-600">{stats.average_affinity_score?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-pink-700 text-sm">Avg Affinity</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-300">
+                    <div className="text-2xl font-bold text-indigo-600">{stats.top_affinity_score?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-indigo-700 text-sm">Top Score</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-300">
+                    <div className="text-2xl font-bold text-green-600">{stats.verified_users || 0}</div>
+                    <div className="text-green-700 text-sm">Verified</div>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <div className="text-sm text-purple-600 bg-purple-50 rounded-lg p-2">
+                    💡 <strong>Network Strength:</strong> {stats.total_followers?.toLocaleString() || 'N/A'} total followers across your squad
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Share Button */}
             <div className="text-center">
               <button
@@ -391,7 +460,7 @@ export default function App() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {top8.map((user, index) => {
+              {allUsers.map((user, index) => {
                 const affinityTitle = getAffinityTitle(user.mutual_affinity_score, user.rank)
                 
                 return (
@@ -403,6 +472,7 @@ export default function App() {
                       index === 2 ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-red-50' :
                       'border-purple-400 hover:border-purple-500 hover:bg-purple-50'
                     }`}
+                    onClick={() => handleCardClick(user)}
                   >
                     {/* Rank Badge */}
                     <div className={`absolute -top-3 -right-3 bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg`}>
@@ -439,89 +509,50 @@ export default function App() {
                         )}
                       </div>
                       
-                      <h3 className="font-bold text-purple-900 text-lg mb-1">
-                        {user.ens_name ? (
-                          <span>
-                            <span className="text-purple-600">{user.ens_name}</span>
-                            <span className="text-purple-600 text-sm ml-2">@{user.username}</span>
-                          </span>
-                        ) : (
-                          `@${user.username}`
-                        )}
-                      </h3>
-                      
-                      <p className="text-purple-700 text-sm mb-2">
-                        {user.display_name || 'Friend'}
-                      </p>
+                      {/* Better Organized User Info */}
+                      <div className="space-y-2">
+                        <h3 className="font-bold text-purple-900 text-lg">
+                          {user.display_name || user.username}
+                        </h3>
+                        
+                        <div className="text-purple-600 text-sm">
+                          {user.ens_name ? (
+                            <span>
+                              <span className="text-purple-600 font-medium">{user.ens_name}</span>
+                              <span className="text-purple-500 ml-2">@{user.username}</span>
+                            </span>
+                          ) : (
+                            <span className="text-purple-600 font-medium">@{user.username}</span>
+                          )}
+                        </div>
 
-                      {/* Affinity Title Badge */}
-                      <div className={`inline-block bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-xs font-bold mb-2`}>
-                        {affinityTitle.icon} {affinityTitle.title}
+                        {/* Affinity Title Badge */}
+                        <div className={`inline-block bg-gradient-to-r ${affinityTitle.color} text-white px-3 py-1 rounded-full text-xs font-bold`}>
+                          {affinityTitle.icon} {affinityTitle.title}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Enhanced Info Section */}
-                    <div className="space-y-3 mb-4">
-                      {/* Bio */}
-                      {user.bio && (
-                        <div className="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-400">
-                          <p className="text-purple-600 text-xs italic">
-                            "{user.bio}"
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Follower Stats */}
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-blue-50 rounded p-2 text-center">
-                          <div className="font-bold text-blue-800">{user.follower_count?.toLocaleString() || 'N/A'}</div>
-                          <div className="text-blue-600">Followers</div>
-                        </div>
-                        <div className="bg-green-50 rounded p-2 text-center">
-                          <div className="font-bold text-green-800">{user.following_count?.toLocaleString() || 'N/A'}</div>
-                          <div className="text-green-600">Following</div>
-                        </div>
+                    {/* Bio */}
+                    {user.bio && (
+                      <div className="mb-4">
+                        <p className="text-purple-600 text-xs italic bg-purple-50 p-3 rounded-lg border-l-4 border-purple-400">
+                          "{user.bio}"
+                        </p>
                       </div>
+                    )}
 
-                      {/* Interaction Stats */}
-                      {user.interaction_stats && (
-                        <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-3 border border-pink-200">
-                          <div className="text-xs font-semibold text-purple-800 mb-2">💬 Recent Activity</div>
-                          <div className="grid grid-cols-3 gap-1 text-xs">
-                            <div className="bg-red-50 rounded p-1 text-center">
-                              <div className="font-bold text-red-800">❤️ {user.interaction_stats.interaction_types.likes}</div>
-                            </div>
-                            <div className="bg-blue-50 rounded p-1 text-center">
-                              <div className="font-bold text-blue-800">🔄 {user.interaction_stats.interaction_types.recasts}</div>
-                            </div>
-                            <div className="bg-green-50 rounded p-1 text-center">
-                              <div className="font-bold text-green-800">💬 {user.interaction_stats.interaction_types.replies}</div>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-center">
-                            <div className="text-xs text-gray-600">
-                              Last: {formatLastInteraction(user.interaction_stats.last_interaction_date)}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Friends of Friends Discovery */}
+                    {/* Connections of Connections - Show Directly */}
                     {user.social_scope && user.social_scope.friends_of_friends.length > 0 && (
                       <div className="mb-4">
-                        <div className="text-xs font-semibold text-purple-800 mb-2">🌟 Friends of Friends</div>
+                        <div className="text-xs font-semibold text-purple-800 mb-2">🌟 Their Connections</div>
                         <div className="flex flex-wrap gap-1">
-                          {user.social_scope.friends_of_friends.slice(0, 3).map((friend) => (
-                            <button
+                          {user.social_scope.friends_of_friends.slice(0, 4).map((friend) => (
+                            <div
                               key={friend.fid}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(`https://warpcast.com/${friend.username}`, '_blank');
-                              }}
-                              className="flex items-center space-x-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full px-2 py-1 text-xs border border-green-200 hover:from-green-100 hover:to-emerald-100 transition-colors"
+                              className="flex items-center space-x-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full px-2 py-1 text-xs border border-green-200"
                             >
-                              <div className="w-4 h-4 rounded-full overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600">
+                              <div className="w-3 h-3 rounded-full overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600">
                                 {friend.pfp_url ? (
                                   <img 
                                     src={friend.pfp_url} 
@@ -534,48 +565,41 @@ export default function App() {
                                   </div>
                                 )}
                               </div>
-                              <span className="text-green-800 font-medium">@{friend.username}</span>
-                            </button>
+                              <span className="text-green-800 font-medium text-xs">@{friend.username}</span>
+                            </div>
                           ))}
-                          {user.social_scope.friends_of_friends.length > 3 && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDiscoverMoreUsers(user.fid);
-                              }}
-                              className="text-xs text-purple-600 hover:text-purple-800 font-medium"
-                            >
-                              +{user.social_scope.friends_of_friends.length - 3} more
-                            </button>
+                          {user.social_scope.friends_of_friends.length > 4 && (
+                            <span className="text-xs text-gray-500">+{user.social_scope.friends_of_friends.length - 4} more</span>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Discovery Action */}
-                    <div className="mb-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDiscoverMoreUsers(user.fid);
-                        }}
-                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-center py-2 rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 text-sm border-2 border-emerald-400"
-                      >
-                        🔍 Discover More
-                      </button>
-                    </div>
+                    {/* Interaction Stats */}
+                    {user.interaction_stats && (
+                      <div className="mb-4">
+                        <div className="text-xs font-semibold text-purple-800 mb-2">💬 Recent Activity</div>
+                        <div className="grid grid-cols-3 gap-1 text-xs">
+                          <div className="bg-red-50 rounded p-1 text-center">
+                            <div className="font-bold text-red-800">❤️ {user.interaction_stats.interaction_types.likes}</div>
+                          </div>
+                          <div className="bg-blue-50 rounded p-1 text-center">
+                            <div className="font-bold text-blue-800">🔄 {user.interaction_stats.interaction_types.recasts}</div>
+                          </div>
+                          <div className="bg-green-50 rounded p-1 text-center">
+                            <div className="font-bold text-green-800">💬 {user.interaction_stats.interaction_types.replies}</div>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-center">
+                          <div className="text-xs text-gray-600">
+                            Last: {formatLastInteraction(user.interaction_stats.last_interaction_date)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="space-y-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(`https://warpcast.com/${user.username}`, '_blank');
-                        }}
-                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-center py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-300 text-sm border-2 border-purple-400"
-                      >
-                        👤 View Profile
-                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -591,24 +615,16 @@ export default function App() {
               })}
             </div>
 
-            {/* Stats Section */}
-            {stats && (
-              <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-purple-400">
-                <h3 className="text-xl font-bold text-purple-900 mb-4 text-center">📊 Your Top 8 Stats</h3>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-300">
-                    <div className="text-2xl font-bold text-purple-600">{top8.length}</div>
-                    <div className="text-purple-700 text-sm">Total Friends</div>
-                  </div>
-                  <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border-2 border-pink-300">
-                    <div className="text-2xl font-bold text-pink-600">{stats.average_affinity_score?.toFixed(1) || 'N/A'}</div>
-                    <div className="text-pink-700 text-sm">Avg Affinity</div>
-                  </div>
-                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-300">
-                    <div className="text-2xl font-bold text-indigo-600">{stats.top_affinity_score?.toFixed(1) || 'N/A'}</div>
-                    <div className="text-indigo-700 text-sm">Top Score</div>
-                  </div>
-                </div>
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="text-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-purple-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Loading...' : '🔄 Load More Connections'}
+                </button>
               </div>
             )}
           </div>
