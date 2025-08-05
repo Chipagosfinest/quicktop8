@@ -1,33 +1,33 @@
 {
   "miniapp": {
-    "name": "Crypto Streams",
+    "name": "QuickTop8",
     "version": "1",
-    "iconUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/icon.png",
-    "homeUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/app",
-    "imageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/og-image.png",
+    "iconUrl": "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/icon.png",
+    "homeUrl": "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/app",
+    "imageUrl": "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/og-image.png",
     "buttonTitle": "Open Mini App",
-    "splashImageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/splash.png",
-    "splashBackgroundColor": "#8B5CF6",
-    "subtitle": "Top 8 Recommended Streamers",
-    "description": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
+    "splashImageUrl": "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/splash.png",
+    "splashBackgroundColor": "#D97706",
+    "subtitle": "Your Top 8 Mutual Friends",
+    "description": "Discover your top 8 mutual friends on Farcaster - the ones you engage with most!",
     "screenshotUrls": [
-      "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/screenshot1.png",
-      "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/screenshot2.png",
-      "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/screenshot3.png"
+      "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/screenshot1.png",
+      "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/screenshot2.png",
+      "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/screenshot3.png"
     ],
     "primaryCategory": "social",
     "tags": [
-      "crypto",
-      "streaming",
+      "friends",
       "social",
-      "gifting",
-      "content"
+      "engagement",
+      "mutual",
+      "farcaster"
     ],
-    "heroImageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/og-image.png",
-    "tagline": "Your Top 8 Crypto Streamers",
-    "ogTitle": "Crypto Streams",
-    "ogDescription": "Discover your favorite crypto content creators on Farcaster and send them gifts!",
-    "ogImageUrl": "https://quicktop8-pxvoc9we6-chipagosfinests-projects.vercel.app/og-image.png",
+    "heroImageUrl": "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/og-image.png",
+    "tagline": "Your Top 8 Mutual Friends",
+    "ogTitle": "QuickTop8 - Your Top 8 Mutual Friends",
+    "ogDescription": "Discover your top 8 mutual friends on Farcaster - the ones you engage with most!",
+    "ogImageUrl": "https://quicktop8-akvwucmnj-chipagosfinests-projects.vercel.app/og-image.png",
     "requiredCapabilities": [
       "actions.signIn",
       "wallet.getEthereumProvider",
@@ -36,8 +36,8 @@
   },
   "accountAssociation": {
     "header": "eyJmaWQiOjQwNDQsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg1NzJGZWYzZDlhMTcxMkM3ZDQ0OWM3ZTE1QzMzNUQ2ODYwMzI4MDg2In0",
-    "payload": "eyJkb21haW4iOiJxdWlja3RvcDgtcHh2b2M5d2U2LWNoaXBhZ29zZmluZXN0cy1wcm9qZWN0cy52ZXJjZWwuYXBwIn0",
-    "signature": "1lRWJWG7FxEJoRf0lmzOOcG8izTX38bJVACjKNXxr9ZzcYGQWLX4wYgtVervH8wxgkGb3+w/CfpCGgo8Am9xaBs="
+    "payload": "eyJkb21haW4iOiJxdWlja3RvcDgtOGM3ZmhxeWs2LWNoaXBhZ29zZmluZXN0cy1wcm9qZWN0cy52ZXJjZWwuYXBwIn0",
+    "signature": "d+1lw4aYQWEXMjcJKZ5t+aedIhWpsKP545oSY2pVurExr/to811e0LB6E0SAEAfwdU9cw7TOD+uOjIiQokfTVRw="
   },
-  "_cacheBuster": "2025-08-04-21:40"
+  "_cacheBuster": "2025-08-05-00:29"
 } 

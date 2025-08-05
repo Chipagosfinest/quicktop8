@@ -106,39 +106,42 @@ function updateMutualFollowData(
     const followDurationForScoring = Date.now() - new Date(followDate).getTime()
     const daysFollowedForScoring = followDurationForScoring / (1000 * 60 * 60 * 24)
     
+    // Initial ride or die score
     newData.rideOrDieScore = Math.round(
-      (newData.daysSinceFirstEngagement * 2) + 
-      (newData.engagementFrequency * 50) + 
-      5 + 
+      (newData.daysSinceFirstEngagement * 2) +
+      (newData.engagementFrequency * 50) +
+      (newData.totalInteractions * 5) +
       (daysFollowedForScoring * 0.5)
     )
+    
     map.set(user.fid, newData)
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { fid } = await request.json()
+    const { searchParams } = new URL(request.url)
+    const fid = searchParams.get('fid')
 
     if (!fid) {
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    console.log(`Starting Ride or Die Top 8 calculation for FID: ${fid}`)
+    console.log(`Starting simplified Top 8 calculation for FID: ${fid}`)
     console.log(`API Key available: ${NEYNAR_API_KEY ? 'Yes' : 'No'}`)
 
     const mutualFollowsMap = new Map<number, MutualFollowData>()
     
-    // Step 1: Get reciprocal followers (mutual follows) using the correct endpoint
+    // Step 1: Get reciprocal followers (mutual follows) - FAST
     console.log(`Fetching reciprocal followers for FID: ${fid}`)
     
     try {
-      const reciprocalResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers/reciprocal?fid=${fid}&limit=100`, {
+      const reciprocalResponse = await fetch(`https://api.neynar.com/v2/farcaster/followers/reciprocal?fid=${fid}&limit=50`, {
         headers: {
           'x-api-key': NEYNAR_API_KEY,
           'accept': 'application/json'
         },
-        signal: AbortSignal.timeout(15000)
+        signal: AbortSignal.timeout(10000)
       })
       
       if (!reciprocalResponse.ok) {
@@ -159,124 +162,69 @@ export async function POST(request: NextRequest) {
         })
       }
       
-      // Step 2: For each mutual follow, find their recent casts and check for user engagement
-      for (let i = 0; i < Math.min(mutualFollows.length, 20); i++) {
-        const mutualFollow = mutualFollows[i]
-        const user = mutualFollow.user // The user data is nested under 'user' property
-        console.log(`Processing mutual follow ${i + 1}/${Math.min(mutualFollows.length, 20)}: ${user.username}`)
+      // Step 2: Get user's recent casts with reactions in one call - FAST
+      console.log(`Fetching user's recent casts with reactions`)
+      const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=10`, {
+        headers: {
+          'x-api-key': NEYNAR_API_KEY,
+          'accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(8000)
+      })
+      
+      if (userCastsResponse.ok) {
+        const userCastsData = await userCastsResponse.json()
+        const userCasts = userCastsData.casts || []
         
-        try {
-          // Get the user's recent casts to see if mutual follow engaged with them
-          const userCastsResponse = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=20&viewer_fid=${user.fid}`, {
-            headers: {
-              'x-api-key': NEYNAR_API_KEY,
-              'accept': 'application/json'
-            },
-            signal: AbortSignal.timeout(8000)
-          })
-          
-          if (userCastsResponse.ok) {
-            const userCastsData = await userCastsResponse.json()
-            const userCasts = userCastsData.casts || []
+        // Step 3: For each cast, get reactions in parallel - FAST
+        const reactionPromises = userCasts.slice(0, 5).map(async (cast: any) => {
+          try {
+            const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash&limit=100`, {
+              headers: {
+                'x-api-key': NEYNAR_API_KEY,
+                'accept': 'application/json'
+              },
+              signal: AbortSignal.timeout(5000)
+            })
             
-            // Check reactions to user's casts to see if mutual follow engaged
-            for (const cast of userCasts.slice(0, 5)) {
-              // Get detailed reactions for this cast
-              const reactionsResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/reactions?identifier=${cast.hash}&type=hash&limit=50`, {
-                headers: {
-                  'x-api-key': NEYNAR_API_KEY,
-                  'accept': 'application/json'
-                },
-                signal: AbortSignal.timeout(5000)
-              })
-              
-              if (reactionsResponse.ok) {
-                const reactionsData = await reactionsResponse.json()
-                const reactions = reactionsData.reactions || []
-                
-                // Check if mutual follow liked this cast
-                const mutualFollowLike = reactions.find((reaction: any) => 
-                  reaction.reaction_type === 'like' && reaction.reactor_user?.fid === user.fid
-                )
-                if (mutualFollowLike) {
-                  updateMutualFollowData(mutualFollowsMap, {
-                    fid: user.fid,
-                    username: user.username,
-                    display_name: user.display_name,
-                    pfp_url: user.pfp_url,
-                    bio: user.profile?.bio?.text || "",
-                    timestamp: mutualFollowLike.timestamp
-                  }, mutualFollow.timestamp || new Date().toISOString(), 'like', mutualFollowLike.timestamp, cast.hash)
-                  break
-                }
-                
-                // Check if mutual follow recast this cast
-                const mutualFollowRecast = reactions.find((reaction: any) => 
-                  reaction.reaction_type === 'recast' && reaction.reactor_user?.fid === user.fid
-                )
-                if (mutualFollowRecast) {
-                  updateMutualFollowData(mutualFollowsMap, {
-                    fid: user.fid,
-                    username: user.username,
-                    display_name: user.display_name,
-                    pfp_url: user.pfp_url,
-                    bio: user.profile?.bio?.text || "",
-                    timestamp: mutualFollowRecast.timestamp
-                  }, mutualFollow.timestamp || new Date().toISOString(), 'recast', mutualFollowRecast.timestamp, cast.hash)
-                  break
-                }
+            if (reactionsResponse.ok) {
+              const reactionsData = await reactionsResponse.json()
+              return {
+                castHash: cast.hash,
+                reactions: reactionsData.reactions || []
               }
-              
-              // Add delay to avoid rate limiting
-              await new Promise(resolve => setTimeout(resolve, 200))
             }
+          } catch (error) {
+            console.error(`Error fetching reactions for cast ${cast.hash}:`, error)
+          }
+          return { castHash: cast.hash, reactions: [] }
+        })
+        
+        // Wait for all reaction requests to complete
+        const reactionResults = await Promise.all(reactionPromises)
+        
+        // Step 4: Process reactions to find mutual follow engagement - FAST
+        for (const result of reactionResults) {
+          for (const reaction of result.reactions) {
+            // Check if this reaction is from a mutual follow
+            const mutualFollow = mutualFollows.find((mf: any) => mf.user.fid === reaction.reactor_user?.fid)
             
-            // Also check for replies from mutual follow to user's casts
-            for (const cast of userCasts.slice(0, 3)) {
-              const conversationResponse = await fetch(`https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${cast.hash}&type=hash&reply_depth=1&limit=25`, {
-                headers: {
-                  'x-api-key': NEYNAR_API_KEY,
-                  'accept': 'application/json'
-                },
-                signal: AbortSignal.timeout(5000)
-              })
-              
-              if (conversationResponse.ok) {
-                const conversationData = await conversationResponse.json()
-                const conversation = conversationData.conversation || {}
-                const directReplies = conversation.direct_replies || []
-                
-                // Check if mutual follow replied to this cast
-                const mutualFollowReply = directReplies.find((reply: any) => 
-                  reply.author?.fid === user.fid
-                )
-                if (mutualFollowReply) {
-                  updateMutualFollowData(mutualFollowsMap, {
-                    fid: user.fid,
-                    username: user.username,
-                    display_name: user.display_name,
-                    pfp_url: user.pfp_url,
-                    bio: user.profile?.bio?.text || "",
-                    timestamp: mutualFollowReply.timestamp
-                  }, mutualFollow.timestamp || new Date().toISOString(), 'reply', mutualFollowReply.timestamp, cast.hash)
-                  break
-                }
-              }
-              
-              // Add delay to avoid rate limiting
-              await new Promise(resolve => setTimeout(resolve, 200))
+            if (mutualFollow) {
+              const user = mutualFollow.user
+              updateMutualFollowData(mutualFollowsMap, {
+                fid: user.fid,
+                username: user.username,
+                display_name: user.display_name,
+                pfp_url: user.pfp_url,
+                bio: user.profile?.bio?.text || "",
+                timestamp: reaction.timestamp
+              }, mutualFollow.timestamp || new Date().toISOString(), reaction.reaction_type, reaction.timestamp, result.castHash)
             }
           }
-        } catch (error) {
-          console.error(`Error processing mutual follow ${user.username}:`, error)
-          continue
         }
-        
-        // Add delay between mutual follows
-        await new Promise(resolve => setTimeout(resolve, 200))
       }
       
-      // Step 3: Sort by ride or die score and return top 8
+      // Step 5: Sort by ride or die score and return top 8
       const friends = Array.from(mutualFollowsMap.values())
         .sort((a, b) => b.rideOrDieScore - a.rideOrDieScore)
         .slice(0, 8)
@@ -305,7 +253,7 @@ export async function POST(request: NextRequest) {
       if (friends.length === 0) {
         console.log("No mutual follows with engagement found, returning mutual follows without engagement data")
         
-        const fallbackFriends = mutualFollows.slice(0, 8).map((mutualFollow, index) => {
+        const fallbackFriends = mutualFollows.slice(0, 8).map((mutualFollow: any, index: number) => {
           const user = mutualFollow.user
           return {
             fid: user.fid,
@@ -342,9 +290,13 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error('Error in POST request:', error)
+    console.error('Error in GET request:', error)
     return NextResponse.json({ 
       error: "Internal server error. Please try again." 
     }, { status: 500 })
   }
+}
+
+export async function POST(request: NextRequest) {
+  return GET(request)
 }
