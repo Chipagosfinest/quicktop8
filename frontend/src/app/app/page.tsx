@@ -360,9 +360,18 @@ export default function App() {
               <h2 className="text-2xl font-bold text-amber-900 mb-2">
                 Wanted: More Friends Like These 🤠
               </h2>
-              <p className="text-amber-800 opacity-90">
+              <p className="text-amber-800 opacity-90 mb-3">
                 Your top mutual friends from the last 30 days - the ones you want more of!
               </p>
+              <div className="bg-amber-100 rounded-lg p-3 max-w-md mx-auto">
+                <div className="text-xs text-amber-800 font-semibold mb-1">📊 How We Score Friendships:</div>
+                <div className="text-xs text-amber-700 space-y-1">
+                  <div>• <strong>Longevity:</strong> Days since first engagement</div>
+                  <div>• <strong>Frequency:</strong> Interactions per day</div>
+                  <div>• <strong>Quality:</strong> Type of engagement (likes, recasts, replies)</div>
+                  <div>• <strong>Reciprocity:</strong> Mutual follow duration</div>
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -475,7 +484,25 @@ export default function App() {
 
                   {/* Engagement Analysis */}
                   <div className="mb-4">
-                    <div className="text-sm font-semibold text-amber-800 mb-2">📊 Engagement Analysis</div>
+                    <div className="text-sm font-semibold text-amber-800 mb-2 flex items-center justify-between">
+                      <span>📊 Engagement Analysis</span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const longevity = friend.daysSinceFirstEngagement * 2;
+                          const frequency = friend.engagementFrequency * 50;
+                          const interactions = friend.totalInteractions * 5;
+                          const followDuration = (Date.now() - new Date(friend.followDate).getTime()) / (1000 * 60 * 60 * 24) * 0.5;
+                          
+                          alert(`Friendship Score Breakdown for @${friend.username}:\n\n📊 Score Components:\n• Longevity (${friend.daysSinceFirstEngagement} days × 2): ${longevity.toFixed(1)}\n• Frequency (${friend.engagementFrequency.toFixed(2)}/day × 50): ${frequency.toFixed(1)}\n• Interactions (${friend.totalInteractions} × 5): ${interactions}\n• Follow Duration (${(followDuration/0.5).toFixed(0)} days × 0.5): ${followDuration.toFixed(1)}\n\n🎯 Total Score: ${friend.rideOrDieScore}\n\n💡 What this means:\n${friend.rideOrDieScore > 100 ? '🌟 Elite Connection - You engage frequently and have a long history' : 
+                            friend.rideOrDieScore > 50 ? '💫 Strong Bond - Regular engagement with good history' : 
+                            friend.rideOrDieScore > 20 ? '🤝 Good Friend - Some engagement, growing connection' : '👋 New Connection - Early stages of friendship'}`);
+                        }}
+                        className="text-xs text-amber-600 hover:text-amber-800 bg-amber-100 px-2 py-1 rounded-full hover:bg-amber-200 transition-colors"
+                      >
+                        ℹ️ How scored?
+                      </button>
+                    </div>
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-3">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-amber-800 mb-1">
@@ -486,6 +513,9 @@ export default function App() {
                           {friend.rideOrDieScore > 100 ? '🌟 Elite Connection' : 
                            friend.rideOrDieScore > 50 ? '💫 Strong Bond' : 
                            friend.rideOrDieScore > 20 ? '🤝 Good Friend' : '👋 New Connection'}
+                        </div>
+                        <div className="text-xs text-amber-400 mt-2">
+                          Based on engagement frequency, longevity, and interaction quality
                         </div>
                       </div>
                     </div>
