@@ -15,7 +15,9 @@ export const metadata: Metadata = {
     'fc:miniapp': 'Friends of Friends',
     'fc:miniapp:domain': 'friends-of-friends.vercel.app',
     'fc:miniapp:icon': 'https://friends-of-friends.vercel.app/icon.png',
-    'fc:miniapp:home': 'https://friends-of-friends.vercel.app'
+    'fc:miniapp:home': 'https://friends-of-friends.vercel.app/app',
+    'fc:miniapp:image': 'https://friends-of-friends.vercel.app/og-image.png',
+    'fc:miniapp:description': 'Discover your closest friends based on mutual affinity scores'
   }
 }
 
