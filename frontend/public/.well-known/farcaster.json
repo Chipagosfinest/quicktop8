@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjQwNDQsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg1NzJGZWYzZDlhMTcxMkM3ZDQ0OWM3ZTE1QzMzNUQ2ODYwMzI4MDg2In0",
+    "payload": "eyJkb21haW4iOiJmcmllbmRzLW9mLWZyaWVuZHMudmVyY2VsLmFwcCJ9",
+    "signature": "YRyu0qMbZrGaV61yhae78cvgktsxN1cUf8pk6fmJkd8TlFVwBSFvt8xbroZEvxSjKpcnAExVi6MMmCHeFP81ARw="
+  },
   "frame": {
     "version": "1",
     "name": "Friends of Friends",
