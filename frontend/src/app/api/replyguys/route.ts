@@ -19,6 +19,11 @@ interface ReplyGuyData {
   verified_addresses?: string[]
   active_status?: string
   last_active?: string
+  // Enhanced social analytics
+  neynar_user_score?: number
+  engagement_rate?: number
+  social_influence_score?: number
+  reply_quality_score?: number
   // Potential new connections
   potential_connections?: Array<{
     fid: number
@@ -29,6 +34,8 @@ interface ReplyGuyData {
     ens_name?: string
     interaction_count: number
     last_interaction: string
+    neynar_user_score?: number
+    engagement_rate?: number
   }>
 }
 
@@ -118,6 +125,7 @@ async function fetchCastReplies(castHash: string): Promise<any[]> {
 const userDataCache = new Map<number, { data: any; timestamp: number }>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+// Enhanced user data fetching with quality metrics
 async function fetchUserData(fid: number): Promise<any> {
   // Check cache first
   const cached = userDataCache.get(fid)
@@ -134,7 +142,8 @@ async function fetchUserData(fid: number): Promise<any> {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
       headers: { 
         'x-api-key': NEYNAR_API_KEY, 
-        'accept': 'application/json' 
+        'accept': 'application/json',
+        'x-neynar-experimental': 'true' // Enable experimental features for quality scores
       },
       signal: AbortSignal.timeout(8000)
     })
@@ -148,9 +157,21 @@ async function fetchUserData(fid: number): Promise<any> {
     const user = data.users?.[0]
     
     if (user) {
-      // Cache the result
-      userDataCache.set(fid, { data: user, timestamp: Date.now() })
-      return user
+      // Calculate engagement rate and social influence
+      const engagementRate = user.follower_count > 0 ? 
+        ((user.follower_count + user.following_count) / user.follower_count) : 0
+      
+      const socialInfluenceScore = calculateSocialInfluenceScore(user)
+      
+      // Cache the result with enhanced metrics
+      const enhancedUser = {
+        ...user,
+        engagement_rate: engagementRate,
+        social_influence_score: socialInfluenceScore
+      }
+      
+      userDataCache.set(fid, { data: enhancedUser, timestamp: Date.now() })
+      return enhancedUser
     }
     
     return {}
@@ -158,6 +179,71 @@ async function fetchUserData(fid: number): Promise<any> {
     console.error(`Error fetching user data for FID ${fid}:`, error)
     return {}
   }
+}
+
+// Calculate social influence score based on multiple factors
+function calculateSocialInfluenceScore(user: any): number {
+  let score = 0
+  
+  // Base score from follower count (logarithmic scale)
+  if (user.follower_count) {
+    score += Math.log10(user.follower_count + 1) * 10
+  }
+  
+  // Bonus for verified addresses
+  if (user.verified_addresses?.eth_addresses?.length > 0) {
+    score += 20
+  }
+  
+  // Bonus for power badge
+  if (user.power_badge) {
+    score += 30
+  }
+  
+  // Bonus for active status
+  if (user.active_status === 'active') {
+    score += 15
+  }
+  
+  // Bonus for Neynar quality score
+  if (user.experimental?.neynar_user_score) {
+    score += user.experimental.neynar_user_score * 50
+  }
+  
+  return Math.min(score, 100) // Cap at 100
+}
+
+// Enhanced reply quality scoring
+function calculateReplyQualityScore(replyGuy: ReplyGuyData, totalReplies: number): number {
+  let score = 0
+  
+  // Base score from reply frequency
+  const replyFrequency = replyGuy.replyCount / Math.max(totalReplies, 1)
+  score += replyFrequency * 40
+  
+  // Quality bonus for high engagement users
+  if (replyGuy.engagement_rate && replyGuy.engagement_rate > 0.5) {
+    score += 20
+  }
+  
+  // Quality bonus for high social influence
+  if (replyGuy.social_influence_score && replyGuy.social_influence_score > 50) {
+    score += 20
+  }
+  
+  // Quality bonus for verified users
+  if (replyGuy.verified_addresses && replyGuy.verified_addresses.length > 0) {
+    score += 10
+  }
+  
+  // Recency bonus
+  const lastReplyAge = Date.now() - new Date(replyGuy.lastReplyDate).getTime()
+  const daysSinceLastReply = lastReplyAge / (1000 * 60 * 60 * 24)
+  if (daysSinceLastReply < 7) {
+    score += 10
+  }
+  
+  return Math.min(score, 100)
 }
 
 // Check if user follows someone
@@ -238,10 +324,12 @@ export async function GET(request: NextRequest) {
 
     // Step 2: Get replies for each cast and find reply guys
     const replyGuysMap = new Map<number, ReplyGuyData>()
+    let totalReplies = 0
     
     // Process casts in parallel (limit to 10 for performance)
     const replyPromises = userCasts.slice(0, 10).map(async (cast: any) => {
       const replies = await fetchCastReplies(cast.hash)
+      totalReplies += replies.length
       
       for (const reply of replies) {
         const replierFid = reply.author?.fid
@@ -257,7 +345,7 @@ export async function GET(request: NextRequest) {
             existing.firstReplyDate = reply.timestamp
           }
         } else {
-          // Get basic user data
+          // Get enhanced user data
           const user = await fetchUserData(replierFid)
           
           replyGuysMap.set(replierFid, {
@@ -276,6 +364,9 @@ export async function GET(request: NextRequest) {
             verified_addresses: user.verified_addresses,
             active_status: user.active_status,
             last_active: user.last_active,
+            neynar_user_score: user.experimental?.neynar_user_score,
+            engagement_rate: user.engagement_rate,
+            social_influence_score: user.social_influence_score,
             potential_connections: []
           })
         }
@@ -284,12 +375,16 @@ export async function GET(request: NextRequest) {
     
     await Promise.all(replyPromises)
 
-    // Step 3: Convert to array and sort by reply count
+    // Step 3: Convert to array, calculate quality scores, and sort
     const replyGuys = Array.from(replyGuysMap.values())
-      .sort((a, b) => b.replyCount - a.replyCount)
+      .map(replyGuy => ({
+        ...replyGuy,
+        reply_quality_score: calculateReplyQualityScore(replyGuy, totalReplies)
+      }))
+      .sort((a, b) => b.reply_quality_score - a.reply_quality_score)
       .slice(0, 8)
 
-    console.log(`Found ${replyGuys.length} reply guys`)
+    console.log(`Found ${replyGuys.length} reply guys with quality scoring`)
 
     if (replyGuys.length === 0) {
       return NextResponse.json({ 
@@ -298,7 +393,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Step 4: For each reply guy, find potential new connections
+    // Step 4: For each reply guy, find potential new connections with enhanced filtering
     const connectionPromises = replyGuys.map(async (replyGuy) => {
       // Get their recent activity
       const recentActivity = await fetchUserRecentActivity(replyGuy.fid)
@@ -320,19 +415,24 @@ export async function GET(request: NextRequest) {
               existing.last_interaction = interaction.timestamp
             }
           } else {
-            // Get basic info about this potential connection
+            // Get enhanced info about this potential connection
             const user = await fetchUserData(interaction.target_fid)
             
-            potentialConnections.set(interaction.target_fid, {
-              fid: interaction.target_fid,
-              username: user.username || `user${interaction.target_fid}`,
-              display_name: user.display_name || '',
-              pfp_url: user.pfp_url || '',
-              bio: user.bio || '',
-              ens_name: user.ens_name,
-              interaction_count: 1,
-              last_interaction: interaction.timestamp
-            })
+            // Only include high-quality potential connections
+            if (user.social_influence_score && user.social_influence_score > 20) {
+              potentialConnections.set(interaction.target_fid, {
+                fid: interaction.target_fid,
+                username: user.username || `user${interaction.target_fid}`,
+                display_name: user.display_name || '',
+                pfp_url: user.pfp_url || '',
+                bio: user.bio || '',
+                ens_name: user.ens_name,
+                interaction_count: 1,
+                last_interaction: interaction.timestamp,
+                neynar_user_score: user.experimental?.neynar_user_score,
+                engagement_rate: user.engagement_rate
+              })
+            }
           }
         }
       }
@@ -346,7 +446,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       replyGuys,
-      message: `Found ${replyGuys.length} reply guys with potential new connections`
+      message: `Found ${replyGuys.length} high-quality reply guys with potential new connections`,
+      analytics: {
+        total_replies_analyzed: totalReplies,
+        average_quality_score: replyGuys.reduce((sum, rg) => sum + rg.reply_quality_score, 0) / replyGuys.length,
+        top_reply_guy_score: replyGuys[0]?.reply_quality_score || 0
+      }
     })
 
   } catch (error) {

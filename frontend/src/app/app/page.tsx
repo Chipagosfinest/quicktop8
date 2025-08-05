@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useMiniApp } from '@/components/MiniAppProvider'
 import { sdk } from '@farcaster/miniapp-sdk'
+import SocialShare from '@/components/SocialShare'
 
 interface ReplyGuy {
   fid: number
@@ -21,6 +22,11 @@ interface ReplyGuy {
   verified_addresses?: string[]
   active_status?: string
   last_active?: string
+  // Enhanced social analytics
+  neynar_user_score?: number
+  engagement_rate?: number
+  social_influence_score?: number
+  reply_quality_score?: number
   // Potential new connections
   potential_connections?: Array<{
     fid: number
@@ -31,15 +37,36 @@ interface ReplyGuy {
     ens_name?: string
     interaction_count: number
     last_interaction: string
+    neynar_user_score?: number
+    engagement_rate?: number
   }>
+}
+
+interface LeaderboardEntry {
+  fid: number
+  username: string
+  display_name: string
+  pfp_url: string
+  bio: string
+  ens_name?: string
+  reply_count: number
+  quality_score: number
+  social_influence_score: number
+  is_friend: boolean
+  is_mutual: boolean
+  rank: number
 }
 
 export default function App() {
   const [replyGuys, setReplyGuys] = useState<ReplyGuy[]>([])
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [userFid, setUserFid] = useState<number | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'reply-guys' | 'leaderboard' | 'analytics'>('reply-guys')
+  const [leaderboardType, setLeaderboardType] = useState<'friends' | 'global' | 'mutual'>('friends')
+  const [analytics, setAnalytics] = useState<any>(null)
 
   const { isSDKLoaded, isConnected, userFid: contextUserFid, context, signInWithFarcaster } = useMiniApp()
 
@@ -73,6 +100,7 @@ export default function App() {
       callReady()
       
       handleGetReplyGuys(fid)
+      handleGetLeaderboard(fid)
     }
   }, [isSDKLoaded, isConnected, contextUserFid, context])
 
@@ -104,6 +132,7 @@ export default function App() {
       }
 
       setReplyGuys(data.replyGuys || [])
+      setAnalytics(data.analytics || null)
     } catch (error) {
       console.error('Error fetching reply guys:', error)
       setError(error instanceof Error ? error.message : "Failed to fetch your reply guys")
@@ -112,8 +141,38 @@ export default function App() {
     }
   }
 
+  const handleGetLeaderboard = async (fid: number) => {
+    if (!fid) return
+
+    try {
+      const response = await fetch(`/api/leaderboard?fid=${fid}&type=${leaderboardType}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.error) {
+        throw new Error(data.error)
+      }
+
+      setLeaderboard(data.leaderboard || [])
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error)
+    }
+  }
+
+
+
   const getReplyGuyType = (replyGuy: ReplyGuy) => {
-    if (replyGuy.replyCount >= 10) return { type: "Super Fan", icon: "🔥", color: "from-red-500 to-pink-500" }
+    if (replyGuy.reply_quality_score && replyGuy.reply_quality_score >= 80) return { type: "Legendary", icon: "👑", color: "from-purple-500 to-pink-500" }
+    if (replyGuy.reply_quality_score && replyGuy.reply_quality_score >= 60) return { type: "Super Fan", icon: "🔥", color: "from-red-500 to-pink-500" }
     if (replyGuy.replyCount >= 5) return { type: "Regular", icon: "💬", color: "from-blue-500 to-purple-500" }
     if (replyGuy.replyCount >= 2) return { type: "Occasional", icon: "👋", color: "from-green-500 to-blue-500" }
     return { type: "New", icon: "🆕", color: "from-gray-500 to-gray-600" }
@@ -188,6 +247,42 @@ export default function App() {
           </p>
         </div>
 
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-1 border-2 border-amber-400">
+            <button
+              onClick={() => setActiveTab('reply-guys')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                activeTab === 'reply-guys'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                  : 'text-amber-700 hover:bg-amber-50'
+              }`}
+            >
+              🤠 Reply Guys
+            </button>
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                activeTab === 'leaderboard'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                  : 'text-amber-700 hover:bg-amber-50'
+              }`}
+            >
+              📊 Leaderboard
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                activeTab === 'analytics'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                  : 'text-amber-700 hover:bg-amber-50'
+              }`}
+            >
+              📈 Analytics
+            </button>
+          </div>
+        </div>
+
         {loading && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg border-4 border-amber-500 animate-spin mx-auto mb-4">
@@ -216,7 +311,7 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !error && replyGuys.length > 0 && (
+        {!loading && !error && activeTab === 'reply-guys' && replyGuys.length > 0 && (
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-amber-900 mb-2">
@@ -225,6 +320,11 @@ export default function App() {
               <p className="text-amber-800 opacity-90 mb-3">
                 Discover who replies to you most and find new connections through them
               </p>
+              <SocialShare 
+                replyGuys={replyGuys} 
+                userFid={userFid}
+                onShare={() => console.log('Results shared!')}
+              />
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -246,6 +346,13 @@ export default function App() {
                     <div className="absolute -top-3 -right-3 bg-gradient-to-r ${replyGuyType.color} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                       #{index + 1}
                     </div>
+
+                    {/* Quality Score Badge */}
+                    {replyGuy.reply_quality_score && (
+                      <div className="absolute -top-3 -left-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                        ⭐ {replyGuy.reply_quality_score.toFixed(0)}
+                      </div>
+                    )}
 
                     {/* Profile Section */}
                     <div className="text-center mb-4">
@@ -302,7 +409,7 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Reply Stats */}
+                    {/* Enhanced Stats */}
                     <div className="mb-4">
                       <div className="text-sm font-semibold text-amber-800 mb-2">💬 Reply Stats</div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -315,6 +422,20 @@ export default function App() {
                           <div className="text-green-600">Followers</div>
                         </div>
                       </div>
+                      
+                      {/* Quality Metrics */}
+                      {replyGuy.reply_quality_score && (
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                          <div className="bg-purple-50 rounded p-2 text-center">
+                            <div className="font-bold text-purple-800">{replyGuy.reply_quality_score.toFixed(0)}</div>
+                            <div className="text-purple-600">Quality Score</div>
+                          </div>
+                          <div className="bg-orange-50 rounded p-2 text-center">
+                            <div className="font-bold text-orange-800">{replyGuy.social_influence_score?.toFixed(0) || 'N/A'}</div>
+                            <div className="text-orange-600">Influence</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Potential Connections */}
@@ -326,6 +447,9 @@ export default function App() {
                             <div key={connection.fid} className="bg-purple-50 rounded p-2 text-xs">
                               <div className="font-semibold text-purple-800">@{connection.username}</div>
                               <div className="text-purple-600">{connection.interaction_count} interactions</div>
+                              {connection.neynar_user_score && (
+                                <div className="text-purple-500">⭐ {connection.neynar_user_score.toFixed(1)}</div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -351,7 +475,225 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !error && replyGuys.length === 0 && (
+        {!loading && !error && activeTab === 'leaderboard' && (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-amber-900 mb-4">
+                📊 Social Leaderboard
+              </h2>
+              
+              {/* Leaderboard Type Selector */}
+              <div className="flex justify-center mb-4">
+                <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-1 border-2 border-amber-400">
+                  <button
+                    onClick={() => {
+                      setLeaderboardType('friends')
+                      if (userFid) handleGetLeaderboard(userFid)
+                    }}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                      leaderboardType === 'friends'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                        : 'text-amber-700 hover:bg-amber-50'
+                    }`}
+                  >
+                    👥 Friends
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLeaderboardType('mutual')
+                      if (userFid) handleGetLeaderboard(userFid)
+                    }}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                      leaderboardType === 'mutual'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                        : 'text-amber-700 hover:bg-amber-50'
+                    }`}
+                  >
+                    🤝 Mutual
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLeaderboardType('global')
+                      if (userFid) handleGetLeaderboard(userFid)
+                    }}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                      leaderboardType === 'global'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                        : 'text-amber-700 hover:bg-amber-50'
+                    }`}
+                  >
+                    🌍 Global
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {leaderboard.length > 0 ? (
+              <div className="space-y-4">
+                {leaderboard.map((entry, index) => (
+                  <div
+                    key={entry.fid}
+                    className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-xl shadow-lg p-4 border-2 transition-all duration-300 hover:scale-105 cursor-pointer ${
+                      index === 0 ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50' :
+                      index === 1 ? 'border-gray-400 bg-gradient-to-r from-gray-50 to-slate-50' :
+                      index === 2 ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-red-50' :
+                      'border-amber-300 hover:border-amber-400'
+                    }`}
+                    onClick={() => window.open(`https://warpcast.com/${entry.username}`, '_blank')}
+                  >
+                    <div className="flex items-center space-x-4">
+                      {/* Rank */}
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                        index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white' :
+                        index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-600 text-white' :
+                        index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-600 text-white' :
+                        'bg-gradient-to-r from-amber-400 to-amber-600 text-white'
+                      }`}>
+                        {index + 1}
+                      </div>
+
+                      {/* Profile */}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-amber-600 to-orange-700">
+                            {entry.pfp_url ? (
+                              <img 
+                                src={entry.pfp_url} 
+                                alt={`${entry.username}'s profile`}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                                {entry.username?.charAt(0).toUpperCase() || '?'}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <h3 className="font-bold text-amber-900">
+                              {entry.ens_name ? (
+                                <span>
+                                  <span className="text-purple-600">{entry.ens_name}</span>
+                                  <span className="text-amber-600 text-sm ml-2">@{entry.username}</span>
+                                </span>
+                              ) : (
+                                `@${entry.username}`
+                              )}
+                            </h3>
+                            <p className="text-amber-700 text-sm">{entry.display_name}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-amber-800">{entry.quality_score.toFixed(0)}</div>
+                        <div className="text-xs text-amber-600">Quality Score</div>
+                        <div className="text-sm font-semibold text-blue-600">{entry.reply_count} replies</div>
+                      </div>
+
+                      {/* Social Indicators */}
+                      <div className="flex space-x-1">
+                        {entry.is_friend && (
+                          <div className="w-3 h-3 bg-blue-500 rounded-full" title="Friend"></div>
+                        )}
+                        {entry.is_mutual && (
+                          <div className="w-3 h-3 bg-green-500 rounded-full" title="Mutual"></div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg border-4 border-amber-500 mx-auto mb-6">
+                  📊
+                </div>
+                <h2 className="text-2xl font-bold text-amber-900 mb-4">
+                  No Leaderboard Data Yet!
+                </h2>
+                <p className="text-amber-800 text-lg mb-6 max-w-md mx-auto">
+                  Start posting engaging content to build your reply guys leaderboard and compete with friends!
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!loading && !error && activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-amber-900 mb-2">
+                📈 Social Analytics
+              </h2>
+              <p className="text-amber-800 opacity-90 mb-3">
+                Deep insights into your social engagement and reply guy quality
+              </p>
+            </div>
+
+            {analytics ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Analytics Cards */}
+                <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-blue-400">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">📊</div>
+                    <h3 className="font-bold text-blue-900 text-lg mb-2">Total Replies Analyzed</h3>
+                    <div className="text-3xl font-bold text-blue-600">{analytics.total_replies_analyzed}</div>
+                    <p className="text-blue-700 text-sm mt-2">Replies across your recent casts</p>
+                  </div>
+                </div>
+
+                <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-green-400">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">⭐</div>
+                    <h3 className="font-bold text-green-900 text-lg mb-2">Average Quality Score</h3>
+                    <div className="text-3xl font-bold text-green-600">{analytics.average_quality_score?.toFixed(1) || 'N/A'}</div>
+                    <p className="text-green-700 text-sm mt-2">Overall reply guy quality</p>
+                  </div>
+                </div>
+
+                <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-purple-400">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">👑</div>
+                    <h3 className="font-bold text-purple-900 text-lg mb-2">Top Reply Guy Score</h3>
+                    <div className="text-3xl font-bold text-purple-600">{analytics.top_reply_guy_score?.toFixed(0) || 'N/A'}</div>
+                    <p className="text-purple-700 text-sm mt-2">Your highest quality reply guy</p>
+                  </div>
+                </div>
+
+                {/* Quality Distribution */}
+                <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-amber-400 md:col-span-2 lg:col-span-3">
+                  <h3 className="font-bold text-amber-900 text-lg mb-4 text-center">Reply Guy Quality Distribution</h3>
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    {replyGuys.slice(0, 4).map((rg, index) => (
+                      <div key={rg.fid} className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-300">
+                        <div className="text-2xl mb-2">#{index + 1}</div>
+                        <div className="font-bold text-amber-800">@{rg.username}</div>
+                        <div className="text-lg font-bold text-amber-600">{rg.reply_quality_score?.toFixed(0) || 'N/A'}</div>
+                        <div className="text-xs text-amber-700">Quality Score</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg border-4 border-amber-500 mx-auto mb-6">
+                  📈
+                </div>
+                <h2 className="text-2xl font-bold text-amber-900 mb-4">
+                  No Analytics Data Yet!
+                </h2>
+                <p className="text-amber-800 text-lg mb-6 max-w-md mx-auto">
+                  Start posting content to generate rich analytics about your reply guys and social engagement!
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!loading && !error && replyGuys.length === 0 && activeTab === 'reply-guys' && (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg border-4 border-amber-500 mx-auto mb-6 animate-bounce">
               🤠
