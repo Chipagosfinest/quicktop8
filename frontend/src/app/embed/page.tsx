@@ -75,6 +75,30 @@ export default function EmbedPage() {
                 Rich social insights powered by Neynar's affinity scoring
               </p>
             </div>
+
+            {/* Troubleshooting Info */}
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-2 border-yellow-300">
+              <h3 className="font-semibold text-yellow-900 mb-2">🔧 Troubleshooting</h3>
+              <p className="text-sm text-yellow-700 mb-2">
+                Having issues? Check our health status:
+              </p>
+              <div className="flex justify-center space-x-2">
+                <a 
+                  href="/api/health" 
+                  target="_blank"
+                  className="text-xs bg-yellow-200 hover:bg-yellow-300 px-2 py-1 rounded transition-colors"
+                >
+                  Health Check
+                </a>
+                <a 
+                  href="/api/test" 
+                  target="_blank"
+                  className="text-xs bg-yellow-200 hover:bg-yellow-300 px-2 py-1 rounded transition-colors"
+                >
+                  API Test
+                </a>
+              </div>
+            </div>
           </div>
 
           <div className="mt-6">
@@ -102,6 +126,21 @@ export default function EmbedPage() {
                 <div className="text-xs text-indigo-700">Social Discovery</div>
               </div>
             </div>
+          </div>
+
+          {/* Error Handling Tips */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <details className="text-xs text-gray-600">
+              <summary className="cursor-pointer hover:text-gray-800 font-medium">
+                🔧 Common Issues & Solutions
+              </summary>
+              <div className="mt-2 text-left space-y-1">
+                <div><strong>Rate Limited:</strong> Wait 1 minute and try again</div>
+                <div><strong>API Key Error:</strong> Check environment configuration</div>
+                <div><strong>Network Error:</strong> Check your internet connection</div>
+                <div><strong>User Not Found:</strong> Verify the FID is correct</div>
+              </div>
+            </details>
           </div>
         </div>
       </div>

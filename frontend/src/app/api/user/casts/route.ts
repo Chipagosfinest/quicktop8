@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+function getRequestId(request: NextRequest) {
+  return request.headers.get('x-request-id') || Math.random().toString(36).slice(2, 10)
+}
+
 async function makeBackendRequest(endpoint: string, params: Record<string, any> = {}) {
-  // In production, use the same domain for backend API calls
   const BACKEND_URL = process.env.NODE_ENV === 'production' 
     ? '' // Same domain
     : (process.env.BACKEND_URL || 'http://localhost:4000');
@@ -24,29 +27,30 @@ async function makeBackendRequest(endpoint: string, params: Record<string, any> 
 }
 
 export async function GET(request: NextRequest) {
+  const requestId = getRequestId(request)
   try {
-    console.log('User casts API route called')
+    console.log(`[user/casts][${requestId}] API route called`)
     
     const { searchParams } = new URL(request.url)
     const fid = searchParams.get('fid')
     const limit = searchParams.get('limit') || '5'
 
     if (!fid) {
+      console.warn(`[user/casts][${requestId}] Missing FID parameter`)
       return NextResponse.json(
         { error: 'Missing FID parameter' },
         { status: 400 }
       )
     }
 
-    console.log(`Fetching casts for FID: ${fid}`)
+    console.log(`[user/casts][${requestId}] Fetching casts for FID: ${fid}`)
 
     // Fetch casts from enhanced backend
     let castsData;
     try {
       castsData = await makeBackendRequest(`/api/user/${fid}/casts`, { limit });
     } catch (error) {
-      console.error('Backend API request failed:', error);
-      
+      console.error(`[user/casts][${requestId}] Backend API request failed:`, error);
       return NextResponse.json(
         { 
           error: 'Failed to fetch casts from backend',
@@ -57,6 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!castsData.success) {
+      console.error(`[user/casts][${requestId}] Backend returned unsuccessful response`)
       return NextResponse.json(
         { error: 'Failed to fetch casts data' },
         { status: 500 }
@@ -64,6 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
     const casts = castsData.data?.casts || [];
+    console.log(`[user/casts][${requestId}] Returning ${casts.length} casts`)
 
     return NextResponse.json({
       success: true,
@@ -75,7 +81,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in user casts API:', error)
+    console.error(`[user/casts][${requestId}] Error in user casts API:`, error)
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

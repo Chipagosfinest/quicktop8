@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || "1E58A226-A64C-4CF3-A047-FBED94F36101"
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
+
+function getRequestId(request: NextRequest) {
+  return request.headers.get('x-request-id') || Math.random().toString(36).slice(2, 10)
+}
 
 interface ReplyGuyData {
   fid: number
@@ -70,6 +74,11 @@ async function fetchUserCasts(fid: number, limit: number = 20): Promise<any[]> {
     return []
   }
 
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
+    return []
+  }
+
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=${limit}`, {
       headers: { 
@@ -96,6 +105,11 @@ async function fetchUserCasts(fid: number, limit: number = 20): Promise<any[]> {
 async function fetchCastReplies(castHash: string): Promise<any[]> {
   if (!checkRateLimit('cast-replies')) {
     console.warn('Rate limit exceeded for cast replies')
+    return []
+  }
+
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
     return []
   }
 
@@ -135,6 +149,11 @@ async function fetchUserData(fid: number): Promise<any> {
 
   if (!checkRateLimit('user-data')) {
     console.warn('Rate limit exceeded for user data')
+    return {}
+  }
+
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
     return {}
   }
 
@@ -252,6 +271,11 @@ async function checkIfFollowing(followerFid: number, followingFid: number): Prom
     return false
   }
 
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
+    return false
+  }
+
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/follows?follower=${followerFid}&following=${followingFid}`, {
       headers: { 
@@ -279,6 +303,11 @@ async function fetchUserRecentActivity(fid: number): Promise<any[]> {
     return []
   }
 
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
+    return []
+  }
+
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/feed/user/replies_and_recasts?fid=${fid}&limit=10`, {
       headers: { 
@@ -301,21 +330,24 @@ async function fetchUserRecentActivity(fid: number): Promise<any[]> {
 }
 
 export async function GET(request: NextRequest) {
+  const requestId = getRequestId(request)
   try {
     const { searchParams } = new URL(request.url)
     const fid = searchParams.get('fid')
 
     if (!fid) {
+      console.warn(`[replyguys][${requestId}] FID is required`)
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    console.log(`Finding reply guys for FID: ${fid}`)
+    console.log(`[replyguys][${requestId}] Finding reply guys for FID: ${fid}`)
 
     // Step 1: Get user's recent casts
     const userCasts = await fetchUserCasts(parseInt(fid), 20)
-    console.log(`Found ${userCasts.length} recent casts`)
+    console.log(`[replyguys][${requestId}] Found ${userCasts.length} recent casts`)
 
     if (userCasts.length === 0) {
+      console.warn(`[replyguys][${requestId}] No recent casts found for FID: ${fid}`)
       return NextResponse.json({ 
         replyGuys: [],
         message: "No recent casts found. Try posting more content to discover your reply guys!"
@@ -384,9 +416,10 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.reply_quality_score - a.reply_quality_score)
       .slice(0, 8)
 
-    console.log(`Found ${replyGuys.length} reply guys with quality scoring`)
+    console.log(`[replyguys][${requestId}] Found ${replyGuys.length} reply guys with quality scoring`)
 
     if (replyGuys.length === 0) {
+      console.warn(`[replyguys][${requestId}] No reply guys found for FID: ${fid}`)
       return NextResponse.json({ 
         replyGuys: [],
         message: "No reply guys found yet. Keep posting engaging content to discover who replies to you most!"
@@ -444,6 +477,7 @@ export async function GET(request: NextRequest) {
     
     await Promise.all(connectionPromises)
 
+    console.log(`[replyguys][${requestId}] Returning reply guys and analytics for FID: ${fid}`)
     return NextResponse.json({
       replyGuys,
       message: `Found ${replyGuys.length} high-quality reply guys with potential new connections`,
@@ -455,7 +489,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in reply guys API:', error)
+    console.error(`[replyguys][${requestId}] Error in reply guys API:`, error)
     return NextResponse.json({ 
       error: "Failed to fetch reply guys. Please try again." 
     }, { status: 500 })

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || "1E58A226-A64C-4CF3-A047-FBED94F36101"
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
+
+function getRequestId(request: NextRequest) {
+  return request.headers.get('x-request-id') || Math.random().toString(36).slice(2, 10)
+}
 
 interface NotificationData {
   title: string
@@ -35,9 +39,14 @@ function checkRateLimit(endpoint: string): boolean {
 }
 
 // Send notification using Neynar's notification system
-async function sendNotification(fid: number, notification: NotificationData): Promise<boolean> {
+async function sendNotification(fid: number, notification: NotificationData, requestId: string): Promise<boolean> {
   if (!checkRateLimit('send-notification')) {
-    console.warn('Rate limit exceeded for notifications')
+    console.warn(`[notifications][${requestId}] Rate limit exceeded for notifications`)
+    return false
+  }
+
+  if (!NEYNAR_API_KEY) {
+    console.error(`[notifications][${requestId}] NEYNAR_API_KEY not configured`)
     return false
   }
 
@@ -61,14 +70,14 @@ async function sendNotification(fid: number, notification: NotificationData): Pr
     })
     
     if (!response.ok) {
-      console.error(`Failed to send notification to FID ${fid}: ${response.status}`)
+      console.error(`[notifications][${requestId}] Failed to send notification to FID ${fid}: ${response.status}`)
       return false
     }
     
-    console.log(`Successfully sent notification to FID ${fid}`)
+    console.log(`[notifications][${requestId}] Successfully sent notification to FID ${fid}`)
     return true
   } catch (error) {
-    console.error(`Error sending notification to FID ${fid}:`, error)
+    console.error(`[notifications][${requestId}] Error sending notification to FID ${fid}:`, error)
     return false
   }
 }
@@ -83,7 +92,6 @@ function generateFOMONotification(type: string, data: any): NotificationData {
         icon: '🤠',
         url: 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/app'
       }
-    
     case 'leaderboard_rank_change':
       return {
         title: '📊 Leaderboard Update!',
@@ -91,7 +99,6 @@ function generateFOMONotification(type: string, data: any): NotificationData {
         icon: '📊',
         url: 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/app'
       }
-    
     case 'friend_activity':
       return {
         title: '👥 Friend Activity!',
@@ -99,7 +106,6 @@ function generateFOMONotification(type: string, data: any): NotificationData {
         icon: '👥',
         url: 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/app'
       }
-    
     case 'quality_score_increase':
       return {
         title: '⭐ Quality Score Boost!',
@@ -107,7 +113,6 @@ function generateFOMONotification(type: string, data: any): NotificationData {
         icon: '⭐',
         url: 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/app'
       }
-    
     case 'potential_connection':
       return {
         title: '🔗 New Connection Found!',
@@ -115,7 +120,6 @@ function generateFOMONotification(type: string, data: any): NotificationData {
         icon: '🔗',
         url: 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/app'
       }
-    
     case 'weekly_challenge':
       return {
         title: '🏆 Weekly Challenge!',
@@ -123,7 +127,6 @@ function generateFOMONotification(type: string, data: any): NotificationData {
         icon: '🏆',
         url: 'https://quicktop8-49qq8p5vc-chipagosfinests-projects.vercel.app/app'
       }
-    
     default:
       return {
         title: '🤠 QuickTop8 Update!',
@@ -135,22 +138,24 @@ function generateFOMONotification(type: string, data: any): NotificationData {
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = getRequestId(request)
   try {
     const { fid, type, data } = await request.json()
 
     if (!fid || !type) {
+      console.warn(`[notifications][${requestId}] Missing FID or notification type`)
       return NextResponse.json({ 
         error: "FID and notification type are required" 
       }, { status: 400 })
     }
 
-    console.log(`Sending ${type} notification to FID: ${fid}`)
+    console.log(`[notifications][${requestId}] Sending ${type} notification to FID: ${fid}`)
 
     // Generate notification based on type
     const notification = generateFOMONotification(type, data || {})
     
     // Send the notification
-    const success = await sendNotification(parseInt(fid), notification)
+    const success = await sendNotification(parseInt(fid), notification, requestId)
 
     if (success) {
       return NextResponse.json({
@@ -166,7 +171,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error in notifications API:', error)
+    console.error(`[notifications][${requestId}] Error in notifications API:`, error)
     return NextResponse.json({ 
       error: "Failed to send notification. Please try again." 
     }, { status: 500 })

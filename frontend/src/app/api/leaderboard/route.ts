@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || "1E58A226-A64C-4CF3-A047-FBED94F36101"
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY
+
+function getRequestId(request: NextRequest) {
+  return request.headers.get('x-request-id') || Math.random().toString(36).slice(2, 10)
+}
 
 interface LeaderboardEntry {
   fid: number
@@ -48,6 +52,11 @@ async function fetchUserFollowing(fid: number): Promise<number[]> {
     return []
   }
 
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
+    return []
+  }
+
   try {
     const response = await fetch(`https://api.neynar.com/v2/farcaster/follows?follower=${fid}&limit=100`, {
       headers: { 
@@ -74,6 +83,11 @@ async function fetchUserFollowing(fid: number): Promise<number[]> {
 async function fetchUserFollowers(fid: number): Promise<number[]> {
   if (!checkRateLimit('user-followers')) {
     console.warn('Rate limit exceeded for user followers')
+    return []
+  }
+
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
     return []
   }
 
@@ -111,6 +125,11 @@ async function fetchUserData(fid: number): Promise<any> {
 
   if (!checkRateLimit('user-data')) {
     console.warn('Rate limit exceeded for user data')
+    return {}
+  }
+
+  if (!NEYNAR_API_KEY) {
+    console.error('NEYNAR_API_KEY not configured')
     return {}
   }
 
@@ -172,16 +191,18 @@ function calculateSocialInfluenceScore(user: any): number {
 }
 
 export async function GET(request: NextRequest) {
+  const requestId = getRequestId(request)
   try {
     const { searchParams } = new URL(request.url)
     const fid = searchParams.get('fid')
     const type = searchParams.get('type') || 'friends' // 'friends', 'global', 'mutual'
 
     if (!fid) {
+      console.warn(`[leaderboard][${requestId}] FID is required`)
       return NextResponse.json({ error: "FID is required" }, { status: 400 })
     }
 
-    console.log(`Fetching ${type} leaderboard for FID: ${fid}`)
+    console.log(`[leaderboard][${requestId}] Fetching ${type} leaderboard for FID: ${fid}`)
 
     // Get user's social connections
     const userFid = parseInt(fid)
@@ -191,13 +212,14 @@ export async function GET(request: NextRequest) {
     // Find mutual connections
     const mutualConnections = following.filter(fid => followers.includes(fid))
     
-    console.log(`Found ${following.length} following, ${followers.length} followers, ${mutualConnections.length} mutual`)
+    console.log(`[leaderboard][${requestId}] Found ${following.length} following, ${followers.length} followers, ${mutualConnections.length} mutual`)
 
     // Get reply guys data for the user
     const replyGuysResponse = await fetch(`${request.nextUrl.origin}/api/replyguys?fid=${userFid}`)
     const replyGuysData = await replyGuysResponse.json()
     
     if (!replyGuysData.replyGuys) {
+      console.warn(`[leaderboard][${requestId}] No reply guys found for FID: ${fid}`)
       return NextResponse.json({ 
         leaderboard: [],
         message: "No reply guys found. Start posting to build your leaderboard!"
@@ -264,7 +286,7 @@ export async function GET(request: NextRequest) {
       entry.rank = index + 1
     })
 
-    console.log(`Built ${type} leaderboard with ${leaderboard.length} entries`)
+    console.log(`[leaderboard][${requestId}] Built ${type} leaderboard with ${leaderboard.length} entries`)
 
     return NextResponse.json({
       leaderboard,
@@ -279,7 +301,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in leaderboard API:', error)
+    console.error(`[leaderboard][${requestId}] Error in leaderboard API:`, error)
     return NextResponse.json({ 
       error: "Failed to fetch leaderboard. Please try again." 
     }, { status: 500 })
