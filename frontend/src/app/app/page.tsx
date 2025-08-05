@@ -171,8 +171,12 @@ export default function App() {
     try {
       console.log('Attempting to share...')
       
-      // Create share content
-      const shareText = "🤠 Check out my top 8 mutual friends on Farcaster with QuickTop8!"
+      // Create more engaging share content
+      const topFriend = friends[0];
+      const shareText = topFriend 
+        ? `🤠 Just discovered my top mutual friend on Farcaster: @${topFriend.username}! Check out my full "Wanted Friends" list with QuickTop8! 💫`
+        : "🤠 Check out my top 8 mutual friends on Farcaster with QuickTop8! Discover your most engaged connections! 💫";
+      
       const shareUrl = window.location.href
       
       // Use the openUrl action to share via Farcaster
@@ -184,6 +188,33 @@ export default function App() {
       console.error('Error sharing:', error)
     } finally {
       setIsSharing(false)
+    }
+  }
+
+  const handleTipFriend = async (friend: Friend) => {
+    if (!isSDKLoaded) {
+      console.log('SDK not loaded yet')
+      return
+    }
+
+    try {
+      console.log('Attempting to tip friend:', friend.username)
+      
+      // Use the sendToken action to tip the friend
+      const result = await sdk.actions.sendToken({
+        recipientFid: friend.fid,
+        amount: "1000000", // 1 USDC (6 decimals)
+        token: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" // Base USDC
+      })
+      
+      if (result.success) {
+        console.log('Tip successful!', result.send.transaction)
+        // You could show a success message here
+      } else {
+        console.log('Tip failed or was cancelled:', result.reason)
+      }
+    } catch (error) {
+      console.error('Error tipping friend:', error)
     }
   }
 
@@ -349,8 +380,22 @@ export default function App() {
 
                   {/* Friend Avatar and Info */}
                   <div className="text-center mb-4">
-                    <div className="w-20 h-20 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold text-xl border-4 border-amber-500">
-                      {friend.username?.charAt(0).toUpperCase() || '?'}
+                    <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-amber-500 overflow-hidden bg-gradient-to-br from-amber-600 to-orange-700">
+                      {friend.pfp_url ? (
+                        <img 
+                          src={friend.pfp_url} 
+                          alt={`${friend.username}'s profile`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full flex items-center justify-center text-white font-bold text-xl ${friend.pfp_url ? 'hidden' : ''}`}>
+                        {friend.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
                     </div>
                     <h3 className="font-bold text-amber-900 text-lg mb-1">
                       {friend.username || `Friend ${friend.fid}`}
@@ -358,6 +403,11 @@ export default function App() {
                     <p className="text-amber-700 text-sm mb-2">
                       {friend.display_name || 'Mutual Friend'}
                     </p>
+                    {friend.bio && (
+                      <p className="text-amber-600 text-xs mb-3 line-clamp-2 italic">
+                        "{friend.bio}"
+                      </p>
+                    )}
                     <div className="flex justify-center mb-3">
                       {getWantedBadge(friend.rideOrDieScore)}
                     </div>
@@ -391,9 +441,29 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Original Engagement Link */}
-                  {friend.originalEngagementCastUrl && (
-                    <div className="mb-4">
+                  {/* Enhanced Stats */}
+                  <div className="space-y-2 mb-4">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-amber-100 rounded p-2 text-center">
+                        <div className="font-bold text-amber-800">{friend.totalInteractions}</div>
+                        <div className="text-amber-600">Interactions</div>
+                      </div>
+                      <div className="bg-orange-100 rounded p-2 text-center">
+                        <div className="font-bold text-orange-800">{friend.daysSinceFirstEngagement}</div>
+                        <div className="text-orange-600">Days Known</div>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-amber-700 mb-1">Friendship Score</div>
+                      <div className="text-2xl font-bold text-amber-800">
+                        {friend.rideOrDieScore}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    {friend.originalEngagementCastUrl && (
                       <a
                         href={friend.originalEngagementCastUrl}
                         target="_blank"
@@ -402,15 +472,16 @@ export default function App() {
                       >
                         🤠 View Engagement
                       </a>
-                    </div>
-                  )}
-
-                  {/* Friendship Score */}
-                  <div className="text-center">
-                    <div className="text-sm text-amber-700 mb-1">Friendship Score</div>
-                    <div className="text-2xl font-bold text-amber-800">
-                      {friend.rideOrDieScore}
-                    </div>
+                    )}
+                    
+                    {isSDKLoaded && isInMiniApp && (
+                      <button
+                        onClick={() => handleTipFriend(friend)}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 text-sm border-2 border-green-400"
+                      >
+                        💰 Tip 1 USDC
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
