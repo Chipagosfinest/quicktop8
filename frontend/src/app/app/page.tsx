@@ -330,17 +330,17 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-20 h-20 bg-purple-400 rounded-full transform rotate-12 animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-16 h-16 bg-pink-400 rounded-full transform -rotate-12 animate-bounce"></div>
-        <div className="absolute bottom-20 left-1/3 w-24 h-24 bg-indigo-400 rounded-full transform rotate-30 animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-purple-400 rounded-full transform -rotate-12 animate-bounce"></div>
+        <div className="absolute bottom-20 left-1/3 w-24 h-24 bg-purple-400 rounded-full transform rotate-30 animate-pulse"></div>
       </div>
 
       {/* Header */}
       <div className="absolute top-4 right-4 z-10">
-        <div className="bg-purple-800 bg-opacity-90 text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider border border-purple-600">
+        <div className="bg-purple-600 bg-opacity-90 text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider border border-purple-500">
           QUICKTOP8
         </div>
       </div>
@@ -348,7 +348,7 @@ export default function App() {
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-700 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg border-4 border-purple-500 animate-bounce">
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg border-4 border-purple-500 animate-bounce">
               🤠
             </div>
             <h1 className="text-4xl font-bold text-purple-900 ml-4 drop-shadow-lg">
@@ -360,7 +360,7 @@ export default function App() {
           </p>
           
           {/* Scoring Primer */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-4 border-2 border-purple-300 inline-block mb-4">
+          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-4 border-2 border-purple-300 inline-block mb-4">
             <button
               onClick={() => setShowScoringPrimer(!showScoringPrimer)}
               className="text-sm text-purple-700 hover:text-purple-900 font-semibold flex items-center space-x-2"
@@ -388,7 +388,7 @@ export default function App() {
           </div>
 
           {stats && (
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-4 border-2 border-purple-300 inline-block">
+            <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-4 border-2 border-purple-300 inline-block">
               <div className="text-sm text-purple-700">
                 <span className="font-semibold">Average Affinity:</span> {stats.average_affinity_score?.toFixed(1) || 'N/A'}
                 <span className="mx-2">•</span>
@@ -433,21 +433,21 @@ export default function App() {
               <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 border-purple-400">
                 <h3 className="text-xl font-bold text-purple-900 mb-4 text-center">📊 Your Digital Squad Stats</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-300">
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-300">
                     <div className="text-2xl font-bold text-purple-600">{allUsers.length}</div>
                     <div className="text-purple-700 text-sm">Total Connections</div>
                   </div>
-                  <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border-2 border-pink-300">
-                    <div className="text-2xl font-bold text-pink-600">{stats.average_affinity_score?.toFixed(1) || 'N/A'}</div>
-                    <div className="text-pink-700 text-sm">Avg Affinity</div>
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-300">
+                    <div className="text-2xl font-bold text-purple-600">{stats.average_affinity_score?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-purple-700 text-sm">Avg Affinity</div>
                   </div>
-                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-300">
-                    <div className="text-2xl font-bold text-indigo-600">{stats.top_affinity_score?.toFixed(1) || 'N/A'}</div>
-                    <div className="text-indigo-700 text-sm">Top Score</div>
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-300">
+                    <div className="text-2xl font-bold text-purple-600">{stats.top_affinity_score?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-purple-700 text-sm">Top Score</div>
                   </div>
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-300">
-                    <div className="text-2xl font-bold text-green-600">{stats.verified_users || 0}</div>
-                    <div className="text-green-700 text-sm">Verified</div>
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-300">
+                    <div className="text-2xl font-bold text-purple-600">{stats.verified_users || 0}</div>
+                    <div className="text-purple-700 text-sm">Verified</div>
                   </div>
                 </div>
                 <div className="mt-4 text-center">
@@ -462,7 +462,7 @@ export default function App() {
             <div className="text-center">
               <button
                 onClick={handleShareResults}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-green-400"
+                className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-purple-400"
               >
                 🤠 Share My Top 8
               </button>
@@ -477,10 +477,10 @@ export default function App() {
                     key={user.fid}
                     data-rank={user.rank}
                     className={`bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border-4 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer group relative ${
-                      index === 0 ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50' :
-                      index === 1 ? 'border-gray-400 bg-gradient-to-r from-gray-50 to-slate-50' :
-                      index === 2 ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-red-50' :
-                      'border-purple-400 hover:border-purple-500 hover:bg-purple-50'
+                      index === 0 ? 'border-purple-400 bg-gradient-to-r from-purple-50 to-purple-100' :
+                      index === 1 ? 'border-purple-300 bg-gradient-to-r from-purple-50 to-white' :
+                      index === 2 ? 'border-purple-200 bg-gradient-to-r from-white to-purple-50' :
+                      'border-purple-200 hover:border-purple-300 hover:bg-purple-50'
                     }`}
                     onClick={() => handleCardClick(user)}
                   >
@@ -490,14 +490,14 @@ export default function App() {
                     </div>
 
                     {/* Affinity Score Badge with Label */}
-                    <div className="absolute -top-3 -left-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    <div className="absolute -top-3 -left-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                       <div className="text-xs">Score</div>
                       <div>{user.mutual_affinity_score.toFixed(0)}</div>
                     </div>
 
                     {/* Profile Section */}
                     <div className="text-center mb-4">
-                      <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-purple-500 overflow-hidden bg-gradient-to-br from-purple-600 to-pink-700 relative">
+                      <div className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-purple-500 overflow-hidden bg-gradient-to-br from-purple-600 to-purple-700 relative">
                         {user.pfp_url ? (
                           <img 
                             src={user.pfp_url} 
@@ -514,7 +514,7 @@ export default function App() {
                           {user.username?.charAt(0).toUpperCase() || '?'}
                         </div>
                         {user.verified && (
-                          <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                          <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
                             ✓
                           </div>
                         )}
@@ -556,14 +556,21 @@ export default function App() {
                     {/* Connections of Connections - Show Directly */}
                     {user.social_scope && user.social_scope.friends_of_friends.length > 0 && (
                       <div className="mb-4">
-                        <div className="text-xs font-semibold text-purple-800 mb-2">🌟 Their Connections</div>
+                        <div className="text-xs font-semibold text-purple-800 mb-2">🌟 Friends of Friends</div>
+                        <div className="text-xs text-purple-600 mb-2 italic">
+                          Your top reply guys and their reply guys
+                        </div>
                         <div className="flex flex-wrap gap-1">
                           {user.social_scope.friends_of_friends.slice(0, 4).map((friend) => (
-                            <div
+                            <button
                               key={friend.fid}
-                              className="flex items-center space-x-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full px-2 py-1 text-xs border border-green-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(`https://warpcast.com/${friend.username}`, '_blank');
+                              }}
+                              className="flex items-center space-x-1 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-full px-2 py-1 text-xs border border-purple-200 hover:from-purple-100 hover:to-indigo-100 transition-colors"
                             >
-                              <div className="w-3 h-3 rounded-full overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600">
+                              <div className="w-3 h-3 rounded-full overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600">
                                 {friend.pfp_url ? (
                                   <img 
                                     src={friend.pfp_url} 
@@ -576,8 +583,8 @@ export default function App() {
                                   </div>
                                 )}
                               </div>
-                              <span className="text-green-800 font-medium text-xs">@{friend.username}</span>
-                            </div>
+                              <span className="text-purple-800 font-medium text-xs">@{friend.username}</span>
+                            </button>
                           ))}
                           {user.social_scope.friends_of_friends.length > 4 && (
                             <span className="text-xs text-gray-500">+{user.social_scope.friends_of_friends.length - 4} more</span>
@@ -616,7 +623,7 @@ export default function App() {
                           e.stopPropagation();
                           handleTipUser(user.fid, user.username);
                         }}
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white text-center py-2 rounded-lg font-semibold hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-sm border-2 border-amber-400"
+                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-center py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-300 text-sm border-2 border-purple-400"
                       >
                         💰 Tip $1
                       </button>
@@ -632,7 +639,7 @@ export default function App() {
                 <button
                   onClick={loadMore}
                   disabled={loading}
-                  className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-purple-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-purple-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Loading...' : '🔄 Load More Connections'}
                 </button>

@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Fetch friends of friends for each user (limited to avoid rate limits)
-    for (let i = 0; i < Math.min(top8.length, 3); i++) { // Only fetch for first 3 users to avoid rate limits
+    for (let i = 0; i < top8.length; i++) { // Fetch for all users in current page
       const user = top8[i]
       try {
         const friendFriendsResponse = await makeNeynarRequest(
